@@ -1,0 +1,5 @@
+﻿
+[section]
+; this is a comment
+Key1 = Value1 
+
