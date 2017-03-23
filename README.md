@@ -41,9 +41,9 @@ Ex.
 The same engine will also comment out resources that are marked as DISABLED in SCM baselines.
 
 If comments are available they will be parsed and added above corresponding resources.
- - SCMXML - Working
- - SCMJSON - Not completed
- - GPO - Not completed
+ - SCMXML - Comments will be parsed
+ - SCMJSON - Comments will NOT be parsed
+ - GPO - Comments will NOT be parsed
  
 This tool was designed for two main purposes.
  - Allow conversion of GPOS into DSC for application or auditing.
