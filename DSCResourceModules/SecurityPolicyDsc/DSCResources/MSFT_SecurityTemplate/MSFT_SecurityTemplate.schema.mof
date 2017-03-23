@@ -1,8 +1,0 @@
-
-[ClassVersion("1.0.0.0"), FriendlyName("SecurityTemplate")]
-class MSFT_SecurityTemplate : OMI_BaseResource
-{
-    [Key, Description("Specifies the resource is a single instance, the value must be 'Yes'"), ValueMap{"Yes"}, Values{"Yes"}] String IsSingleInstance;
-    [Required, Description("The path to the desired security policy template (.inf)")] String Path;
-};
-
