@@ -28,7 +28,8 @@ PLEASE NOTE: If the resources are not copied into a PSModulePath the Configurati
 This is simply because DSC requires that all modules in a Configuration be present in PSModulePath when compiled.
 
 The tool has a conflict resolution engine that will automatically comment out conflicting resources.
-	Ex.
+Ex.
+
 	Service Spooler
 	{
 		Name = "Spooler"
