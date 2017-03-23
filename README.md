@@ -4,22 +4,18 @@ Upon Importing the Module BaselineManagement
 	Import-Module BaselineManagement 
 
 There will be one 3 main cmdlets:
-	ConvertFrom-GPO
-Converts from GPO Backups into DSC Configuration and accompanying MOF
-	ConvertFrom-SCMXML
-Converts from SCMXML into DSC Configuration and accompanying MOF
-	ConvertFrom-SCMJSON
-Converts from SCMJSON into DSC Configuration and accompanying MOF
 
 These cmdlets are designed to convert from baselines in Group Policy or SCM into corresponding DSC Configurations and MOF Files.
+ - ConvertFrom-GPO - Converts from GPO Backups into DSC Configuration and accompanying MOF
+ - ConvertFrom-SCMXML - Converts from SCMXML into DSC Configuration and accompanying MOF
+ - ConvertFrom-SCMJSON - Converts from SCMJSON into DSC Configuration and accompanying MOF
 
-There is also a "proxy" cmdlet that allows you to pass any of the baselines in and then automatically chooses the correct cmdlet for you.
-	ConvertTo-DSC
+ - ConvertTo-DSC - "proxy" cmdlet that allows you to pass any of the baselines in and then automatically chooses the correct cmdlet for you.
 
 All of the Cmdlets accept pipeline input and have accompanying help text and examples.
 
 Upon passing an appropriate baseline into the proper cmdlet, the tool will automatically convert it into a DSC Configuration and attempt to compile it against localhost.
-	There is also a parameter to output the configuration PS1 file if needed. 
+There is also a parameter to output the configuration PS1 file if needed. 
 If there are any errors compiling or creating the configuration, the tool will output a ps1.error file with the configuration text.
 
 The accompanying resources stored in the DSC resources folder are needed to apply the settings.  Most can be found on github, but are stored here for convenience.
@@ -45,22 +41,22 @@ Ex.
 The same engine will also comment out resources that are marked as DISABLED in SCM baselines.
 
 If comments are available they will be parsed and added above corresponding resources.
-	SCMXML - Working
-	SCMJSON - Not completed
-	GPO - Not completed
+ - SCMXML - Working
+ - SCMJSON - Not completed
+ - GPO - Not completed
  
 This tool was designed for two main purposes.
-	Allow conversion of GPOS into DSC for application or auditing.
-	Allow remediation of SCM baselines.
+ - Allow conversion of GPOS into DSC for application or auditing.
+ - Allow remediation of SCM baselines.
 
 The tool has been thoroughly tested, but needs to be run against a variety of baselines to ensure they are parsed correctly.
 
 TO ASSIST with parsing new baselines:
-	I designed the Pester tests to work off sample baselines stored in the TESTS folder.  
+ - I designed the Pester tests to work off sample baselines stored in the TESTS folder.  
 You can replace these with any baselines you want to test conversion of to seee more verbose output.
 
 Additional SCM Baselines are currently in the work
-	Currently Complete: OS
+ - Currently Complete: OS
 
 If you have any issues, please submit them and I will get to them as I am able :-)
 
