@@ -22,7 +22,7 @@ Describe "DSC String Helper Tests" {
     Context "Write-DSCString" {
         
         # This only works when it feels like it.
-        Mock Get-DSCResource -ParameterFilter { $Module -eq "TestModule_01"} -Verifiable { return [psobject]@{Name="TestResoucre_01";Properties=@(@{Name="Name";IsMandatory=$true}, @{Name="Value";IsMandatory=$true})}}
+        Mock Get-DSCResource -ParameterFilter { $Module -eq "TestModule_01"} -Verifiable { return [psobject]@{Name="TestResource_01";Properties=@(@{Name="Name";IsMandatory=$true}, @{Name="Value";IsMandatory=$true})}}
         Mock Get-DSCResource -ParameterFilter { $Module -eq "TestModule_02"} -Verifiable { return [psobject]@{Name="TestResource_02";Properties=@(@{Name="Name";IsMandatory=$true}, @{Name="Value";IsMandatory=$true})}}
 
         $CONFIG_Params = @{Configuration=$true;Name="TestConfig"}
