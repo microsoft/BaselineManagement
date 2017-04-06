@@ -1396,14 +1396,16 @@ Function Write-JSONPrivilegeData
         Default { Write-Warning "Found a new Account Value for JSONPrivilege: $_" }
     }
                                 
-    if (![string]::IsNullOrEmpty($Accounts))
+    $policyHash = @{}
+    if ([string]::IsNullOrEmpty($Accounts))
     {
-        $policyHash = @{}
-        $policyHash.Policy = $Privilege
-        $policyHash.Identity = $Accounts                    
+        $policyHash.Force = $true
+    }    
+    
+    $policyHash.Policy = $Privilege
+    $policyHash.Identity = $Accounts                    
                     
-        return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.Name)" -Type UserRightsAssignment -Parameters $policyHash -CommentOUT:(!$PrivilegeData.Enabled)
-    }
+    return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.Name)" -Type UserRightsAssignment -Parameters $policyHash -CommentOUT:(!$PrivilegeData.Enabled)
 }
 
 # Clear our processing history on each Configuration Creation.

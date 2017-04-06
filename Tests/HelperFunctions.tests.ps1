@@ -546,7 +546,7 @@ Describe "XML Conversion Helper Tests" {
 
 Describe "JSON Conversion Helper Tests" {
     
-    $JSON = Get-Content -Path $JSON_Sample | ConvertFrom-Json
+    $JSON = Get-Content -Path $JSONSample | ConvertFrom-Json
     $registryPolicies = $JSON.properties.RulesetsCollection.BaselineRuleset.rules.BaselineRegistryRule
     $AuditPolicies = $JSON.properties.RulesetsCollection.BaselineRuleset.rules.BaselineAuditPolicyRule
     $securityPolicies = $JSON.properties.RulesetsCollection.BaselineRuleset.rules.BaselineSecurityPolicyRule
@@ -664,7 +664,7 @@ Describe "JSON Conversion Helper Tests" {
                     It "Parses Privilege Data" {
                         $Parameters.Type | Should Be "UserRightsAssignment"
                         $Parameters.Parameters.Policy | Should Be $UserRightsHash[$Policy.SettingName]
-                        $Parameters.Parameters.Identity -join ", " | Should Match ((($Policy.ExpectedValue -split ", ") | %{"(?=.*$_)"}) -join "")
+                        $Parameters.Parameters.Identity -join ", " | Should Match ((($Policy.ExpectedValue.Replace("No One", "") -split ", ") | %{"(?=.*$_)"}) -join "")
                         [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
                     }
                 }
