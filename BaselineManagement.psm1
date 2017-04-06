@@ -48,6 +48,9 @@ function ConvertTo-DSC
         [ValidateScript({Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
+        # ComputerName for Node processing.
+        [string]$ComputerName = "localhost",
+
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript
     )
@@ -147,6 +150,9 @@ function ConvertFrom-GPO
         [ValidateScript({Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
+        # ComputerName for Node processing.
+        [string]$ComputerName = "localhost",
+
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript
     )
@@ -181,9 +187,9 @@ function ConvertFrom-GPO
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name "DSCFromGPO"
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, xAuditPolicy, SecurityPolicyDSC, xGPOtoDSC
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC, GPOtoDSC
     # Add Node Data
-    $configString += Write-DSCString -Node -Name "localhost"
+    $configString += Write-DSCString -Node -Name $ComputerName
     
     # Loop through each Pol file.
     foreach ($polFile in $polFiles)
@@ -348,6 +354,9 @@ Function ConvertFrom-SCMXML
         [Parameter()]
         [String]$OutputPath = $(Join-Path $pwd.Path "output"),
 
+        # ComputerName for Node processing.
+        [string]$ComputerName = "localhost",
+
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript
     )
@@ -367,9 +376,9 @@ Function ConvertFrom-SCMXML
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name DSCFromSCMXML -Comment $BaselineComment
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, xAuditPolicy, SecurityPolicyDSC
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
     # Add Node Data
-    $ConfigString += Write-DSCString -Node -Name localhost
+    $ConfigString += Write-DSCString -Node -Name $ComputerName
     
     # We need to setup a namespace to properly search the XML.
     $namespace = @{e="http://schemas.microsoft.com/SolutionAccelerator/SecurityCompliance"}
@@ -422,7 +431,7 @@ Function ConvertFrom-SCMXML
 
                 "AdvancedAuditPolicy"
                 {
-                    $ConfigString += Write-XMLAuditData -DiscoveryData $node -ValueData $valueNodeDa
+                    $ConfigString += Write-XMLAuditData -DiscoveryData $node -ValueData $valueNodeData
                 }
                 
                 "GeneratedScript (User Rights Assignment)"
@@ -494,6 +503,9 @@ function ConvertFrom-SCMJSON
         [ValidateScript({Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
+        # ComputerName for Node processing.
+        [string]$ComputerName = "localhost",
+
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript
     )
@@ -517,9 +529,9 @@ function ConvertFrom-SCMJSON
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name DSCFromSCMJSON
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, xAuditPolicy, SecurityPolicyDSC
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
     # Add Node Data
-    $ConfigString += Write-DSCString -Node -Name localhost
+    $ConfigString += Write-DSCString -Node -Name $computername
     
     # JSON is pretty straightforward where it keeps the individual settings.
     # These are the registry settings.

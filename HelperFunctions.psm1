@@ -335,13 +335,13 @@ Configuration $Name`n{`n`n`t
 
             # If we do not have a processing history entry for this type, set it to a blank array.
             # Have to do this here, because they may have forgotten do import the module so we cannot assume only Resources specified in the Import-Module.
-            if (!$script:ProcessingHistory.ContainsKey($Type))
+            if (!$ProcessingHistory.ContainsKey($Type))
             {
-                $script:ProcessingHistory[$Type] = @()
+                $ProcessingHistory[$Type] = @()
             }
 
             # Add this resource to the processing history.
-            $script:ProcessingHistory[$Type] += @{Name=$Name;Conflict=$GlobalConflict;Disabled=$CommentOut}
+            $ProcessingHistory[$Type] += @{Name=$Name;Conflict=$GlobalConflict;Disabled=$CommentOut}
             
             # If we have a conflict, comment the block out.
             if ($GlobalConflict)
@@ -410,7 +410,7 @@ Configuration $Name`n{`n`n`t
                 }
                 elseif($Parameters[$key] -is [System.String]) 
                 { 
-                    $DSCString += "`n`t`t`t$($key) = '$($Parameters[$key].Trim("'").TrimEnd("'"))'" 
+                    $DSCString += "`n`t`t`t$($key) = '$($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"'))'" 
                 }
                 elseif($Parameters[$key] -is [System.Boolean])
                 { 
@@ -733,7 +733,7 @@ Function Write-INFRegistryData
     }
     elseif ($regHash.ValueType -eq "String" -or $regHash.ValueType -eq "MultiString")
     {
-        [string]$regHash.ValueData = [string]$regHasg.ValueData
+        [string]$regHash.ValueData = [string]$regHash.ValueData
     }
 
     $CommentOUT = $false
@@ -928,32 +928,31 @@ Function Complete-Configuration
     {
         mkdir $OutputPath
     }
-
-    Try
+    
+    $scriptblock = [scriptblock]::Create($ConfigString)
+    
+    if (!$?)
     {
-        $scriptblock = [scriptblock]::Create($ConfigString)
-    }
-    Catch
-    {
-        Write-Error "Could not create ScriptBlock from configuration. Storing ScriptBlock: $(Join-Path -Path $OutputPath -ChildPath "$($CallingFunction).ps1.error") YET SOMEHOW $CallingFunction cannot be used on the Very Next line in Join-Path"
-        
+        # Somehow CallingFunction, defined above, is not useable right here.  Not sure why
         $Path = $(Join-Path -Path $OutputPath -ChildPath "$($CallingFunction).ps1.error")
-        if (!(Test-Path -$Path -ErrorAction SilentlyContinue)) 
-        {
-            $Path = $(Join-Path -Path $OutputPath -ChildPath "WTF.ps1.error")
-        }
         $ConfigString > $Path
+        
+        Write-Error "Could not CREATE ScriptBlock from configuration. Creating PS1 Error File: $Path. Please rename error file to PS1 and open for further inspection. Errors are listed below"
         return $false
     }
     
-    Try 
+    $output = Invoke-Command -ScriptBlock $scriptblock
+    
+    if (!$?)
     {
-        $mof = $scriptblock.Invoke()
-    }
-    Catch
-    {
-        Write-Error "Could not compile cofiguration. Storing ScriptBlock: $(Join-Path -Path $OutputPath -ChildPath "$($CallingFunction).ps1.error")"
-        $scriptblock.ToString() > $(Join-Path -Path $OutputPath -ChildPath "$($CallingFunction).ps1.error")
+        $Path = $(Join-Path -Path $OutputPath -ChildPath "$($CallingFunction).ps1.error")
+        $scriptblock.ToString() > $Path
+        
+        Write-Error "Could not COMPILE cofiguration. Storing ScriptBlock: $Path.  Please rename error file to PS1 and open for further inspection. Errors are listed below"
+        foreach ($e in $output)
+        {
+            Write-Error $e
+        }
         return $false
     }
         
@@ -1247,6 +1246,12 @@ Function Write-XMLWMIData
     # Grab the Value and Operator
     $TempValue = $ValidationRules.SettingRule.Value.ValueA
     
+    $parseValue = $false
+    if ([bool]::TryParse($TempValue, [ref]$parseValue))
+    {
+        [int]$TempValue = [bool]$parseValue
+    }
+
     $Operator = $ValidationRules.SettingRule.Operator
 
     $retHash = @{}
@@ -1404,7 +1409,7 @@ Function Write-JSONPrivilegeData
 # Clear our processing history on each Configuration Creation.
 Function Clear-ProcessingHistory
 {
-    $Script:ProcessingHistory.Clear()
+    $ProcessingHistory.Clear()
 }
 
 # Write out summary data and output proper files based on success/failure.
@@ -1426,10 +1431,15 @@ Function Write-ProcessingHistory
         mkdir $OutputPath | Out-Null
     }
 
-    if (!(Get-Module -ListAvailable).name -contains "Pester")
+    if (((Get-Module -ListAvailable).name -contains "Pester"))
+    {
+        Import-Module Pester
+    }
+    elseif (!((Get-Module).name -contains "Pester"))
     {
         Write-ProcessingHistory_NonPester -Pass $Pass 
         Write-ProcessingHistory_NonPester -Pass $Pass *> $(Join-Path -Path $OutputPath -ChildPath "Summary.log")
+        return
     }
         
     $Tests = @()
@@ -1437,10 +1447,15 @@ Function Write-ProcessingHistory
     New-Variable -Name disabled -Option AllScope -Force
     New-Variable -Name conflict -Option AllScope -Force
     $successes = $disabled = $conflict = 0
-    
-    foreach($KeyPair in $Script:ProcessingHistory.GetEnumerator())
+    $History = Get-Variable ProcessingHistory
+    foreach($KeyPair in $History.Value.GetEnumerator())
     {
-        $Tests += @{Name=$KeyPair.Key.ToUpper();Expression={
+        $old_success = $successes
+        $old_disabled = $disabled
+        $old_conflict = $conflict        
+        $Describe = "Parsing Summary: $((Get-PsCallStack)[1].Command) - $(@("FAILED", "SUCCEEDED")[[int]$Pass])`n`t$($KeyPair.Key.ToUpper()) Resources"        
+        Describe $Describe {
+
             foreach ($Resource in $KeyPair.Value.Where({($_.Disabled -eq $false) -and ($_.Conflict -eq $false)}))
             {
                 It "Parsed: $($Resource.Name)" {
@@ -1464,27 +1479,40 @@ Function Write-ProcessingHistory
                 }          
                 $conflict++
             }
-        }}
-    } 
-    
-    foreach ($test In $Tests)
-    {   
-        $old_success = $successes
-        $old_disabled = $disabled
-        $old_conflict = $conflict
+        } *>> $(Join-Path -Path $OutputPath -ChildPath "Summary.log")
 
-        $Describe = "Parsing Summary: $((Get-PsCallStack)[1].Command) - $(@("FAILED", "SUCCEEDED")[[int]$Pass])`n`t$($test.Name) Resources"
-        # One for output to a file.
-        Describe $Describe -Fixture $test.Expression *>> $(Join-Path -Path $OutputPath -ChildPath "Summary.log")
-        
         $successes = $old_success
         $disabled = $old_disabled
         $conflict = $old_conflict
 
-        # One for output to the screen.
-        Describe $Describe -Fixture $test.Expression
-    }
+        Describe $Describe {
 
+            foreach ($Resource in $KeyPair.Value.Where({($_.Disabled -eq $false) -and ($_.Conflict -eq $false)}))
+            {
+                It "Parsed: $($Resource.Name)" {
+                    $Resource.Disabled | Should Be $false
+                } 
+                $successes++                         
+            }
+
+            foreach ($Resource in $KeyPair.Value.Where({$_.Disabled}))
+            {
+                It "Disabled: $($Resource.Name)" {
+                    $Resource.Disabled | Should Be $true
+                }          
+                $disabled++
+            }
+
+            foreach ($Resource in $KeyPair.Value.Where({$_.Conflict}))
+            {
+                It "Found Conflicts: $($Resource.Name)" {
+                    $Resource.Conflict | Should Be $true
+                }          
+                $conflict++
+            }
+        } 
+    } 
+    
     $tmpBlock = { 
         Write-Host "TOTALS" -ForegroundColor White 
         Write-Host "------" -ForegroundColor White
@@ -1509,11 +1537,11 @@ Function Write-ProcessingHistory_NonPester
         [bool]$Pass
     )
         
-    Write-Host "Parsing Summary: $((Get-PsCallStack)[1].Command) - $(@("SUCCEEDED", "FAILED")[[int]$Pass])" -ForegroundColor @("RED", "GREEN")[[int]$Pass]
-    Write-Host"---------------" -ForegroundColor White
-
+    Write-Host "Parsing Summary: $((Get-PsCallStack)[1].Command) - $(@("FAILED", "SUCCEEDED")[[int]$Pass])" -ForegroundColor @("RED", "GREEN")[[int]$Pass]
+    Write-Host "---------------" -ForegroundColor White
+    $History = Get-Variable ProcessingHistory
     $successes = $disabled = $conflict = 0
-    foreach($KeyPair in $Script:ProcessHistory.GetEnumerator())
+    foreach($KeyPair in $History.Value.GetEnumerator())
     {
         foreach ($Resource in $KeyPair.Value.Where({($_.Disabled -eq $false) -and ($_.Conflict -eq $false)}))
         {
