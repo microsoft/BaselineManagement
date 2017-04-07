@@ -212,7 +212,7 @@ function ConvertFrom-GPO
     {
         $parameters = @{CSVPAth=$AuditCSV.FullName;Force=$True}
         # Add our CSV path to a resource block and concatenate with our Configuration string.
-        $ConfigString += Write-DSCString -Resource -Type "xAuditCSV" -Name $($AuditCSV.Name + "_$i") -Parameters $parameters
+        $ConfigString += Write-DSCString -Resource -Type "AuditPolicyCSV" -Name $($AuditCSV.Name + "_$i") -Parameters $parameters
         $i++
     }
 

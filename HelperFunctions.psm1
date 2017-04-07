@@ -1144,7 +1144,30 @@ Function Write-XMLAuditData
         $retHash.AuditFlag = $AuditFlag    
     }
     
-    Write-DSCString -Resource -Name $Name -Type xAuditCategory -Parameters $retHash -Comment $Comments
+    switch ($retHash.AuditFlag)
+    {
+        "SuccessAndFailure" 
+        {
+            $retHash.AuditFlag = "Success"
+            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+            $retHash.AuditFlag = "Failure"
+            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+        }
+        
+        "No Auditing" 
+        {
+            $retHash.Ensure = "Absent"
+            $retHash.AuditFlag = "Success"
+            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+            $retHash.AuditFlag = "Failure"
+            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+        } 
+
+        Default
+        {
+            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+        }
+    }
 }
 
 Function Write-XMLPrivilegeData
@@ -1355,7 +1378,30 @@ Function Write-JSONAuditData
         $policyHash.AuditFlag = $AuditData.ExpectedValue
         $policyHash.SubCategory = $Category 
             
-        return Write-DSCString -Resource -Type xAuditCategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+        switch ($policyHash.AuditFlag)
+        {
+            "SuccessAndFailure" 
+            {
+                $policyHash.AuditFlag = "Success"
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                $policyHash.AuditFlag = "Failure"
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+            }
+            
+            "No Auditing" 
+            {
+                $policyHash.Ensure = "Absent"
+                $policyHash.AuditFlag = "Success"
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                $policyHash.AuditFlag = "Failure"
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+            } 
+
+            Default
+            {
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+            }
+        }
     }
 }
 
