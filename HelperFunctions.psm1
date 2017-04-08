@@ -1124,14 +1124,14 @@ Function Write-XMLAuditData
 
     $retHash = @{}
     $retHash.AuditFlag = ""
-    $retHash.SubCategory = ""
+    $retHash.Name = ""
         
     $AuditFlag = ((("$($TempValue)" -replace "[^\u0020-\u007E]", "") -replace "Success And Failure", "SuccessAndFailure") -replace "No Auditing", "NoAuditing")
     $AuditID = $DiscoveryData.AdvancedAuditDiscoveryInfo.advancedauditsettingid.Trim("{").TrimEnd("}")
 
     if ($AuditCategoryHash.ContainsKey($AuditID))
     {
-        $retHash.SubCategory = $AuditCategoryHash["$AuditID"]
+        $retHash.Name = $AuditCategoryHash["$AuditID"]
     }
     else
     {
@@ -1149,18 +1149,18 @@ Function Write-XMLAuditData
         "SuccessAndFailure" 
         {
             $retHash.AuditFlag = "Success"
-            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+            Write-DSCString -Resource -Name "$Name (Success)" -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
             $retHash.AuditFlag = "Failure"
-            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+            Write-DSCString -Resource -Name "$Name (Failure)" -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
         }
         
         "No Auditing" 
         {
             $retHash.Ensure = "Absent"
             $retHash.AuditFlag = "Success"
-            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+            Write-DSCString -Resource -Name "$Name (Success)" -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
             $retHash.AuditFlag = "Failure"
-            Write-DSCString -Resource -Name $Name -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
+            Write-DSCString -Resource -Name "$Name (Failure)" -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
         } 
 
         Default
@@ -1376,25 +1376,25 @@ Function Write-JSONAuditData
             
         $policyHash = @{}
         $policyHash.AuditFlag = $AuditData.ExpectedValue
-        $policyHash.SubCategory = $Category 
+        $policyHash.Name = $Category 
             
         switch ($policyHash.AuditFlag)
         {
             "SuccessAndFailure" 
             {
                 $policyHash.AuditFlag = "Success"
-                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Success)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
                 $policyHash.AuditFlag = "Failure"
-                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Failure)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
             }
             
             "No Auditing" 
             {
                 $policyHash.Ensure = "Absent"
                 $policyHash.AuditFlag = "Success"
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Success)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
                 $policyHash.AuditFlag = "Failure"
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Failure)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
             } 
 
             Default
