@@ -206,14 +206,13 @@ function ConvertFrom-GPO
         }
     }
         
-    $i = 0;
     # Loop through each Audit CSV in the GPO Directory.
     foreach ($AuditCSV in $AuditCSVs)
     {
-        $parameters = @{CSVPAth=$AuditCSV.FullName;Force=$True}
-        # Add our CSV path to a resource block and concatenate with our Configuration string.
-        $ConfigString += Write-DSCString -Resource -Type "AuditPolicyCSV" -Name $($AuditCSV.Name + "_$i") -Parameters $parameters
-        $i++
+        foreach ($CSV in $AuditCSV)
+        {
+            $ConfigString += Write-CSVAuditData -Entry $CSV
+        }
     }
 
     # Loop through all the GPTemplate files.

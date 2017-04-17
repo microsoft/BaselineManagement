@@ -530,6 +530,73 @@ function Get-IniContent
     return $ini
 }
 
+Function Write-CSVAuditData
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        [System.Object]$Entry
+    )
+
+    $retHash = @{}
+    $retHash.Name = $Entry.SubCategory
+
+    switch -regex ($Entry.InclusionSetting)
+    {
+        "Success and Failure"
+        {
+            $retHash.Ensure = "Present"
+            $retHash.AuditFlag = "Success"
+            Write-DSCString -Resource -Name "$Name (Success) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $retHash.AuditFlag = "Failure"
+            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+        }
+
+        "No Auditing"
+        {
+            $retHash.Ensure = "Absent"
+            $retHash.AuditFlag = "Success"
+            Write-DSCString -Resource -Name "$Name (Success) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $retHash.AuditFlag = "Failure"
+            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+        }
+
+        "^(Success|Failure)$"
+        {
+            $retHash.Ensure = "Present"
+            $retHash.AuditFlag = $Entry.InclusionSetting
+            Write-DSCString -Resource -Name "$Name - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+        }
+    }
+    
+    $retHash.Ensure = "Absent"
+    switch -regex ($Entry.ExclusionSetting)
+    {
+        "Success and Failure"
+        {
+            $retHash.Ensure = "Absent"
+            $retHash.AuditFlag = "Success"
+            Write-DSCString -Resource -Name "$Name (Success) - Exclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $retHash.AuditFlag = "Failure"
+            Write-DSCString -Resource -Name "$Name (Failure) - Exclusion" -Type AuditPolicySubcategory -Parameters $retHash
+        }
+
+        "No Auditing"
+        {
+            # I am not sure how to make sure that "No Auditing" is Excluded or ABSENT. What should it be set to then?
+        }
+
+        "^(Success|Failure)$"
+        {
+            $retHash.Ensure = "Absent"
+            $retHash.AuditFlag = $Entry.ExclusionSetting
+            Write-DSCString -Resource -Name "$Name - Exclusion" -Type AuditPolicySubcategory -Parameters $retHash
+        }
+    }
+}
+
 Function Write-GPORegistryXMLData
 {
     [CmdletBinding()]
@@ -1154,7 +1221,7 @@ Function Write-XMLAuditData
             Write-DSCString -Resource -Name "$Name (Failure)" -Type AuditPolicySubcategory -Parameters $retHash -Comment $Comments
         }
         
-        "No Auditing" 
+        "NoAuditing" 
         {
             $retHash.Ensure = "Absent"
             $retHash.AuditFlag = "Success"
@@ -1388,7 +1455,7 @@ Function Write-JSONAuditData
                 Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Failure)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
             }
             
-            "No Auditing" 
+            "NoAuditing" 
             {
                 $policyHash.Ensure = "Absent"
                 $policyHash.AuditFlag = "Success"
