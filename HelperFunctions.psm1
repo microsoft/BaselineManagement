@@ -398,11 +398,11 @@ Configuration $Name`n{`n`n`t
                             Try
                             {
                                 Invoke-Expression $("`$variable = '" + $item[$i] + "'") | Out-Null
-                                $DSCString += "'$($item[$i].Trim("'").TrimEnd("'"))'"   
+                                $DSCString += "'$($item[$i].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim())'"   
                             }
                             catch
                             {
-                                $DSCString += "@'`n$($item[$i].Trim("'").TrimEnd("'"))`n'@"   
+                                $DSCString += "@'`n$($item[$i].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim())`n'@"   
                             }
                         }
                         else
@@ -421,12 +421,12 @@ Configuration $Name`n{`n`n`t
                     Try
                     {
                         Invoke-Expression $("`$variable = '" + $Parameters[$Key] + "'") | Out-Null
-                        $DSCString += "`n`t`t`t$($key) = '$([string]::new($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"')))'" 
+                        $DSCString += "`n`t`t`t$($key) = '$([string]::new($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim()))'" 
                     }
                     Catch
                     {
                         # Parsing Error
-                        $DSCString += "`n`t`t`t$($key) = @'`n$($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"'))`n'@" 
+                        $DSCString += "`n`t`t`t$($key) = @'`n$($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim())`n'@" 
                     }
                 }
                 elseif($Parameters[$key] -is [System.Boolean])

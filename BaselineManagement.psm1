@@ -187,7 +187,7 @@ function ConvertFrom-GPO
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name "DSCFromGPO"
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC, GPOtoDSC
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC, BaselineManagement
     # Add Node Data
     $configString += Write-DSCString -Node -Name $ComputerName
     
