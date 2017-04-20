@@ -395,7 +395,15 @@ Configuration $Name`n{`n`n`t
                     {
                         if ($item[$i] -is [String])
                         {
-                            $DSCString += "'$($item[$i].Trim("'").TrimEnd("'"))'"   
+                            Try
+                            {
+                                Invoke-Expression $("`$variable = '" + $item[$i] + "'") | Out-Null
+                                $DSCString += "'$($item[$i].Trim("'").TrimEnd("'"))'"   
+                            }
+                            catch
+                            {
+                                $DSCString += "@'`n$($item[$i].Trim("'").TrimEnd("'"))`n'@"   
+                            }
                         }
                         else
                         {
@@ -410,7 +418,16 @@ Configuration $Name`n{`n`n`t
                 }
                 elseif($Parameters[$key] -is [System.String]) 
                 { 
-                    $DSCString += "`n`t`t`t$($key) = '$($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"'))'" 
+                    Try
+                    {
+                        Invoke-Expression $("`$variable = '" + $Parameters[$Key] + "'") | Out-Null
+                        $DSCString += "`n`t`t`t$($key) = '$([string]::new($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"')))'" 
+                    }
+                    Catch
+                    {
+                        # Parsing Error
+                        $DSCString += "`n`t`t`t$($key) = @'`n$($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"'))`n'@" 
+                    }
                 }
                 elseif($Parameters[$key] -is [System.Boolean])
                 { 
@@ -672,7 +689,7 @@ Function Write-POLRegistryData
         [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
         [psobject]$Data    
     )
-    
+
     $regHash = @{}
     $regHash.ValueType = "None"
     $regHash.ValueName = ""
@@ -762,7 +779,9 @@ Function Write-INFRegistryData
                         
         "7" 
         { 
-            $regHash.ValueData = "'$($values[1])'" -replace "[^\u0020-\u007E]", ""
+            $regHash.ValueData = @"
+$($values[1])
+"@ -replace "[^\u0020-\u007E]", ""
             $regHash.ValueType = "MultiString"
         }
                         

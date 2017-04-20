@@ -307,7 +307,21 @@ function ConvertFrom-GPO
     $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
     
     # Write out a Summary of our parsing activities.
-    return Write-ProcessingHistory -Pass $Pass
+    Write-ProcessingHistory -Pass $Pass
+
+    if ($pass)
+    {
+        if ($OutputConfigurationScript)
+        {
+            Get-Item $Scriptpath
+        }
+
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
+    }
+    else
+    {
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$($MyInvocation.MyCommand.Name).ps1.error")
+    }
 }
 
 <#
@@ -462,7 +476,21 @@ Function ConvertFrom-SCMXML
     $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
     
     # Write Summary Data on processing activities.
-    return Write-ProcessingHistory -Pass $Pass
+    Write-ProcessingHistory -Pass $Pass
+
+    if ($pass)
+    {
+        if ($OutputConfigurationScript)
+        {
+            Get-Item $Scriptpath
+        }
+
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
+    }
+    else
+    {
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$($MyInvocation.MyCommand.Name).ps1.error")
+    }
 }
 
 <#
@@ -619,5 +647,19 @@ function ConvertFrom-SCMJSON
     $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
     
     # Write out Summary data of parsing history.
-    return Write-ProcessingHistory -Pass $Pass
+    Write-ProcessingHistory -Pass $Pass
+
+    if ($pass)
+    {
+        if ($OutputConfigurationScript)
+        {
+            Get-Item $Scriptpath
+        }
+
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
+    }
+    else
+    {
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$($MyInvocation.MyCommand.Name).ps1.error")
+    }
 }
