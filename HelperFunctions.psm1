@@ -855,6 +855,9 @@ Function Write-INFServiceData
     { 
         "2" { $serviceHash.State = "Running" } 
         "4" { $serviceHash.State = "Stopped" } 
+        "3" { $serviceHash.StartupType = "Manual"
+              $serviceHash.Remove("State") 
+            } 
     }
 
     # Does the Second (if present) value determine starttype?
