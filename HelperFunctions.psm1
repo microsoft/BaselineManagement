@@ -168,9 +168,16 @@ $SecuritySettings = "MinimumPasswordAge","MaximumPasswordAge","MinimumPasswordLe
 New-Variable -Name GlobalConflictEngine -Value @{} -Option AllScope -Scope Script -Force
 $GlobalConflictEngine = @{}
 
+# Create a variable so we can set DependsOn values between passes.
+New-Variable -Name GlobalDependsOn -Value @() -Option AllScope -Scope Script -Force
+$GlobalDependsOn = @()
+
 # Create a variable to track every resource processed for Summary Data.
 New-Variable -Name ProcessingHistory -Value @{} -Option AllScope -Scope Script -Force
 $ProcessingHistory = @{}
+
+# Global Flag to determine if correct Registry resource is available.
+$ExclusiveFlagAvailable = $false
 
 # This is the function that makes it all go. It has a variety of parameter sets which can be tricky to use.
 # Each of the Switches tell the function what type of Code block it is creating.  
@@ -286,6 +293,11 @@ Configuration $Name`n{`n`n`t
                     $tmpHash = @{}
                     $r.Properties.Where({$_.IsMandatory}) | % { $tmpHash[$_.Name] = ""}
                     $Script:GlobalConflictEngine[$r.Name] += $tmpHash
+
+                    if ($r.Name -eq "Registry" -and $r.ModuleName -eq "PSDesiredStateConfiguration")
+                    {
+                        $ExclusiveFlagAvailable = ($r.Properties.Where({$_.Name -eq "Exclusive"}) -isnot $null)
+                    }
                 }
             }
             
@@ -397,12 +409,12 @@ Configuration $Name`n{`n`n`t
                         {
                             Try
                             {
-                                Invoke-Expression $("`$variable = '" + $item[$i] + "'") | Out-Null
-                                $DSCString += "'$($item[$i].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim())'"   
+                                Invoke-Expression $("`$variable = '" + $item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim() + "'") | Out-Null
+                                $DSCString += "'$($item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim())'"   
                             }
                             catch
                             {
-                                $DSCString += "@'`n$($item[$i].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim())`n'@"   
+                                $DSCString += "@'`n$($item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim())`n'@"   
                             }
                         }
                         else
@@ -420,13 +432,13 @@ Configuration $Name`n{`n`n`t
                 { 
                     Try
                     {
-                        Invoke-Expression $("`$variable = '" + $Parameters[$Key] + "'") | Out-Null
-                        $DSCString += "`n`t`t`t$($key) = '$([string]::new($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim()))'" 
+                        Invoke-Expression $("`$variable = '" + $Parameters[$Key].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"') + "'") | Out-Null
+                        $DSCString += "`n`t`t`t$($key) = '$([string]::new($Parameters[$key].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim()))'" 
                     }
                     Catch
                     {
                         # Parsing Error
-                        $DSCString += "`n`t`t`t$($key) = @'`n$($Parameters[$key].Trim("'").TrimEnd("'").Trim('"').TrimEnd('"').Trim())`n'@" 
+                        $DSCString += "`n`t`t`t$($key) = @'`n$($Parameters[$key].Trim("'").TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"'))`n'@" 
                     }
                 }
                 elseif($Parameters[$key] -is [System.Boolean])
@@ -691,12 +703,87 @@ Function Write-POLRegistryData
     )
 
     $regHash = @{}
-    $regHash.ValueType = "None"
     $regHash.ValueName = ""
-    $regHash.ValueData = ""
     $regHash.Key = "HKLM:\"
 
+    $regHash.ValueName = $Data.ValueName -replace "[^\u0020-\u007E]", ""
     $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Data.KeyName
+    
+    $CommmentOUT = $false
+   
+    # Process any pol instructions.
+    switch -regex ($regHash.ValueName)
+    {
+        "\*\*del\.(?<ValueName>.*)$" 
+        {
+            $regHash.ValueName = $Matches.ValueName
+            $regHash.Ensure = "Absent"
+            $Name = "DEL_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
+            
+            $script:GlobalDependsOn += $Name
+
+            # This is only a delete so return from here.
+            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+        }
+
+        "\*\*delvals\."
+        {
+            $regHash.Ensure = "Present"
+            $regHash.ValueName = ""
+            $regHash.Exclusive = $true
+            $Name = "DELVALS_$($regHash.Key.TrimStart("HKLM:"))"
+
+            $script:GlobalDependsOn += $Name
+            # This is only a delete so return from here.
+            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$ExclusiveFlagAvailable
+        }
+
+        "\*\*DeleteValues"
+        {
+            $Data.ValueData = $Data.ValueData -replace "[^\u0020-\u007E]", ""
+            foreach ($ValueName in ($Data.ValueData -split ";"))
+            {          
+                $regHash.Ensure = "Absent"
+                $Name = "DELETEVALUES_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
+
+                $script:GlobalDependsOn += $Name
+
+                # This is only a delete so return from here.
+                Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+            }
+
+            return
+        }
+
+        "\*\*DeleteKeys"
+        {
+            $Data.ValueData = $Data.ValueData -replace "[^\u0020-\u007E]", ""
+            foreach ($Key in ($Data.ValueData -split ";"))
+            {          
+                $regHash.Ensure = "Absent"
+                $Name = "DELETEKEYS_$($regHash.Key.TrimStart("HKLM:"))"
+
+                $script:GlobalDependsOn += $Name
+
+                # This is only a delete so return from here.
+                Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+            }
+
+            return
+        }
+
+        "\*\*SecureKey"
+        {
+            $Name = "SECUREKEY_$($regHash.Key)"
+
+            # This is only a delete so return from here.
+            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$true
+        }
+    }
+
+    # Now setup the rest of the Params Hashtable values.
+    $regHash.ValueType = "None"
+    $regHash.ValueData = ""
 
     $ValueData = 1
     if (!([int]::TryParse($Data.ValueData, [ref]$ValueData)))
@@ -704,7 +791,6 @@ Function Write-POLRegistryData
         $ValueData = "'$($Data.ValueData)'" -replace "[^\u0020-\u007E]", ""
     }
 
-    $regHash.ValueName = $Data.ValueName -replace "[^\u0020-\u007E]", ""
     $regHash.ValueData = $ValueData
     switch ($Data.ValueType)
     {
@@ -728,12 +814,41 @@ Function Write-POLRegistryData
         [string]$regHash.ValueData = [string]$ValueData
     }
 
-    $CommmentOUT = $false
-    If ([string]::IsNullOrEmpty($regHash.ValueName)-or [string]::IsNullOrEmpty([string]$regHash.ValueData)-or $regHash.ValueType -eq "None")
+    If ([string]::IsNullOrEmpty($regHash.ValueName) -or $regHash.ValueType -eq "None")
     {
         $CommentOUT = $true
     }
-       
+    
+    $DependsOn = @()
+    $delVals = "DELVALS_$($regHash.Key.TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $delVals -and $ExclusiveFlagAvailable)
+    {
+        $DependsOn += "[Registry]$delVals"
+    }
+
+    $delVal_ValueName = "DEL_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $delVal_ValueName)
+    {
+        $DependsOn += "[Registry]$delVal_ValueName"
+    }
+
+    $deleteKeys = "DELETEKEY_$($regHash.Key.TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $deleteKeys)
+    {
+        $DependsOn += "[Registry]$deleteKeys"
+    }
+
+    $deleteValue = "DELETEVALUES_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $deleteValue)
+    {
+        $DependsOn += "[Registry]$deleteValue"
+    }
+
+    if ($DependsOn.count -gt 0)
+    {
+        $regHash.DependsOn = $DependsOn
+    }
+
     Write-DSCString -Resource -Name (Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName) -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }
 
@@ -896,7 +1011,7 @@ Function Write-INFFileSecurityData
         return ""
     }
     
-    Write-DSCString -Resource -Name "INF_$($ACLhash.Path)_ACL" -Type xACL -Parameters $aclHash
+    Write-DSCString -Resource -Name "INF_$($ACLhash.Path)_ACL" -Type ACL -Parameters $aclHash
 }
 
 Function Write-INFPrivilegeData
@@ -962,7 +1077,7 @@ Function Write-INFRegistryACLData
         return ""
     }
     
-    Write-DSCString -Resource -Name "INF_$($regHash.Path)_ACL" -Type xACL -Parameters $regHash
+    Write-DSCString -Resource -Name "INF_$($regHash.Path)_ACL" -Type ACL -Parameters $regHash
 }
 
 Function Write-INFSecuritySettingData
@@ -1393,23 +1508,32 @@ Function Write-JSONRegistryData
     )
 
     $ValueData = -1
+    switch ($RegistryData.RegValueType)
+    {
+        "Int" 
+        {
+            if (!([int]::TryParse($RegistryData.ExpectedValue, [ref]$ValueData)))
+            {
+                Write-Warning "Could not parse Policy ($($RegistryData.Name)) with ExpectedValue ($($RegistryData.ExpectedValue)) as ($($RegistryData.RegValueType))"
+                continue
+            }
+            else
+            {
+                $ValueType = "DWORD"
+            }
+        }
 
-    if ($RegistryData.RegValueType -eq "Int")
-    {
-        if (!([int]::TryParse($RegistryData.ExpectedValue, [ref]$ValueData)))
+        "String"
         {
-            Write-Warning "Could not parse Policy ($($RegistryData.Name)) with ExpectedValue ($($RegistryData.ExpectedValue)) as ($($RegistryData.RegValueType))"
-            continue
+            $ValueData = $RegistryData.ExpectedValue.ToString()
+            $ValueType = "String"
         }
-        else
+
+        "MultipleString"
         {
-            $ValueType = "DWORD"
+            $ValueData = $RegistryData.ExpectedValue.ToString()
+            $ValueType = "MultiString"
         }
-    }
-    else
-    {
-        $ValueData = $RegistryData.ExpectedValue.ToString()
-        $ValueType = "String"
     }
 
     switch ($RegistryData.Hive)
@@ -1417,14 +1541,10 @@ Function Write-JSONRegistryData
         "LocalMachine" { $RegistryData.Hive = "HKLM:" }
     }
     
-    if ($ValueType -eq "DWORD" -and ($Value -match "(Disabled|Enabled|Not Defined|True|False)" -or $ValueData -eq "''"))
+    if ($ValueType -eq "DWORD" -and ($ValueData -match "(Disabled|Enabled|Not Defined|True|False)" -or $ValueData -eq "''"))
     {
         # This is supposed to be an INT and it's a String
         [int]$Value = @{"Disabled"=0;"Enabled"=1;"Not Defined"=0;"True"=1;"False"=0;''=0}.$Value
-    }
-    elseif ($ValueType -eq "String"  -or $ValueType -eq "MultiString")
-    {
-        [String]$valueData = $ValueData
     }
     
     $commentOUT = $false                
@@ -1439,7 +1559,7 @@ Function Write-JSONRegistryData
     $policyHash.ValueType = $ValueType
     $policyHash.ValueData = $ValueData
              
-    return Write-DSCString -Resource -Type Registry -Name "$($RegistryData.CCEID): $($RegistryData.Name)" -Parameters $policyHash -CommentOUT:(!$RegistryData.Enabled)
+    return Write-DSCString -Resource -Type Registry -Name "$($RegistryData.CCEID): $($RegistryData.Name)" -Parameters $policyHash -CommentOUT:($RegistryData.State -ne 'Enabled')
 }
 
 Function Write-JSONAuditData
@@ -1472,23 +1592,23 @@ Function Write-JSONAuditData
             "SuccessAndFailure" 
             {
                 $policyHash.AuditFlag = "Success"
-                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Success)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Success)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
                 $policyHash.AuditFlag = "Failure"
-                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Failure)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Failure)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
             }
             
             "NoAuditing" 
             {
                 $policyHash.Ensure = "Absent"
                 $policyHash.AuditFlag = "Success"
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Success)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Success)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
                 $policyHash.AuditFlag = "Failure"
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Failure)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name) (Failure)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
             } 
 
             Default
             {
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:(!$AuditData.Enabled)
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.Name)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
             }
         }
     }
@@ -1540,7 +1660,7 @@ Function Write-JSONPrivilegeData
     $policyHash.Policy = $Privilege
     $policyHash.Identity = $Accounts                    
                     
-    return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.Name)" -Type UserRightsAssignment -Parameters $policyHash -CommentOUT:(!$PrivilegeData.Enabled)
+    return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.Name)" -Type UserRightsAssignment -Parameters $policyHash -CommentOUT:($PrivilegeData.State -ne 'Enabled')
 }
 
 # Clear our processing history on each Configuration Creation.

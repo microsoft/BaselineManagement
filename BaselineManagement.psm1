@@ -41,7 +41,7 @@ function ConvertTo-DSC
 
         # This is the hard coded stage that you can just force it into the type of input.
         [Parameter()]
-        [ValidateSet("ADMX", "GPO", "SCMxml", "SCMjson")]
+        [ValidateSet("ADMX", "GPO", "SCMxml", "ASCjson")]
         [string]$Type,
         
         # Output Path that will default to an Output directory under the current Path.
@@ -78,7 +78,7 @@ function ConvertTo-DSC
                         {
                             switch ($item.Extension)
                             {
-                                ".json" { $Type = "SCMjson" }
+                                ".json" { $Type = "ASCjson" }
                                 ".xml" { $Type = "SCMxml" }
                             }
                         }    
@@ -194,9 +194,23 @@ function ConvertFrom-GPO
     # Loop through each Pol file.
     foreach ($polFile in $polFiles)
     {
-        # Reaad each POL file found.
-        Write-Verbose "Reading Pol File ($($polFile.FullName))"
-        $registryPolicies = Read-PolFile -Path $polFile.FullName
+        if ((Get-Command "Read-PolFile" -ErrorAction SilentlyContinue) -ne $null)
+        {
+            # Reaad each POL file found.
+            Write-Verbose "Reading Pol File ($($polFile.FullName))"
+            $registryPolicies = Read-PolFile -Path $polFile.FullName
+        }
+        elseif ((Get-Command "Parse-PolFile" -ErrorAction SilentlyContinue) -ne $null)
+        {
+            # Reaad each POL file found.
+            Write-Verbose "Reading Pol File ($($polFile.FullName))"
+            $registryPolicies = Read-PolFile -Path $polFile.FullName
+        }
+        else
+        {
+            Write-Error "Cannot Parse Pol files! Please download and install GPRegistryPolicyParser from github here: https://github.com/PowerShell/GPRegistryPolicyParser"
+            break
+        }
 
         # Loop through every policy in the Pol File.
         Foreach ($Policy in $registryPolicies)
@@ -515,7 +529,7 @@ Function ConvertFrom-SCMXML
 .FUNCTIONALITY
    The functionality that best describes this cmdlet
 #>
-function ConvertFrom-SCMJSON
+function ConvertFrom-ASCJSON
 {
     [CmdletBinding()]
     [OutputType([string])]
@@ -536,130 +550,162 @@ function ConvertFrom-SCMJSON
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript
     )
-    
-    # JSON can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.   
-    Try
-    {
-        $JSON = Get-Content -Path $Path | ConvertFrom-Json
-    }
-    Catch
-    {
-        Write-Error $_
-        Write-Warning "Unable to parse JSON at path $Path - Exiting"
-        continue
-        return
-    }
-    
-    # Start tracking Processing History.
-    Clear-ProcessingHistory
-    
-    # Create the Configuration String
-    $ConfigString = Write-DSCString -Configuration -Name DSCFromSCMJSON
-    # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
-    # Add Node Data
-    $ConfigString += Write-DSCString -Node -Name $computername
-    
-    # JSON is pretty straightforward where it keeps the individual settings.
-    # These are the registry settings.
-    $registryPolicies = $JSON.properties.RulesetsCollection.BaselineRuleset.rules.BaselineRegistryRule
 
-    # Loop through all the registry settings.
-    Foreach ($Policy in $registryPolicies)
-    {
-        $ConfigString += Write-JSONRegistryData -RegistryData $Policy
-    }
+   DynamicParam {
+            if (Test-Path $Path)
+            {
+                $JSON = Get-Content -Path $Path | ConvertFrom-Json
+                $JSONBaselines = $global:JSON.properties.rulesetscollection.baselinerulesets.baselineName
+                                    
+                $attributes = new-object System.Management.Automation.ParameterAttribute
+                $attributes.ParameterSetName = "__AllParameterSets"
+                $attributes.Mandatory = $true
 
-    # Grab the Audit policies.
-    $AuditPolicies = $JSON.properties.RulesetsCollection.BaselineRuleset.rules.BaselineAuditPolicyRule
-    
-    # Loop through the Audit Policies.
-    foreach ($Policy in $AuditPolicies)
-    {
-        $ConfigString += Write-JSONAuditData -AuditData $Policy
-    }
+                $attributeCollection = new-object -Type System.Collections.ObjectModel.Collection[System.Attribute]
+                $attributeCollection.Add($attributes)
 
-    # Grab all the Security Policy Settings.
-    $securityPolicies = $JSON.properties.RulesetsCollection.BaselineRuleset.rules.BaselineSecurityPolicyRule
+                $ValidateSet = new-object System.Management.Automation.ValidateSetAttribute($JSONBaselines)
+
+                $attributeCollection.Add($ValidateSet)
+
+                $dynParam1 = new-object -Type System.Management.Automation.RuntimeDefinedParameter("BaselineName", [string], $attributeCollection)
+
+                $paramDictionary = new-object -Type System.Management.Automation.RuntimeDefinedParameterDictionary
+                $paramDictionary.Add("BaselineName", $dynParam1)
+
+                return $paramDictionary 
+            }
+    }
     
-    # Loop through the Security Policies.
-    foreach ($Policy in $securityPolicies)
+    Process 
     {
-        # Security Policies can have a variety of types as they are represenations of the GPTemp.inf.
-        # Determine which one the current setting is and apply.
-        switch ($Policy.SectionName)
+        # JSON can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.   
+        Try
         {
-            "Service General Setting"
+            $JSON = Get-Content -Path $Path | ConvertFrom-Json
+        }
+        Catch
+        {
+            Write-Error $_
+            Write-Warning "Unable to parse JSON at path $Path - Exiting"
+            continue
+            return
+        }
+  
+        $BaselineName = $PSBoundParameters.BaselineName  
+        $RULES = $JSON.properties.rulesetsCollection.baselineRulesets.Where({$_.BaselineName -eq $BaselineName}).RULES
+
+        # Start tracking Processing History.
+        Clear-ProcessingHistory
+    
+        # Create the Configuration String
+        $ConfigString = Write-DSCString -Configuration -Name DSCFromASCJSON
+        # Add any resources
+        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
+        # Add Node Data
+        $ConfigString += Write-DSCString -Node -Name $computername
+    
+        # JSON is pretty straightforward where it keeps the individual settings.
+        # These are the registry settings.
+        $registryPolicies = $RULES.BaselineRegistryRules
+
+        # Loop through all the registry settings.
+        Foreach ($Policy in $registryPolicies)
+        {
+            $ConfigString += Write-JSONRegistryData -RegistryData $Policy
+        }
+
+        # Grab the Audit policies.
+        $AuditPolicies = $RULES.BaselineAuditPolicyRule
+    
+        # Loop through the Audit Policies.
+        foreach ($Policy in $AuditPolicies)
+        {
+            $ConfigString += Write-JSONAuditData -AuditData $Policy
+        }
+
+        # Grab all the Security Policy Settings.
+        $securityPolicies = $RULES.BaselineSecurityPolicyRule
+    
+        # Loop through the Security Policies.
+        foreach ($Policy in $securityPolicies)
+        {
+            # Security Policies can have a variety of types as they are represenations of the GPTemp.inf.
+            # Determine which one the current setting is and apply.
+            switch ($Policy.SectionName)
             {
+                "Service General Setting"
+                {
 
-            }
+                }
 
-            "Registry Values"
-            {
+                "Registry Values"
+                {
 
-            }
+                }
 
-            "File Security"
-            {
+                "File Security"
+                {
 
-            }
+                }
                 
-            "Privilege Rights"
-            {            
-                $ConfigString += Write-JSONPrivilegeData -PrivilegeData $Policy
-            }
+                "Privilege Rights"
+                {            
+                    $ConfigString += Write-JSONPrivilegeData -PrivilegeData $Policy
+                }
                 
-            "Kerberos Policy"
-            {
+                "Kerberos Policy"
+                {
                 
-            }
+                }
                 
-            "Registry Keys"
-            {
+                "Registry Keys"
+                {
 
-            }
+                }
                 
-            "System Access"
-            {
+                "System Access"
+                {
 
+                }
             }
         }
-    }
     
-    # Close out the Configuration block.
-    $ConfigString += Write-DSCString -CloseNodeBlock
-    $ConfigString += Write-DSCString -CloseConfigurationBlock
-    $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromSCMJSON -OutputPath $OutputPath
+        # Close out the Configuration block.
+        $ConfigString += Write-DSCString -CloseNodeBlock
+        $ConfigString += Write-DSCString -CloseConfigurationBlock
+        $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromASCJSON -OutputPath $OutputPath
     
-    # If the switch was specified, output a Configuration Script regardless of success/failure.
-    if ($OutputConfigurationScript)
-    {
-        if (!(Test-Path $OutputPath))
-        {
-            mkdir $OutputPath
-        }
-        
-        $Scriptpath = Join-Path $OutputPath "DSCFromSCMJSON.ps1"
-        $ConfigString | Out-File -FilePath $Scriptpath -Force
-    }
-
-    # Try to compile configuration.
-    $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
-    
-    # Write out Summary data of parsing history.
-    Write-ProcessingHistory -Pass $Pass
-
-    if ($pass)
-    {
+        # If the switch was specified, output a Configuration Script regardless of success/failure.
         if ($OutputConfigurationScript)
         {
-            Get-Item $Scriptpath
+            if (!(Test-Path $OutputPath))
+            {
+                mkdir $OutputPath
+            }
+        
+            $Scriptpath = Join-Path $OutputPath "DSCFromASCJSON.ps1"
+            $ConfigString | Out-File -FilePath $Scriptpath -Force
         }
 
-        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
-    }
-    else
-    {
-        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$($MyInvocation.MyCommand.Name).ps1.error")
+        # Try to compile configuration.
+        $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
+    
+        # Write out Summary data of parsing history.
+        Write-ProcessingHistory -Pass $Pass
+
+        if ($pass)
+        {
+            if ($OutputConfigurationScript)
+            {
+                Get-Item $Scriptpath
+            }
+
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
+        }
+        else
+        {
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "DSCFromASCJSON.ps1.error")
+        }
     }
 }
