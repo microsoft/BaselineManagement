@@ -296,7 +296,7 @@ Configuration $Name`n{`n`n`t
 
                     if ($r.Name -eq "Registry" -and $r.ModuleName -eq "PSDesiredStateConfiguration")
                     {
-                        $ExclusiveFlagAvailable = ($r.Properties.Where({$_.Name -eq "Exclusive"}) -isnot $null)
+                        $ExclusiveFlagAvailable = $r.Properties.Name -contains 'Exclusive'
                     }
                 }
             }
@@ -682,13 +682,19 @@ Function Write-GPORegistryXMLData
         [string]$regHash.ValueData = [string]$ValueData
     }
 
-    $CommentOUT = $false
-    If ([string]::IsNullOrEmpty($regHash.ValueName)-or [string]::IsNullOrEmpty([string]$regHash.ValueData)-or $regHash.ValueType -eq "None")
+    if ($regHash.ValueType -eq "None")
     {
-        # Comment these out!
-        $CommentOUT = $true
+        # The REG_NONE is not allowed by the Registry resource.
+        $regHash.Remove("ValueType")
     }
 
+    if ([string]::IsNullOrEmpty($regHash.ValueName))
+    {
+        $regHash.Remove("ValueData")
+    }
+
+    $CommentOUT = $false
+    
     Write-DSCString -Resource -Name "XML_$(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }
 
@@ -735,7 +741,7 @@ Function Write-POLRegistryData
 
             $script:GlobalDependsOn += $Name
             # This is only a delete so return from here.
-            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$ExclusiveFlagAvailable
+            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:(!$ExclusiveFlagAvailable)
         }
 
         "\*\*DeleteValues"
@@ -814,11 +820,17 @@ Function Write-POLRegistryData
         [string]$regHash.ValueData = [string]$ValueData
     }
 
-    If ([string]::IsNullOrEmpty($regHash.ValueName) -or $regHash.ValueType -eq "None")
+    if ($regHash.ValueType -eq "None")
     {
-        $CommentOUT = $true
+        # The REG_NONE is not allowed by the Registry resource.
+        $regHash.Remove("ValueType")
     }
-    
+
+    if ([string]::IsNullOrEmpty($regHash.ValueName))
+    {
+        $regHash.Remove("ValueData")
+    }
+
     $DependsOn = @()
     $delVals = "DELVALS_$($regHash.Key.TrimStart("HKLM:"))"
     if ($script:GlobalDependsOn -contains $delVals -and $ExclusiveFlagAvailable)
@@ -882,7 +894,7 @@ Function Write-INFRegistryData
     $regHash.Key = Split-Path -Parent $KeyPath
     $regHash.Key = $regHash.Key -replace "MACHINE\\", "HKLM:\" 
     $values[1] = $values[1..$values.count] -join ","
-            
+        
     switch ($values[0]) 
     { 
         "1" 
@@ -936,13 +948,20 @@ $($values[1])
     {
         [string]$regHash.ValueData = [string]$regHash.ValueData
     }
+    
+    if ($regHash.ValueType -eq "None")
+    {
+        # The REG_NONE is not allowed by the Registry resource.
+        $regHash.Remove("ValueType")
+    }
+
+    if ([string]::IsNullOrEmpty($regHash.ValueName))
+    {
+        $regHash.Remove("ValueData")
+    }
 
     $CommentOUT = $false
-    if ([string]::IsNullOrEmpty($regHash.ValueData))
-    {
-        $CommentOUT = $true
-    }
-    
+
     Write-DSCString -Resource -Name "INF_$(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }
 
@@ -1287,16 +1306,21 @@ Function Write-XMLRegistryData
         {
             [string]$Value = [string]$Value
         }
-
-        If ($ValueName -eq "" -or $Value -eq $null -or $ValueType -eq "None")
-        {
-            Write-Error "Cannot parse `$ValueData ($Value) and `$ValueType ($ValueType) for $($retHash.Key)"
-            return ""
-        }
                 
         $retHash.ValueType = $ValueType
         $retHash.ValueData = $Value
         
+        if ($regHash.ValueType -eq "None")
+        {
+            # The REG_NONE is not allowed by the Registry resource.
+            $regHash.Remove("ValueType")
+        }
+
+        if ([string]::IsNullOrEmpty($regHash.ValueName))
+        {
+            $regHash.Remove("ValueData")
+        }
+
         Write-DSCString -Resource -Name $Name -Type Registry -Parameters $retHash -Comment $Comments
     }                
 }
@@ -1546,18 +1570,29 @@ Function Write-JSONRegistryData
         # This is supposed to be an INT and it's a String
         [int]$Value = @{"Disabled"=0;"Enabled"=1;"Not Defined"=0;"True"=1;"False"=0;''=0}.$Value
     }
-    
-    $commentOUT = $false                
-    If ([string]::IsNullOrEmpty($RegistryData.Hive) -or [string]::IsNullOrEmpty($RegistryData.ValueName) -or [string]::IsNullOrEmpty($RegistryData.KeyPath))
-    {
-        $CommentOUT = $true
-    }
 
     $policyHash = @{}
     $policyHash.Key = $([string]$RegistryData.Hive, [string]$RegistryData.KeyPath -join "\" )
     $policyHash.ValueName = $RegistryData.ValueName
     $policyHash.ValueType = $ValueType
     $policyHash.ValueData = $ValueData
+    
+    if ($policyHash.ValueType -eq "None")
+    {
+        # The REG_NONE is not allowed by the Registry resource.
+        $policyHash.Remove("ValueType")
+    }
+
+    if ([string]::IsNullOrEmpty($policyHash.ValueName))
+    {
+        $policyHash.Remove("ValueData")
+    }
+
+    $commentOUT = $false                
+    If ([string]::IsNullOrEmpty($RegistryData.KeyPath))
+    {
+        $CommentOUT = $true
+    }
              
     return Write-DSCString -Resource -Type Registry -Name "$($RegistryData.CCEID): $($RegistryData.Name)" -Parameters $policyHash -CommentOUT:($RegistryData.State -ne 'Enabled')
 }

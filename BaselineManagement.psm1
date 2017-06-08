@@ -709,3 +709,5 @@ function ConvertFrom-ASCJSON
         }
     }
 }
+
+Export-ModuleMember -Function *
