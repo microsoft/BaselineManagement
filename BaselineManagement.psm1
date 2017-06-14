@@ -314,7 +314,7 @@ function ConvertFrom-GPO
                 
         $Scriptpath = Join-Path $OutputPath "DSCFromGPO.ps1"
         Write-Verbose "Outputting Configuration SCript to $Scriptpath"
-        $ConfigString | Out-File -FilePath $Scriptpath -Force
+        $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
     }
 
     # Create the MOF File if possible.
@@ -483,7 +483,7 @@ Function ConvertFrom-SCMXML
         }
 
         $Scriptpath = Join-Path $OutputPath "DSCFromSCMXML.ps1"
-        $ConfigString | Out-File -FilePath $Scriptpath -Force
+        $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
     }
 
     # Try to compile the MOF file.
@@ -685,7 +685,7 @@ function ConvertFrom-ASCJSON
             }
         
             $Scriptpath = Join-Path $OutputPath "DSCFromASCJSON.ps1"
-            $ConfigString | Out-File -FilePath $Scriptpath -Force
+            $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
         }
 
         # Try to compile configuration.
