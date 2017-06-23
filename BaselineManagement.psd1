@@ -12,7 +12,7 @@
 RootModule = 'BaselineManagement.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.2.0'
+ModuleVersion = '2.3.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -112,7 +112,7 @@ PrivateData = @{
         # ReleaseNotes = ''
 
         # External dependent modules of this module
-        ExternalModuleDependencies = 'AuditPolicyDSC','SecurityPolicyDSC','GPRegistryPolicyParser'
+        # ExternalModuleDependencies = 'AuditPolicyDSC','SecurityPolicyDSC','GPRegistryPolicyParser'
 
     } # End of PSData hashtable
     

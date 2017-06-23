@@ -403,29 +403,37 @@ Configuration $Name`n{`n`n`t
                 {
                     $item = $Parameters[$key]
                     $DSCString += "`n`t`t`t$($key) = "
-                    for ($i = 0; $i -lt $item.Count;$i++)
-                    {
-                        if ($item[$i] -is [String])
-                        {
-                            Try
-                            {
-                                Invoke-Expression $("`$variable = '" + $item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim() + "'") | Out-Null
-                                $DSCString += "'$($item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim())'"   
-                            }
-                            catch
-                            {
-                                $DSCString += "@'`n$($item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim())`n'@"   
-                            }
-                        }
-                        else
-                        {
-                            $DSCString += "$($item[$i])"   
-                        }
 
-                        if (($item.Count - $i) -gt 1)
+                    if ($item.Count -gt 0)
+                    {
+                        for ($i = 0; $i -lt $item.Count;$i++)
                         {
-                            $DSCString += ", "
+                            if ($item[$i] -is [String])
+                            {
+                                Try
+                                {
+                                    Invoke-Expression $("`$variable = '" + $item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim() + "'") | Out-Null
+                                    $DSCString += "'$($item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim())'"   
+                                }
+                                catch
+                                {
+                                    $DSCString += "@'`n$($item[$i].TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim())`n'@"   
+                                }
+                            }
+                            else
+                            {
+                                $DSCString += "$($item[$i])"   
+                            }
+
+                            if (($item.Count - $i) -gt 1)
+                            {
+                                $DSCString += ", "
+                            }
                         }
+                    }
+                    else
+                    {
+                        $DSCString += "@()"
                     }
                 }
                 elseif($Parameters[$key] -is [System.String]) 
@@ -1124,6 +1132,18 @@ Function Write-INFSecuritySettingData
     $params = @{$key = $ValueData;Name = $Key}
     Write-DSCString -Resource -Name "INF_$Key" -Type SecuritySetting -Parameters $params
 }
+
+Function Write-INFGroupData
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [System.Collections.DictionaryEntry]$GroupData
+    ) 
+}
+
 Function Complete-Configuration
 {
     [CmdletBinding()]

@@ -198,13 +198,27 @@ function ConvertFrom-GPO
         {
             # Reaad each POL file found.
             Write-Verbose "Reading Pol File ($($polFile.FullName))"
-            $registryPolicies = Read-PolFile -Path $polFile.FullName
+            Try
+            {
+                $registryPolicies = Read-PolFile -Path $polFile.FullName
+            }
+            Catch
+            {
+                Write-Error $_
+            }
         }
         elseif ((Get-Command "Parse-PolFile" -ErrorAction SilentlyContinue) -ne $null)
         {
             # Reaad each POL file found.
             Write-Verbose "Reading Pol File ($($polFile.FullName))"
-            $registryPolicies = Read-PolFile -Path $polFile.FullName
+            Try
+            {
+                $registryPolicies = Read-PolFile -Path $polFile.FullName
+            }
+            catch
+            {
+                Write-Error $_ 
+            }
         }
         else
         {
@@ -281,6 +295,70 @@ function ConvertFrom-GPO
                 }
             }
         }
+
+        # This has to be done separately because it can cause resource conflicts.
+        if ($ini.ContainsKey("Group MemberShip"))
+        {
+            $groupMembership = @{}
+            foreach ($KeyPair in $ini["Group Membership"].GetEnumerator())
+            {
+                $groupName, $Property = $KeyPair.Name -split "__"
+                $GroupData = @()
+                if (![String]::IsNullOrEmpty($KeyPair.Value))
+                {
+                    $GroupData = @(($KeyPair.Value -split "," | ForEach-Object { "$_" }) -join ",")
+                }
+
+                switch ($Property)
+                {
+                    "Members"
+                    {
+                        if ($groupMembership.ContainsKey($groupName))
+                        {
+                            $groupMembership[$groupName].Members += $GroupData
+                        }
+                        else
+                        {
+                            $groupMembership[$groupName] = @{}
+                            $groupMembership[$groupName].GroupName = $groupName
+                            $groupMembership[$groupName].Members = $GroupData
+                        }
+                    }
+
+                    "MemberOf"
+                    {
+                        if ($GroupData.Count -gt 0)
+                        {
+                            foreach($Group in $GroupData)
+                            {
+                                if ($groupMembership.ContainsKey($Group))
+                                {
+                                    $groupMembership[$group].MembersToInclude += $GroupData
+                                }
+                                else
+                                {
+                                    $groupMembership[$group] = @{}
+                                    $groupMembership[$group].GroupName = $Group
+                                    $groupMembership[$group].MembersToInclude = $GroupData
+                                }       
+                            }
+                        }
+                    }   
+
+                    Default
+                    {
+                        Write-Warning "Group Membership: $Property is not a valid Property"
+                        continue
+                    }
+                 }
+            }
+
+            foreach ($Key in $GroupMembership.Keys)
+            {
+                $CommentOut = $false
+                $configString += Write-DSCString -Resource -Name $Key -Parameters $GroupMemberShip[$key] -Type Group -CommentOut:$CommentOut
+            }
+        } 
     }
 
     # There is also SOMETIMES a RegistryXML file that contains some additional registry information.
@@ -288,9 +366,9 @@ function ConvertFrom-GPO
     {
         Write-Verbose "Reading RegistryXML ($($RegistryXML.FullName))"
         # Grab the XML info.
-        [xml]$Settings = Get-Content $RegistryXML.FullName
+        [xml]$RegistryXMLContent = Get-Content $RegistryXML.FullName
 
-        $Settings = $RegistryXML.RegistrySettings.Registry
+        $Settings = $RegistryXMLContent.RegistrySettings.Registry
 
         # Loop through every registry setting.
         foreach ($Setting in $Settings)
@@ -330,7 +408,7 @@ function ConvertFrom-GPO
             Get-Item $Scriptpath
         }
 
-        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof") -ErrorAction SilentlyContinue
     }
     else
     {
