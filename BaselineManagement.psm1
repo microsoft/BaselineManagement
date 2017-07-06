@@ -213,7 +213,7 @@ function ConvertFrom-GPO
             Write-Verbose "Reading Pol File ($($polFile.FullName))"
             Try
             {
-                $registryPolicies = Read-PolFile -Path $polFile.FullName
+                $registryPolicies = Parse-PolFile -Path $polFile.FullName
             }
             catch
             {
