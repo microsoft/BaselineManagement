@@ -1,0 +1,13 @@
+Next Steps:
+    Finish Pester Tests and add new ones for new code.
+    Work on integration tests to convert 2012 MS baseline and test it.
+    Work on using Group Policy Report xml" to make sure all settings were covered.
+    Continue to peck away at new XML files.
+    Optimize parser code by combining functionality between baselines.
+    Add new tests for JSON Parsing
+        Ability to parse multiple server baselines.
+    Fix pester output to file and format pester.html
+    Set up integration test where you test, apply group policy and test again.
+
+Go through all issues and add code necessary.
+Speed up Build After
