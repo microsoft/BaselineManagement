@@ -231,8 +231,10 @@ function ConvertFrom-GPO
         # Loop through every policy in the Pol File.
         Foreach ($Policy in $registryPolicies)
         {
+            $Hive = @{User="HKCU";Machine="HKLM"}
+            
             # Convert each Policy Registry object into a Resource Block and add it to our Configuration string.
-            $ConfigString += Write-GPORegistryPOLData -Data $Policy
+            $ConfigString += Write-GPORegistryPOLData -Data $Policy -Hive $Hive[$polFile.Directory.BaseName]
         }
     }
         

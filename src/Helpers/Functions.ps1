@@ -134,11 +134,11 @@ Function Write-DSCStringKeyPair
     if ($Value -eq $null)
     {
         # Do not allow $null Values
-        return "# `n$($Tabs | ForEach-Object {"`t"})$($key) = $null"
+        return "# `n$((1..$Tabs) | ForEach-Object {"`t"})$($key) = $null"
     }
     
     # Start the Resource Key/Value Pair.
-    $DSCString += "`n$($Tabs | ForEach-Object {"`t"})$($key) = "
+    $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"})$($key) = "
     $Separator = ", "
     # If the Value is an array, increase the tab stops and add the array operators.
     if ($Value -is [Array]) 
@@ -184,19 +184,19 @@ Function Write-DSCStringKeyPair
                 
                 if ($Value -is [Array])
                 {
-                    $DSCString += "`n$($Tabs | ForEach-Object {"`t"})"
+                    $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"})"
                 }
 
                 $DSCString += "$identifier"
                 $Tabs += 2
-                $DSCString += "`n$($Tabs | ForEach-Object {"`t"}){"
+                $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"}){"
                 $Tabs++
                 foreach ($keypair in $_.GetEnumerator())
                 {
                     $DSCString += Write-DSCStringKeyPair -Key $Keypair.Name -Value $Keypair.Value -Tabs $Tabs
                 }
                 $Tabs--
-                $DSCString += "`n$($Tabs | ForEach-Object {"`t"})}"
+                $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"})}"
                 $Tabs -= 2
             }
 
@@ -216,7 +216,7 @@ Function Write-DSCStringKeyPair
     if ($Value -is [Array]) 
     {
         $Tabs--
-        $DSCString += "`n$($Tabs | ForEach-Object {"`t"}))"
+        $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"}))"
     }
 
     return $DSCString
@@ -399,7 +399,7 @@ Configuration $Name`n{`n`n`t
             $DSCString = "`t`t$Comment$($CommentStart)$Type '$($Name)'`n`t`t{"
             foreach ($key in $Parameters.Keys)
             {
-                $DSCString += Write-DSCStringKeyPair -Key $key -Value $Parameters[$key] -Tabs 5
+                $DSCString += Write-DSCStringKeyPair -Key $key -Value $Parameters[$key] -Tabs 3
             }
              
             # Output our Resource Block String                    
