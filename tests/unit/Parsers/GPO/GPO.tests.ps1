@@ -70,7 +70,7 @@ Describe "Write-GPOAuditCSVData" {
     {
         $Parameters = Write-GPOAuditCSVData -Entry $Entry
 
-        switch -regex ($Entry.InclusionSetting)
+        switch -regex ($Entry."Inclusion Setting")
         {
             "Success and Failure"
             {
@@ -146,7 +146,7 @@ Describe "Write-GPOAuditCSVData" {
             }
         }
         
-        switch -regex ($Entry.ExclusionSetting)
+        switch -regex ($Entry."Exclusion Setting")
         {
             "Success and Failure"
             {

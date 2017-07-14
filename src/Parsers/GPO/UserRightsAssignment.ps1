@@ -26,10 +26,11 @@ Function Write-GPOPrivilegeINFData
     else
     {
         Write-Error "Cannot find $Privilege"
+        Add-ProcessingHistory -Type UserRightsAssignment -Name "UserRightsAssignment(INF): $Privilege" -ParsingError
         return ""
     }
 
     $privilegeHash.Identity = $PrivilegeData -split ","
     
-    Write-DSCString -Resource -Name "INF_$($privilegeHash.Policy)" -Type UserRightsAssignment -Parameters  $privilegeHash
+    Write-DSCString -Resource -Name "UserRightsAssignment(INF): $($privilegeHash.Policy)" -Type UserRightsAssignment -Parameters  $privilegeHash
 }

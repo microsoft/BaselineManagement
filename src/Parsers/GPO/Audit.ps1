@@ -87,6 +87,7 @@ Function Write-GPOAuditINFData
     if (!$AuditCategoryHash.ContainsKey($key))
     {
         Write-Warning "Write-INFAuditData:$Key is no longer supported or not implemented"
+        Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(INF) $($key)" -ParsingError
         return ""
     }
 
@@ -102,23 +103,29 @@ Function Write-GPOAuditINFData
             { 
                 $paramHash.AuditFlag = "Failure"
                 $paramHash.Ensure = "Absent"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): NoAuditing(Failure)" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): NoAuditing(Failure)" -Type AuditPolicySubcategory -Parameters $paramHash 
                 $paramHash.AuditFlag = "Success"
                 $paramHash.Ensure = "Absent"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): NoAuditing(Success)" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): NoAuditing(Success)" -Type AuditPolicySubcategory -Parameters $paramHash 
                 return
             } 
             
             "(1|3)"
             {
                 $paramHash.AuditFlag = "Success"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): Success" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Success" -Type AuditPolicySubcategory -Parameters $paramHash 
             }
 
             "(2|3)"
             {
                 $paramHash.AuditFlag = "Failure"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): Failure" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Failure" -Type AuditPolicySubcategory -Parameters $paramHash 
+            }
+
+            Default 
+            {
+                Write-Warning "Write-GPOAuditINFData: $_ is not supported"
+                Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(INF): $($key)" -ParsingError
             }
         }
     }

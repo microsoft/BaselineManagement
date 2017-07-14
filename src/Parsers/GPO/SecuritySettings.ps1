@@ -11,13 +11,13 @@ Function Write-GPOSecuritySettingINFData
         [Parameter(Mandatory = $true)]
         [string]$SecurityData
     )
-
-    $regHash = @{}              
+           
     $SecurityData = $SecurityData.Trim()
 
     if ($Key -notin $SecuritySettings)
     {
         Write-Warning "Write-InfSecuritySettingData:$Key is no longer supported or is not implemented"
+        Add-ProcessingHistory -Type SecuritySetting -Name "SecuritySetting(INF): $Key" -ParsingError
         return ""
     }
 
@@ -28,5 +28,5 @@ Function Write-GPOSecuritySettingINFData
     }
 
     $params = @{$key = $ValueData;Name = $Key}
-    Write-DSCString -Resource -Name "INF_$Key" -Type SecuritySetting -Parameters $params
+    Write-DSCString -Resource -Name "SecuritySetting(INF): $Key" -Type SecuritySetting -Parameters $params
 }
