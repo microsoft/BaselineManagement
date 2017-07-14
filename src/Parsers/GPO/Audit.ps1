@@ -10,45 +10,51 @@ Function Write-GPOAuditCSVData
 
     $retHash = @{}
     $retHash.Name = $Entry.SubCategory
+    $Name = $Entry.SubCategory
 
-    switch -regex ($Entry.InclusionSetting)
+    switch -regex ($Entry."Inclusion Setting")
     {
         "Success and Failure"
         {
             $retHash.Ensure = "Present"
             $retHash.AuditFlag = "Success"
+            $duplicate = $retHash.Clone()
+            $duplicate.AuditFlag = "Failure"
             Write-DSCString -Resource -Name "$Name (Success) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
-            $retHash.AuditFlag = "Failure"
-            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $duplicate
         }
 
         "No Auditing"
         {
             $retHash.Ensure = "Absent"
             $retHash.AuditFlag = "Success"
+            $duplicate = $retHash.Clone()
+            $duplicate.AuditFlag = "Failure"
             Write-DSCString -Resource -Name "$Name (Success) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
             $retHash.AuditFlag = "Failure"
-            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $duplicate
         }
 
         "^(Success|Failure)$"
         {
             $retHash.Ensure = "Present"
-            $retHash.AuditFlag = $Entry.InclusionSetting
+            $retHash.AuditFlag = $Entry."Inclusion Setting"
             Write-DSCString -Resource -Name "$Name - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
         }
     }
     
-    $retHash.Ensure = "Absent"
-    switch -regex ($Entry.ExclusionSetting)
+    $exclusionHash = $retHash.Clone()
+    switch -regex ($Entry."Exclusion Setting")
     {
         "Success and Failure"
         {
-            $retHash.Ensure = "Absent"
-            $retHash.AuditFlag = "Success"
-            Write-DSCString -Resource -Name "$Name (Success) - Exclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $exclusionHash.Ensure = "Absent"
+            $exclusionHash.AuditFlag = "Success"
+            $exclusionHashduplicate = $exclusionHash.Clone()
+            $exclusionHashduplicate.AuditFlag = "Failure"
+            Write-DSCString -Resource -Name "$Name (Success) - Exclusion" -Type AuditPolicySubcategory -Parameters $exclusionHash
             $retHash.AuditFlag = "Failure"
-            Write-DSCString -Resource -Name "$Name (Failure) - Exclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            Write-DSCString -Resource -Name "$Name (Failure) - Exclusion" -Type AuditPolicySubcategory -Parameters $exclusionHashduplicate
         }
 
         "No Auditing"
@@ -58,9 +64,9 @@ Function Write-GPOAuditCSVData
 
         "^(Success|Failure)$"
         {
-            $retHash.Ensure = "Absent"
-            $retHash.AuditFlag = $Entry.ExclusionSetting
-            Write-DSCString -Resource -Name "$Name - Exclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $exclusionHash.Ensure = "Absent"
+            $exclusionHash.AuditFlag = $Entry."Exclusion Setting"
+            Write-DSCString -Resource -Name "$Name - Exclusion" -Type AuditPolicySubcategory -Parameters $exclusionHash
         }
     }
 }
@@ -81,6 +87,7 @@ Function Write-GPOAuditINFData
     if (!$AuditCategoryHash.ContainsKey($key))
     {
         Write-Warning "Write-INFAuditData:$Key is no longer supported or not implemented"
+        Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(INF) $($key)" -ParsingError
         return ""
     }
 
@@ -96,23 +103,29 @@ Function Write-GPOAuditINFData
             { 
                 $paramHash.AuditFlag = "Failure"
                 $paramHash.Ensure = "Absent"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): NoAuditing(Failure)" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): NoAuditing(Failure)" -Type AuditPolicySubcategory -Parameters $paramHash 
                 $paramHash.AuditFlag = "Success"
                 $paramHash.Ensure = "Absent"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): NoAuditing(Success)" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): NoAuditing(Success)" -Type AuditPolicySubcategory -Parameters $paramHash 
                 return
             } 
             
             "(1|3)"
             {
                 $paramHash.AuditFlag = "Success"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): Success" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Success" -Type AuditPolicySubcategory -Parameters $paramHash 
             }
 
             "(2|3)"
             {
                 $paramHash.AuditFlag = "Failure"
-                Write-DSCString -Resource -Name "INF_Audit $($subCategory): Failure" -Type AuditPolicySubcategory -Parameters $paramHash 
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Failure" -Type AuditPolicySubcategory -Parameters $paramHash 
+            }
+
+            Default 
+            {
+                Write-Warning "Write-GPOAuditINFData: $_ is not supported"
+                Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(INF): $($key)" -ParsingError
             }
         }
     }

@@ -234,7 +234,7 @@ Function Write-GPORegistryPOLData
         $regHash.DependsOn = $DependsOn
     }
 
-    Write-DSCString -Resource -Name (Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName) -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "Registry(POL): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }
 
 Function Write-GPORegistryINFData
@@ -357,5 +357,5 @@ $($tmpValueData)
 
     $CommentOUT = $false
 
-    Write-DSCString -Resource -Name "INF_$(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }

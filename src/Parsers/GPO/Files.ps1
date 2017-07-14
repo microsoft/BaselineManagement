@@ -35,6 +35,6 @@ Function Write-GPOFilesXMLData
         }
     }
 
-    Write-DSCString -Resource -Name $fileHash.DestinationPath -Type File -Parameters $fileHash 
+    Write-DSCString -Resource -Name "Files(XML): $($fileHash.DestinationPath)" -Type File -Parameters $fileHash 
 }
 #endregion

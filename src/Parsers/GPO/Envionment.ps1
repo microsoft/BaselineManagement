@@ -11,14 +11,14 @@ Function Write-GPOEnvironmentVariablesXMLData
 
     $envHash = @{}
 
-    $properties = $XML.Properties
+    $Properties = $XML.Properties
 
-    $envHash.Name = $properties.Name
-    $envHash.Value = $properties.Value
-    $envHash.Path = [bool]$properties.partial
-    $envHash.Ensure = switch ($properties.action) { "D" { "Absent" } Default { "Present" } } 
+    $envHash.Name = $Properties.Name
+    $envHash.Value = $Properties.Value
+    $envHash.Path = [bool]$Properties.partial
+    $envHash.Ensure = switch ($Properties.action) { "D" { "Absent" } Default { "Present" } } 
 
 
-    Write-DSCString -Resource -Name "XML_$($envHash.Name)" -Type Environment -Parameters $envHash
+    Write-DSCString -Resource -Name "Environment(XML): $($envHash.Name)" -Type Environment -Parameters $envHash
 }
 #endregion

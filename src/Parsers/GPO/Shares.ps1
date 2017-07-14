@@ -25,6 +25,6 @@ Function Write-GPONetworkSharesXMLData
 
     $smbHash.Ensure = switch ($properties.action) { "D" { "Absent" } Default { "Present" } }
     
-    Write-DSCString -Resource -Type SmbShare -Name "XML_$($smbHash.Name)" -Parameters $smbHash 
+    Write-DSCString -Resource -Type SmbShare -Name "NetworkShares(XML): $($smbHash.Name)" -Parameters $smbHash 
 }
 #endregion

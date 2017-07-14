@@ -189,7 +189,7 @@ function ConvertFrom-GPO
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name "DSCFromGPO"
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC, BaselineManagement, xSMBShare
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC, BaselineManagement, xSMBShare, DSCR_PowerPlan, xScheduledTask, Carbon_IniFile, PrinterManagement, rsInternationalSettings
     # Add Node Data
     $configString += Write-DSCString -Node -Name $ComputerName
     
@@ -232,7 +232,7 @@ function ConvertFrom-GPO
         Foreach ($Policy in $registryPolicies)
         {
             # Convert each Policy Registry object into a Resource Block and add it to our Configuration string.
-            $ConfigString += Write-POLRegistryData -Data $Policy
+            $ConfigString += Write-GPORegistryPOLData -Data $Policy
         }
     }
         
@@ -258,7 +258,7 @@ function ConvertFrom-GPO
             # Loop through every setting in the heading.
             foreach ($subKey in $ini[$key].Keys)
             {
-                switch ($key)
+                switch -regex ($key)
                 {
                     "Service General Setting"
                     {
@@ -300,9 +300,14 @@ function ConvertFrom-GPO
                         $ConfigString += Write-GPOAuditINFData -Key $subKey -AuditData $ini[$key][$subkey]
                     }
 
-                    Default 
+                    "(Version|signature|Unicode)"
                     {
-                        Write-Warning "ConvertFrom-GPO:GPTemp.inf $subkey heading not yet supported"
+
+                    }
+                    
+                    Default
+                    {
+                        Write-Warning "ConvertFrom-GPO:GPTemp.inf $key AND $subkey heading not yet supported"
                     }
                 }
             }
@@ -429,6 +434,15 @@ function ConvertFrom-GPO
                 Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
             }
             
+            "IniFiles"
+            {
+                $Settings = (Select-Xml -XPath "//$_" -Xml $XMLContent).Node
+                foreach ($setting in $settings)
+                {
+                    $ConfigString += Write-GPOIniFileXMLData -XML $Setting
+                }
+            }
+            
             "InternetSettings"
             {
                 <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
@@ -440,6 +454,7 @@ function ConvertFrom-GPO
                 }#>
                 Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
             }
+
             "NetworkOptions"
             {
                 <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
@@ -465,38 +480,47 @@ function ConvertFrom-GPO
 
             "PowerOptions"
             {
-                <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
-
-                # Loop through every registry setting.
-                foreach ($Setting in $Settings)
+                $GlobalPowerOptions = (Select-Xml -XPath "//$_/GlobalPowerOptions" -xml $XMLContent).Node
+                $PowerPlans = (Select-Xml -XPath "//$_/GlobalPowerOptionsV2" -xml $XMLContent).Node                    
+                $PowerSchemes = (Select-Xml -XPath "//$_/PowerScheme" -xml $XMLContent).Node                    
+                
+                foreach ($PowerOption in $GlobalPowerOptions)
                 {
-                    $ConfigString += Write-GPOPowerOptionsXMLData -XML $Setting
-                }#>
+                    $ConfigString += Write-GPOGlobalPowerOptionsXMLData -XML $PowerOption
+                }
+
+                foreach ($PowerPlan in $PowerPlans)
+                {
+                    $ConfigString += Write-GPOPowerPlanXMLData -XML $PowerPlan
+                }
+
+                foreach ($PowerScheme in $PowerSchemes)
+                {
+                    $ConfigString += Write-GPOPowerSchemeXMLData -XML $PowerScheme
+                }
+
                 Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
             }
 
             "Printers"
             {
-                <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//Printers" -xml $XMLContent).Node
 
-                # Loop through every registry setting.
                 foreach ($Setting in $Settings)
                 {
                     $ConfigString += Write-GPOPrintersXMLData -XML $Setting
-                }#>
-                Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
             }
 
             "RegionalOptions"
             {
-                <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//Regional" -xml $XMLContent).Node
 
                 # Loop through every registry setting.
                 foreach ($Setting in $Settings)
                 {
                     $ConfigString += Write-GPORegionalOptionsXMLData -XML $Setting
-                }#>
-                Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
             }
             
             "Registry"
@@ -512,14 +536,13 @@ function ConvertFrom-GPO
 
             "Services"
             {
-                <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//NTServices" -xml $XMLContent).Node
 
                 # Loop through every registry setting.
                 foreach ($Setting in $Settings)
                 {
-                    $ConfigString += Write-GPOServicesXMLData -XML $Setting
-                }#>
-                Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                    $ConfigString += Write-GPONTServicesXMLData -XML $Setting
+                }
             }
 
             "Shortcuts"
@@ -548,13 +571,13 @@ function ConvertFrom-GPO
 
             "ScheduledTasks"
             {
-                <#$Settings = (Select-Xml -XPath "//ScheduledTasks/TaskV2" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//ScheduledTasks/*" -xml $XMLContent).Node
 
                 # Loop through every registry setting.
                 foreach ($Setting in $Settings)
                 {
                     $ConfigString += Write-GPOScheduledTasksXMLData -XML $Setting
-                }#>
+                }
                 Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
             }
 
@@ -564,8 +587,6 @@ function ConvertFrom-GPO
             }
         }
     }
-
-    $ConfigString += Write-DSCString -Resource -Type xSMBShare -Name Test -parameters @{Name = "Boy";Path="C:\"}
 
     # Close out the Node Block and the configuration.
     $ConfigString += Write-DSCString -CloseNodeBlock 

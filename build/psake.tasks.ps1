@@ -45,8 +45,8 @@ Task Clean -depends Init -requiredVariables releaseDir {
     Get-ChildItem -Path $releaseDir | 
         Remove-Item -Recurse -Force -Verbose:$VerbosePreference
         
-    Get-ChildItem -Path $TestRootDir -Filter "Test-*.xml" -Recurse | 
-        Remove-Item -Force -Verbose:$VerbosePreference
+    Get-ChildItem -Path $TestRootDir -Filter "Test*.xml" -Recurse | Remove-Item -Force -Verbose:$VerbosePreference
+    Get-ChildItem -Path $TestRootDir -Filter "Test*.html" -Recurse | Remove-Item -Force -Verbose:$VerbosePreference
 
     $ErrorActionPreference = $startErrorActionPreference
 }
