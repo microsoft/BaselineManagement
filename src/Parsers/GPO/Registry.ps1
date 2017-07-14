@@ -1,6 +1,26 @@
 # Create a variable so we can set DependsOn values between passes.
 New-Variable -Name GlobalDependsOn -Value @() -Option AllScope -Scope Script -Force
 $GlobalDependsOn = @()
+
+Function Resolve-RegistrySpecialCases
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        $regHash
+    )
+
+    # Special Cases.
+    switch -regex ((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName))
+    {
+        "HKLM:\\System\\CurrentControlSet\\Control\\SecurePipeServers\\Winreg\\(AllowedExactPaths|AllowedPaths)\\Machine"
+        {
+            $regHash.ValueData = $regHash.ValueData -split ","
+        }
+    }
+}
+
 Function Write-GPORegistryXMLData
 {
     [CmdletBinding()]
@@ -68,6 +88,8 @@ Function Write-GPORegistryXMLData
         $regHash.Remove("ValueData")
     }
 
+    Resolve-RegistrySpecialCases $reghash
+
     $CommentOUT = $false
     
     Write-DSCString -Resource -Name "XML_$(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
@@ -79,13 +101,24 @@ Function Write-GPORegistryPOLData
     [OutputType([String])]
     param
     (
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-        [psobject]$Data    
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [psobject]$Data,
+
+        [Parameter()]
+        [ValidateSet("HKLM", "HKCU")]
+        [string]$Hive = "HKLM"
     )
 
     $regHash = @{}
     $regHash.ValueName = ""
-    $regHash.Key = "HKLM:\"
+    $regHash.Key = "$($Hive):\"
+
+    $CommentOUT = $false
+    if ($Hive -eq "HKCU")
+    {
+        Write-Warning "Write-GPORegistryPOLData: CurrentUser settings are currently not supported"
+        $CommentOut = $true
+    }
 
     $regHash.ValueName = $Data.ValueName -replace "[^\u0020-\u007E]", ""
     $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Data.KeyName
@@ -183,16 +216,16 @@ Function Write-GPORegistryPOLData
         Default { $regHash.ValueType = "None" }
     }
 
-    if ($regHash.ValueType -eq "DWORD" -and ($ValueData -match "(Disabled|Enabled|Not Defined|True|False)"  -or $ValueData -eq "''"))
+    if ($regHash.ValueType -eq "DWORD" -and ($ValueData -match "(Disabled|Enabled|Not Defined|True|False)" -or $ValueData -eq "''"))
     {
         # This is supposed to be an INT and it's a String
-        [int]$regHash.ValueData = @{"Disabled"=0;"Enabled"=1;"Not Defined"=0;"True"=1;"False"=0;''=0}.$ValueData
+        [int]$regHash.ValueData = @{"Disabled" = 0; "Enabled" = 1; "Not Defined" = 0; "True" = 1; "False" = 0; '' = 0}.$ValueData
     }
-    elseif ($regHash.ValueType -eq "String"  -or $regHash.ValueType -eq "MultiString")
+    elseif ($regHash.ValueType -eq "String" -or $regHash.ValueType -eq "MultiString")
     {
         [string]$regHash.ValueData = [string]$ValueData
     }
-
+    
     if ($regHash.ValueType -eq "None")
     {
         # The REG_NONE is not allowed by the Registry resource.
@@ -203,6 +236,8 @@ Function Write-GPORegistryPOLData
     {
         $regHash.Remove("ValueData")
     }
+
+    Resolve-RegistrySpecialCases $reghash
 
     $DependsOn = @()
     $delVals = "DELVALS_$($regHash.Key.TrimStart("HKLM:"))"
@@ -344,6 +379,8 @@ $($tmpValueData)
         [string]$regHash.ValueData = [string]$regHash.ValueData
     }
     
+    Resolve-RegistrySpecialCases $regHash
+
     if ($regHash.ValueType -eq "None")
     {
         # The REG_NONE is not allowed by the Registry resource.
