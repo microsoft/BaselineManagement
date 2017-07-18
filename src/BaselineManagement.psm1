@@ -189,7 +189,7 @@ function ConvertFrom-GPO
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name "DSCFromGPO"
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC, BaselineManagement, xSMBShare, DSCR_PowerPlan, xScheduledTask, Carbon_IniFile, PrinterManagement, rsInternationalSettings
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC, BaselineManagement, xSMBShare, DSCR_PowerPlan, xScheduledTask, Carbon, PrinterManagement, rsInternationalSettings
     # Add Node Data
     $configString += Write-DSCString -Node -Name $ComputerName
     
@@ -302,7 +302,7 @@ function ConvertFrom-GPO
                         $ConfigString += Write-GPOAuditINFData -Key $subKey -AuditData $ini[$key][$subkey]
                     }
 
-                    "(Version|signature|Unicode)"
+                    "(Version|signature|Unicode|Group Membership)"
                     {
 
                     }
@@ -425,15 +425,13 @@ function ConvertFrom-GPO
 
             "Groups"
             {
-                <#$Settings = (Select-Xml -XPath "//$_/Group" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//Group" -xml $XMLContent).Node
 
                 # Loop through every registry setting.
                 foreach ($Setting in $Settings)
                 {
                     $ConfigString += Write-GPOGroupsXMLData -XML $Setting
-                }#>
-
-                Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
             }
             
             "IniFiles"
@@ -447,14 +445,13 @@ function ConvertFrom-GPO
             
             "InternetSettings"
             {
-                <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//Reg" -xml $XMLContent).Node
 
                 # Loop through every registry setting.
                 foreach ($Setting in $Settings)
                 {
                     $ConfigString += Write-GPOInternetSettingsXMLData -XML $Setting
-                }#>
-                Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
             }
 
             "NetworkOptions"
@@ -538,7 +535,7 @@ function ConvertFrom-GPO
 
             "Services"
             {
-                $Settings = (Select-Xml -XPath "//NTServices" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//NTService" -xml $XMLContent).Node
 
                 # Loop through every registry setting.
                 foreach ($Setting in $Settings)
@@ -580,7 +577,6 @@ function ConvertFrom-GPO
                 {
                     $ConfigString += Write-GPOScheduledTasksXMLData -XML $Setting
                 }
-                Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
             }
 
             Default
@@ -625,7 +621,7 @@ function ConvertFrom-GPO
     }
     else
     {
-        Get-Item $(Join-Path -Path $OutputPath -ChildPath "$($MyInvocation.MyCommand.Name).ps1.error")
+        Get-Item $(Join-Path -Path $OutputPath -ChildPath "DSCFromGPO.ps1.error")
     }
 }
 

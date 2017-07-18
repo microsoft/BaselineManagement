@@ -31,20 +31,40 @@ Function Convert-ToRepetitionString
     }
 }
 
+Function Test-BoolOrNull
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        [AllowNull()]
+        $Value
+    )
+
+    if ($Value -ne $Null)
+    {
+        return [bool]$Value
+    }
+    else
+    {
+        return $null
+    }
+}
+
 Function Remove-EmptyValues
 {
     [CmdletBinding()]
     param
     (
         [Parameter(Mandatory = $true)]
-        [ref]$hashtable
+        $hashtable
     )
-
-    foreach ($key in $hashtable.keys)
+    $keys = $hashtable.keys.Clone()
+    foreach ($key in $keys)
     {
-            if ($hashtable[$key] -is [System.Collection.Hashtable])
+            if ($hashtable[$key] -is [System.Collections.Hashtable])
             {
-                Remove-EmptyValues -hashtable [ref]$hashtable[$key]
+                Remove-EmptyValues -hashtable $hashtable[$key]
                 if ($hashtable[$key].Keys.Where({$_ -ne "EmbeddedInstance"}).Count -eq 0)
                 {
                     $hashtable.Remove($key)
@@ -57,7 +77,7 @@ Function Remove-EmptyValues
                 {
                     if ($hashtable[$key][$i] -is [System.Collections.Hashtable])
                     {
-                        Remove-EmptyValues -hashtable [ref]$hashtable[$key][$i]
+                        Remove-EmptyValues -hashtable $hashtable[$key][$i]
                         if ($hashtable[$key][$i].Keys.Where({$_ -ne "EmbeddedInstance"}).count -gt 0)
                         {
                             $goodEntries += $i
@@ -94,7 +114,7 @@ Function Write-GPOScheduledTasksXMLData
     $schTaskHash = @{}
     $Properties = $XML.Properties
     # Set up Task Triggers if necessary
-    switch -regex ($Properties.LocalName)
+    switch -regex ($XML.LocalName)
     {
         "^(Task|ImmediateTask)$"
         {
@@ -107,7 +127,7 @@ Function Write-GPOScheduledTasksXMLData
                 WorkingDirectory = $Properties.startIn
                 Arguments        = $Properties.args
             }
-            $schTaskHash.TaskActions = $actions
+            $schTaskHash.TaskAction = $actions
             
             if ($Properties.runAs)
             {
@@ -121,15 +141,15 @@ Function Write-GPOScheduledTasksXMLData
 
             $settings = @{
                 EmbeddedInstance           = "TaskSettingsSet"
-                Enabled                    = [bool]$Properties.enabled
-                RunOnIdle                  = [bool]$Properties.startOnlyIfIdle
+                Enabled                    = Test-BoolOrNull $Properties.enabled
+                RunOnIdle                  = Test-BoolOrNull $Properties.startOnlyIfIdle
                 ExecutionTimeLimit         = (Convert-ToRepetitionString -minutes $Properties.maxRunTime)
                 IdleSetting                = @{
                     EmbeddedInstance = "IdleSetting"
-                    StopOnIdleEnd    = $Properties.stopOnIdleEnd
+                    StopOnIdleEnd    = Test-BoolOrNull $Properties.stopOnIdleEnd
                 }
-                StopIfGoingOnBatteries     = [bool]$Properties.stopIfGoingOnBatteries
-                DisallowStartIfOnBatteries = [bool]$Properties.noStartIfOnBatteries
+                StopIfGoingOnBatteries     = Test-BoolOrNull $Properties.stopIfGoingOnBatteries
+                DisallowStartIfOnBatteries = Test-BoolOrNull $Properties.noStartIfOnBatteries
             }
             $schTaskHash.TaskSettingsSet = $settings
 
@@ -137,7 +157,8 @@ Function Write-GPOScheduledTasksXMLData
             {
                 $schTaskHash.TaskTriggers = @(
                     @{
-                        EmbeddedInstance = "TaskTrigger"
+                        EmbeddedInstance = "TaskTriggers"
+                        Id = "ImmediateTask Trigger($($schTaskHash.Name)): $(New-Guid)"
                         StartBoundary    = (Get-Date).AddMinutes(15)
                     }
                 )
@@ -221,6 +242,7 @@ Function Write-GPOScheduledTasksXMLData
                 
                 $tmpHash.EmbeddedInstance = "TaskTriggers"
                 $tmpHash.Enabled = $True
+                $tmpHash.Id = "$($t.Type) Trigger($($schTaskHash.Name)): $(New-Guid)"
                 $triggers += $tmpHash
             }
 
@@ -232,7 +254,7 @@ Function Write-GPOScheduledTasksXMLData
             $schTaskHash.Name = $XML.Name
             $schTaskHash.Path = "\DSC\"
             
-            $schTaskHash.TaskActions = @()
+            $schTaskHash.TaskAction = @()
             foreach ($a in $Properties.Task.Actions.ChildNodes)
             {
                 if ($a.LocalName -eq "Exec")
@@ -243,7 +265,7 @@ Function Write-GPOScheduledTasksXMLData
                         WorkingDirectory = $a.WorkingDirectory
                         Arguments        = $a.Arguments
                     }
-                    $schTaskHash.TaskActions += $tmpAction
+                    $schTaskHash.TaskAction += $tmpAction
                 }
             }
 
@@ -267,8 +289,13 @@ Function Write-GPOScheduledTasksXMLData
                     EmbeddedInstance = "TaskUserPrincipal"
                     UserID           = $Properties.runAs
                     LogonType        = $Properties.logonType
-                    RunLevel         = @("Highest", "Limited")[$Properties.systemRequired]
                 }
+                
+                if ($Properties.systemRequired)
+                {
+                    $principal.RunLevel = @("Highest", "Limited")[$Properties.systemRequired]
+                }
+                
                 $schTaskHash.TaskUserPrincipal = $principal
             }
 
@@ -276,29 +303,29 @@ Function Write-GPOScheduledTasksXMLData
                 EmbeddedInstance           = "TaskSettingsSet"
                 MultipleInstances          = $Properties.Task.Settings.MultipleInstancePolicy
                 
-                Enabled                    = $Properties.Task.Settings.enabled
-                RunOnIdle                  = $Properties.Task.Settings.runOnlyIfIdle
+                Enabled                    = Test-BoolOrNull $Properties.Task.Settings.enabled
+                RunOnIdle                  = Test-BoolOrNull $Properties.Task.Settings.runOnlyIfIdle
                 ExecutionTimeLimit         = $Properties.Task.Settings.executionTimeLimit
                 Priority                   = $Properties.Task.Settings.Priority
-                WakeToRun                  = $Properties.Task.Settings.WakeToRun
-                Hidden                     = $Properties.Task.Settings.Hidden
-                AllowStartOnDemand         = $Properties.Task.Settings.AllowStartOnDemand
-                AllowHardTerminate         = $Properties.Task.Settings.AllowHardTerminate
-                StartWhenAvailable         = $Properties.Task.Settings.StartWhenAvailable
-                RunOnlyIfNetworkAvailable  = $Properties.Task.Settings.RunOnlyIfNetworkAvailable
+                WakeToRun                  = Test-BoolOrNull $Properties.Task.Settings.WakeToRun
+                Hidden                     = Test-BoolOrNull $Properties.Task.Settings.Hidden
+                AllowDemandStart           = Test-BoolOrNull $Properties.Task.Settings.AllowStartOnDemand
+                AllowHardTerminate         = Test-BoolOrNull $Properties.Task.Settings.AllowHardTerminate
+                StartWhenAvailable         = Test-BoolOrNull $Properties.Task.Settings.StartWhenAvailable
+                RunOnlyIfNetworkAvailable  = Test-BoolOrNull $Properties.Task.Settings.RunOnlyIfNetworkAvailable
                 
                 IdleSetting                = @{
                     EmbeddedInstance = "IdleSetting"
-                    StopOnIdleEnd    = $Properties.Task.Settings.IdleSettings.StopOnIdleEnd
-                    Duration         = $Properties.Task.Settings.IdleSettings.Duration
+                    StopOnIdleEnd    = Test-BoolOrNull $Properties.Task.Settings.IdleSettings.StopOnIdleEnd
+                    IdleDuration     = $Properties.Task.Settings.IdleSettings.Duration
                     WaitTimeOut      = $Properties.Task.Settings.IdleSettings.WaitTimeOut
-                    RestartOnIdle    = $Properties.Task.Settings.IdleSettings.RestartOnIdle
+                    RestartOnIdle    = Test-BoolOrNull $Properties.Task.Settings.IdleSettings.RestartOnIdle
                 }
 
                 RestartCount               = $Properties.Task.Settings.RestartOnFailure.Count
                 RestartInterval            = $Properties.Task.Settings.RestartOnFailure.Interval
-                StopIfGoingOnBatteries     = $Properties.Task.Settings.stopIfGoingOnBatteries
-                DisallowStartIfOnBatteries = $Properties.Task.Settings.DisallowStartIfOnBatteries
+                StopIfGoingOnBatteries     = Test-BoolOrNull $Properties.Task.Settings.stopIfGoingOnBatteries
+                DisallowStartIfOnBatteries = Test-BoolOrNull $Properties.Task.Settings.DisallowStartIfOnBatteries
             }
             $schTaskHash.TaskSettingsSet = $settings
 
@@ -306,7 +333,8 @@ Function Write-GPOScheduledTasksXMLData
             {
                 $schTaskHash.TaskTriggers = @(
                     @{
-                        EmbeddedInstance = "TaskTrigger"
+                        Id = "ImmediateTask Trigger($($schTaskHash.Name)): $(New-Guid)"
+                        EmbeddedInstance = "TaskTriggers"
                         StartBoundary    = (Get-Date).AddMinutes(15)
                     }
                 )
@@ -343,6 +371,16 @@ Function Write-GPOScheduledTasksXMLData
                             {
                                 $tmpHash.WeeksInterval = $t.ScheduleByWeek.WeeksInterval
                             }
+                            
+                            "StartBoundary"
+                            {
+                                $tmpHash.StartBoundary = $t.StartBoundary
+                            }
+
+                            "Enabled"
+                            {
+                                $tmpHash.Enabled = Test-BoolOrNull $t.Enabled  
+                            }
 
                             Default
                             {
@@ -353,7 +391,8 @@ Function Write-GPOScheduledTasksXMLData
 
                     ".*"
                     {
-                        $tmpHash.Enabled = $t.Enabled   
+                        $tmpHash.Enabled = Test-BoolOrNull $t.Enabled
+                        $tmpHash.Id = "$_ Trigger ($($schTaskHash.Name)): $(New-Guid)"   
                         $tmpHash.StartBoundary = $t.StartBoundary
                         $tmpHash.EndBoundary = $t.EndBoundary
                         $tmpHash.Delay = $t.Delay
@@ -362,16 +401,18 @@ Function Write-GPOScheduledTasksXMLData
                             EmbeddedInstance  = "TaskRepetition"
                             Interval          = $t.Repetition.Interval
                             Duration          = $t.Repetition.Interval
-                            StopAtDurationEnd = $t.Repetition.StopAtDurationEnd
+                            StopAtDurationEnd = Test-BoolOrNull $t.Repetition.StopAtDurationEnd
                         }
-                        $tmpHash.EmbeddedInstance = "TaskTrigger"
+                        $tmpHash.EmbeddedInstance = "TaskTriggers"
                     }
                 }                
 
                 $triggers += $tmpHash
             }
             
-            foreach ($t in $Properties.Task.Triggers.CalendarTrigger)
+            $schTaskHash.TaskTriggers = $triggers
+#region Old Task Trigger method            
+            <#foreach ($t in $Properties.Task.Triggers.CalendarTrigger)
             {
                 $tmpHash = @{}
                 $tmpHash.StartBoundary = $t.StartBoundary
@@ -388,7 +429,7 @@ Function Write-GPOScheduledTasksXMLData
 
                 # Are there more ?
 
-                $tmpHash.EmbeddedInstance = "TaskTrigger"
+                $tmpHash.EmbeddedInstance = "TaskTriggers"
                 $triggers += $tmpHash
             }
 
@@ -405,7 +446,7 @@ Function Write-GPOScheduledTasksXMLData
                     StopAtDurationEnd = $t.Repetition.StopAtDurationEnd
                 }
                 
-                $tmpHash.EmbeddedInstance = "TaskTrigger"
+                $tmpHash.EmbeddedInstance = "TaskTriggers"
                 $triggers += $tmpHash
             }
 
@@ -423,7 +464,7 @@ Function Write-GPOScheduledTasksXMLData
                     StopAtDurationEnd = $t.Repetition.StopAtDurationEnd
                 }
                 
-                $tmpHash.EmbeddedInstance = "TaskTrigger"
+                $tmpHash.EmbeddedInstance = "TaskTriggers"
                 $triggers += $tmpHash
             }
             
@@ -441,7 +482,7 @@ Function Write-GPOScheduledTasksXMLData
                     StopAtDurationEnd = $t.Repetition.StopAtDurationEnd
                 }
                 
-                $tmpHash.EmbeddedInstance = "TaskTrigger"
+                $tmpHash.EmbeddedInstance = "TaskTriggers"
                 $triggers += $tmpHash
             }
             
@@ -459,11 +500,10 @@ Function Write-GPOScheduledTasksXMLData
                     StopAtDurationEnd = $t.Repetition.StopAtDurationEnd
                 }
                 
-                $tmpHash.EmbeddedInstance = "TaskTrigger"
+                $tmpHash.EmbeddedInstance = "TaskTriggers"
                 $triggers += $tmpHash
-            }
-
-            $schTaskHash.TaskTriggers = $triggers
+            }#>
+#endregion
         }
 
         Default
@@ -472,7 +512,7 @@ Function Write-GPOScheduledTasksXMLData
         }
     }
 
-    Remove-EmptyValues -hashtable [ref]$schTaskHash
+    Remove-EmptyValues -hashtable $schTaskHash
     Write-DSCString -Resource -Type xScheduledTask -Name "ScheduledTask(XML): $($schTaskHash.Name)" -Parameters $schTaskHash
 }
 #endregion

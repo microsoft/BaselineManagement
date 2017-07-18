@@ -11,7 +11,7 @@ Function Write-GPOGroupsXMLData
 
     $Properties = $XML.Properties
 
-    if (($Properties.removeAllAccounts -ne $Null) -or ($Properties.deleteAllUsers -ne $Null) -or ($Properties.deleteAllGroups -ne $Null))
+    if (($Properties.removeAllAccounts) -or ($Properties.deleteAllUsers) -or ($Properties.deleteAllGroups))
     {
         Write-Warning "Write-GPOGroupsXMLData: Deleting all users or groups en masse is not supported"
         Add-ProcessingHistory -Type Group -Name "GroupsXML: $($Properties.GroupName)" -ParsingError
@@ -27,7 +27,10 @@ Function Write-GPOGroupsXMLData
     $groupHash.Description = $Properties.Description
 
     $actionHash = @{"ADD" = @(); "REMOVE" = @()}
-    $actionHash[$Properties.userAction] += if ($Properties.sid -ne $null) {$Properties.sid} else {$Properties.name}
+    if ($Properties.userAction -ne $null)
+    {
+        $actionHash[$Properties.userAction] += if ($Properties.sid -ne $null) {$Properties.sid} else {$Properties.name}
+    }
 
     if ($Properties.Members -ne $null)
     {

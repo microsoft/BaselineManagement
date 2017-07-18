@@ -21,108 +21,56 @@ Function Resolve-RegistrySpecialCases
     }
 }
 
-Function Write-GPORegistryXMLData
+Function Add-RegistryDELVALDependsOn
 {
     [CmdletBinding()]
-    [OutputType([String])]
     param
     (
-        [Parameter(Mandatory=$true)]
-        [System.Xml.XmlElement]$XML    
+        [Parameter(Mandatory = $true)]
+        $regHash
     )
-    
-    $regHash = @{}
-    $regHash.ValueType = "None"
-    $regHash.ValueName = ""
-    $regHash.ValueData = ""
-    $regHash.Key = ""
 
-    $Properties = $XML.Properties
-
-    $ValueData = 1
-    if (!([int]::TryParse($Properties.Value, [ref]$ValueData)))
+    $DependsOn = @()
+    $delVals = "DELVALS_$($regHash.Key.TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $delVals -and $ExclusiveFlagAvailable)
     {
-        $ValueData = "'$($Properties.ValueData)'" -replace "[^\u0020-\u007E]", ""
+        $DependsOn += "[Registry]$delVals"
     }
 
-    $regHash.ValueData = $ValueData 
-    $regHash.ValueName = $Properties.name -replace "[^\u0020-\u007E]", ""
-
-    switch ($Properties.hive)
+    $delVal_ValueName = "DEL_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $delVal_ValueName)
     {
-        "HKEY_LOCAL_MACHINE" { $regHash.Key = "HKLM:\" }
+        $DependsOn += "[Registry]$delVal_ValueName"
     }
 
-    $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Properties.Key
-
-    switch ($Properties.type)
+    $deleteKeys = "DELETEKEY_$($regHash.Key.TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $deleteKeys)
     {
-        "REG_SZ" { $reghash.ValueType = "String" }
-        "REG_NONE" { $reghash.ValueType = "None" }
-        "REG_EXPAND_SZ" { $reghash.ValueType = "ExpandString" }
-        "REG_DWORD" { $reghash.ValueType = "DWORD" }
-        "REG_QWORD" { $reghash.ValueType = "QWORD" }    
-        "REG_BINARY" { $reghash.ValueType = "Binary" }  
-        "REG_MULTI_SZ" { $reghash.ValueType = "MultiString" }
-        Default { $regHash.ValueType = "None" }
+        $DependsOn += "[Registry]$deleteKeys"
     }
 
-    if ($regHash.ValueType -eq "DWORD" -and ($ValueData -match "(Disabled|Enabled|Not Defined|True|False)" -or $ValueData -eq "''"))
+    $deleteValue = "DELETEVALUES_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
+    if ($script:GlobalDependsOn -contains $deleteValue)
     {
-        # This is supposed to be an INT and it's a String
-        [int]$regHash.ValueData = @{"Disabled"=0;"Enabled"=1;"Not Defined"=0;"True"=1;"False"=0;''=0}.$ValueData
-    }
-    elseif ($regHash.ValueType -eq "String" -or $regHash.ValueType -eq "MultiString")
-    {
-        [string]$regHash.ValueData = [string]$ValueData
+        $DependsOn += "[Registry]$deleteValue"
     }
 
-    if ($regHash.ValueType -eq "None")
+    if ($DependsOn.count -gt 0)
     {
-        # The REG_NONE is not allowed by the Registry resource.
-        $regHash.Remove("ValueType")
+        $regHash.DependsOn = $DependsOn
     }
-
-    if ([string]::IsNullOrEmpty($regHash.ValueName))
-    {
-        $regHash.Remove("ValueData")
-    }
-
-    Resolve-RegistrySpecialCases $reghash
-
-    $CommentOUT = $false
-    
-    Write-DSCString -Resource -Name "XML_$(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }
 
-Function Write-GPORegistryPOLData
+Function Register-RegistryDELVALDependsOn
 {
     [CmdletBinding()]
-    [OutputType([String])]
     param
     (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-        [psobject]$Data,
-
-        [Parameter()]
-        [ValidateSet("HKLM", "HKCU")]
-        [string]$Hive = "HKLM"
+        [Parameter(Mandatory = $true)]
+        $regHash
     )
 
-    $regHash = @{}
-    $regHash.ValueName = ""
-    $regHash.Key = "$($Hive):\"
-
     $CommentOUT = $false
-    if ($Hive -eq "HKCU")
-    {
-        Write-Warning "Write-GPORegistryPOLData: CurrentUser settings are currently not supported"
-        $CommentOut = $true
-    }
-
-    $regHash.ValueName = $Data.ValueName -replace "[^\u0020-\u007E]", ""
-    $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Data.KeyName
-   
     # Process any pol instructions.
     switch -regex ($regHash.ValueName)
     {
@@ -193,39 +141,117 @@ Function Write-GPORegistryPOLData
         }
     }
 
-    # Now setup the rest of the Params Hashtable values.
-    $regHash.ValueType = "None"
-    $regHash.ValueData = ""
+    return $null
+}
 
-    $ValueData = 1
-    if (!([int]::TryParse($Data.ValueData, [ref]$ValueData)))
-    {
-        $ValueData = "'$($Data.ValueData)'" -replace "[^\u0020-\u007E]", ""
-    }
-
-    $regHash.ValueData = $ValueData
-    switch ($Data.ValueType)
-    {
-        "REG_SZ" { $reghash.ValueType = "String" }
-        "REG_NONE" { $reghash.ValueType = "None" }
-        "REG_EXPAND_SZ" { $reghash.ValueType = "ExpandString" }
-        "REG_DWORD" { $reghash.ValueType = "DWORD" }
-        "REG_QWORD" { $reghash.ValueType = "QWORD" }    
-        "REG_BINARY" { $reghash.ValueType = "Binary" }  
-        "REG_MULTI_SZ" { $reghash.ValueType = "MultiString" }
-        Default { $regHash.ValueType = "None" }
-    }
-
-    if ($regHash.ValueType -eq "DWORD" -and ($ValueData -match "(Disabled|Enabled|Not Defined|True|False)" -or $ValueData -eq "''"))
-    {
-        # This is supposed to be an INT and it's a String
-        [int]$regHash.ValueData = @{"Disabled" = 0; "Enabled" = 1; "Not Defined" = 0; "True" = 1; "False" = 0; '' = 0}.$ValueData
-    }
-    elseif ($regHash.ValueType -eq "String" -or $regHash.ValueType -eq "MultiString")
-    {
-        [string]$regHash.ValueData = [string]$ValueData
-    }
+Function Update-RegistryHashtable
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        $regHash
+    )
     
+    $regHash.ValueName = $regHash.ValueName -replace "[^\u0020-\u007E]", ""
+
+    if ([string]::IsNullOrEmpty($regHash.ValueName))
+    {
+        $regHash.Remove("ValueData")
+    }
+    $typeHash = @{"REG_SZ" = "String"; "REG_NONE" = "None"; "REG_DWORD" = "Dword"; "REG_EXPAND_SZ" = "ExpandString"; "REG_QWORD" = "Qword"; "REG_BINARY" = "Binary"; "REG_MULTI_SZ" = "MultiString"}
+
+    if ($typeHash.ContainsKey($regHash.ValueType))
+    {
+        $regHash.ValueType = $typeHash[$regHash.ValueType]
+    }
+    else
+    {
+        $regHash.ValueType = "None"
+    }
+
+    if ($regHash.ContainsKey("ValueData"))
+    {
+        switch ($regHash.ValueType)
+        {
+            "String"
+            {
+                [string]$regHash.ValueData = "'$($regHash.ValueData)'" -replace "[^\u0020-\u007E]", ""
+            }
+            
+            "None" 
+            { 
+                $regHash.Remove("ValueData") | Out-Null
+            }
+
+            "ExpandString" 
+            { 
+                # Contains unexpanded Environment Paths. Should I expand them?
+                [string]$regHash.ValueData = "'$($regHash.ValueData)'" -replace "[^\u0020-\u007E]", ""
+            }
+            
+            "Dword" 
+            { 
+                $ValueData = 1
+                if ($regHash.ValueData -match "(Disabled|Enabled|Not Defined|True|False)" -or $ValueData -eq "''")
+                {
+                    # This is supposed to be an INT and it's a String
+                    [int]$regHash.ValueData = @{"Disabled" = 0; "Enabled" = 1; "Not Defined" = 0; "True" = 1; "False" = 0; '' = 0}.$ValueData
+                }
+                elseif (([int]::TryParse($regHash.ValueData, [ref]$ValueData)))
+                {
+                    [int]$regHash.ValueData = $ValueData
+                }
+                else
+                {
+                    # If it doesn't parse as an integer, try parsing as hexadecimal.
+                    Try 
+                    {
+                        if ($regHash.ValueData.StartsWith("0x"))
+                        {
+                            $regHash.ValueData = "0x$($regHash.ValueData)"
+                        }
+
+                        [int]$regHash.ValueData = [Convert]::($regHash.ValueData, 10)
+                    }
+                    Catch
+                    {
+                        # Other wise fail over for now until a better option comes along.
+                        $regHash.Remove("ValueData") | Out-Null
+                    }
+                }
+            }
+
+            "Qword"
+            { 
+
+            }    
+
+            "Binary" 
+            { 
+                $reghash.ValueType = "Binary" 
+                if ($regHash.ContainsKey("ValueData"))
+                {
+                    $hexified = $regHash.ValueData | ForEach-Object { "0x$_"}
+                }
+                [byte[]]$regHash.ValueData = [byte[]]$hexified
+                $regHash.ValueType = "Binary"
+            }  
+
+            "MultiString" 
+            { 
+                # Does this have to be done in the Calling Function instead?
+                $regHash.ValueData = @"
+$($regHash.ValueData)
+"@ -replace "[^\u0020-\u007E]", ""
+                
+                $reghash.ValueType = "MultiString" 
+            }
+
+            Default { $regHash.ValueType = "None" }
+        }
+    }
+
     if ($regHash.ValueType -eq "None")
     {
         # The REG_NONE is not allowed by the Registry resource.
@@ -238,36 +264,88 @@ Function Write-GPORegistryPOLData
     }
 
     Resolve-RegistrySpecialCases $reghash
+}
 
-    $DependsOn = @()
-    $delVals = "DELVALS_$($regHash.Key.TrimStart("HKLM:"))"
-    if ($script:GlobalDependsOn -contains $delVals -and $ExclusiveFlagAvailable)
+Function Write-GPORegistryXMLData
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [System.Xml.XmlElement]$XML    
+    )
+    
+    $regHash = @{}
+    $regHash.ValueType = "None"
+    $regHash.ValueName = ""
+    $regHash.ValueData = ""
+    $regHash.Key = ""
+
+    $Properties = $XML.Properties
+
+    $regHash.ValueData = $Properties.Value 
+    $regHash.ValueName = $Properties.name
+    $regHash.ValueType = $Properties.Type
+
+    $CommentOUT = $false
+    switch ($Properties.hive)
     {
-        $DependsOn += "[Registry]$delVals"
+        "HKEY_LOCAL_MACHINE" { $regHash.Key = "HKLM:\" }
+        "HKEY_CURRENT_USER" 
+        { 
+            Write-Warning "Write-GPORegistryXMLData: Current User Registry settings are not yet supported."
+            $regHash.Key = "HKCU:\"
+            $CommentOUT = $true
+        }
     }
 
-    $delVal_ValueName = "DEL_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
-    if ($script:GlobalDependsOn -contains $delVal_ValueName)
+    $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Properties.Key
+
+    Update-RegistryHashtable $regHash
+        
+    Write-DSCString -Resource -Name "Registry(XML): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+}
+
+Function Write-GPORegistryPOLData
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    param
+    (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [psobject]$Data,
+
+        [Parameter()]
+        [ValidateSet("HKLM", "HKCU")]
+        [string]$Hive = "HKLM"
+    )
+
+    $regHash = @{}
+    $regHash.ValueName = ""
+    $regHash.Key = "$($Hive):\"
+
+    $CommentOUT = $false
+    if ($Hive -eq "HKCU")
     {
-        $DependsOn += "[Registry]$delVal_ValueName"
+        Write-Warning "Write-GPORegistryPOLData: CurrentUser settings are currently not supported"
+        $CommentOut = $true
     }
 
-    $deleteKeys = "DELETEKEY_$($regHash.Key.TrimStart("HKLM:"))"
-    if ($script:GlobalDependsOn -contains $deleteKeys)
-    {
-        $DependsOn += "[Registry]$deleteKeys"
-    }
+    $regHash.ValueName = $Data.ValueName
+    $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Data.KeyName
+    $regHash.ValueType = $Data.ValueType
+    $regHash.ValueData = $Data.ValueData
+    Update-RegistryHashtable $regHash
+    
+    $output = Register-RegistryDELVALDependsOn $regHash
 
-    $deleteValue = "DELETEVALUES_$((Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName).TrimStart("HKLM:"))"
-    if ($script:GlobalDependsOn -contains $deleteValue)
+    if ($output -ne $null)
     {
-        $DependsOn += "[Registry]$deleteValue"
+        return $output
     }
-
-    if ($DependsOn.count -gt 0)
-    {
-        $regHash.DependsOn = $DependsOn
-    }
+        
+    Add-RegistryDELVALDependsOn $regHash
 
     Write-DSCString -Resource -Name "Registry(POL): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }
@@ -293,6 +371,8 @@ Function Write-GPORegistryINFData
     $regHash.ValueData = ""
     $regHash.Key = ""
 
+    $CommentOUT = $false
+
     $values = $ValueData -split ","
             
     $KeyPath = $Key
@@ -301,98 +381,36 @@ Function Write-GPORegistryINFData
     $regHash.ValueName = $ValueName -replace "[^\u0020-\u007E]", ""
     $regHash.Key = Split-Path -Parent $KeyPath
     $regHash.Key = $regHash.Key -replace "MACHINE\\", "HKLM:\" 
+    if (!$regHash.Key.StartsWith("HKLM"))
+    {
+        Write-Warning "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
+        $CommentOUT = $true
+    }
+
     Try
     {
-        $tmpValueData = $values[1..$values.count] -join ","
+        $regHash.ValueData = $values[1..$values.count]
     }
     Catch 
     {
-        $tmpValueData = $null
-        $regHash.Remove("ValueData")
+        $regHash.ValueData = $null
         continue    
     }
-        
-    switch ($values[0]) 
-    { 
-        "1" 
-        { 
-            # Not sure what type the legal caption is.  Is it an array of strings?
-            if ($regHash.ContainsKey("ValueData"))
-            {
-                $regHash.ValueData = "'$($tmpValueData)'" -replace "[^\u0020-\u007E]", ""
-            }
-            $regHash.ValueType = "String"
-        } 
-                        
-        "7" 
-        { 
-            if ($regHash.ContainsKey("ValueData"))
-            {
-            $regHash.ValueData = @"
-$($tmpValueData)
-"@ -replace "[^\u0020-\u007E]", ""
-            }
-            $regHash.ValueType = "MultiString"
-        }
-                        
-        "4" 
-        { 
-            if ($regHash.ContainsKey("ValueData"))
-            {
-                $tstValueData = 1
-                if (!([int]::TryParse($tmpValueData, [ref]$tstValueData)))
-                {
-                    Write-Error "Cannot Parse Value for $ValueData at key $KeyData, setting value to 0"
-                    $tmpValueData = 0
-                }
-
-                [int]$regHash.ValueData = $tstValueData
-            }
-            $regHash.ValueType = "DWORD"
-        }
-                        
-        "3" 
-        { 
-            if ($regHash.ContainsKey("ValueData"))
-            {
-                $hexified = $tmpValueData -split "," | ForEach-Object { "0x$_"}
-            }
-            $regHash.ValueData = [byte[]]$hexified
-            $regHash.ValueType = "Binary"
-        } 
-
-        Default
-        {
-            Write-Warning "Cannot parse RegistryINF Data"
-            Write-Warning "$_"
-            return ""
-        }
+    
+    $typeHash = @{"1" = "REG_SZ"; "7" = "REG_MULTI_SZ"; "4" = "REG_DWORD"; "3" = "REG_BINARY"}
+    if ($typeHash.ContainsKey($values[0]))
+    {
+        $regHash.ValueType = $typeHash[$values[0]]
+    }
+    else
+    {
+        Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
+        # Add this resource to the processing history.
+        Add-ProcessingHistory -Type Registry -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
+        $CommentOUT = $true
     }
     
-    if ($regHash.ValueType -eq "DWORD" -and ($regHash.ValueData -match "(Disabled|Enabled|Not Defined|True|False)" -or $regHash.ValueData -eq "''"))
-    {
-        # This is supposed to be an INT and it's a String
-        [int]$regHash.ValueData = @{"Disabled" = 0; "Enabled" = 1; "Not Defined" = 0; "True" = 1; "False" = 0; '' = 0}.$regHash.ValueData
-    }
-    elseif ($regHash.ValueType -eq "String" -or $regHash.ValueType -eq "MultiString")
-    {
-        [string]$regHash.ValueData = [string]$regHash.ValueData
-    }
+    Update-RegistryHashtable $regHash
     
-    Resolve-RegistrySpecialCases $regHash
-
-    if ($regHash.ValueType -eq "None")
-    {
-        # The REG_NONE is not allowed by the Registry resource.
-        $regHash.Remove("ValueType")
-    }
-
-    if ([string]::IsNullOrEmpty($regHash.ValueName))
-    {
-        $regHash.Remove("ValueData")
-    }
-
-    $CommentOUT = $false
-
     Write-DSCString -Resource -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }

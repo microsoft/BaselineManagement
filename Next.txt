@@ -15,3 +15,6 @@ Add Remove-Empty function to every parsing tool to remove any entries that are $
 
 Add Pester Tests for Conversion Main functions to make sure they are using correctly named functions and not throwing errors etc.
 Add pester tests for Write-DSCSTring and Write-DSCSTringKeyPair to make sure they are formatting strings correctly with no  invisible characters or non escaping characters.
+Centralize Registry Checks into Function (ValueType switch, Int Parsing etc.)
+Create Tabber inline function for tabbign out strings.
+Wrap all parsing functions in try catch
