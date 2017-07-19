@@ -16,7 +16,7 @@ Get-ChildItem -Path $Parsers -Recurse -Filter '*.ps1' | ForEach-Object { . $_.Fu
    dir .\scm.json | ConvertTo-DSC
 .EXAMPLE
    Backup-GPO <GPO Name> | ConvertTo-DSC
-.INPUTS
+.INPUd
    Any supported baseline to be converted into DSC.
 .OUTPUTS
    Output will come from calling cmdlet ConvertFrom-GPO, ConvertFrom-SCM, and ConvertFrom-ASC.
@@ -524,7 +524,7 @@ function ConvertFrom-GPO
             
             "Registry"
             {
-                $Settings = (Select-Xml -XPath "//RegistrySettings/$_" -xml $XMLContent).Node
+                $Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
 
                 # Loop through every registry setting.
                 foreach ($Setting in $Settings)
