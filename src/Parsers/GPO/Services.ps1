@@ -24,6 +24,11 @@ Function Write-GPONTServicesXMLData
             $serviceHash.State = "Running"
         }
 
+        {[string]::IsNullOrEmpty($_) -or $_ -eq "NOCHANGE"}
+        {
+
+        }
+
         Default
         {
             Write-Warning "Write-GPONTServicesXMLData:$_ Service Action is not yet supoported."
@@ -36,6 +41,11 @@ Function Write-GPONTServicesXMLData
         "(Automatic|Disabled|Manual)"
         {
             $serviceHash.StartupType = $_
+        }
+
+        {[string]::IsNullOrEmpty($_) -or $_ -eq "NOCHANGE"}
+        {
+
         }
         
         Default
@@ -52,14 +62,30 @@ Function Write-GPONTServicesXMLData
             $serviceHash.BuiltInAccount = $_
         }
 
+        {[string]::IsNullOrEmpty($_)}
+        {
+
+        }
+
         Default
         {
             Write-Warning "Write-GPONTServicesXMLData: Alternate Credentials ($_) are not yet supoported."
-            Add-ProcessingHistory -Name "Services(XML): $($Properties.serviceName)" -Type Service -PasrsingError
+            Add-ProcessingHistory -Name "Services(XML): $($Properties.serviceName)" -Type Service -ParsingError
         }
     }
 
-    Write-DSCString -Resource -Type Service -Name "NTService: $($serviceHash.Name)" -Parameters $serviceHash
+    if ($Properties.firstFailure -or $Properties.thirdFailure -or $Properties.secondFailure -or $Properties.resetFailCountDelay -or $Properties.restartServiceDelay)
+    {
+        Write-Warning "Write-GPONTServicesXMLData: Recovery options are only supported by Carbon_Service DSC resource."
+        $recoveryAction = @{"START"="RESTART";"STOP"="TAKENOACTION";"RESTART"="Reboot";"NOACTION"="TAKENOACTION";"RESTART_IF_REQUIRED"="RESTART"}
+        if ($Properties.firstFailure) { $serviceHash.OnFirstFailure = $recoveryAction[$Properties.firstFailure] }
+        if ($Properties.secondFailure) { $serviceHash.OnSecondFailure = $recoveryAction[$Properties.secondFailure] }
+        if ($Properties.thirdFailure) { $serviceHash.OnThirdFailure = $recoveryAction[$Properties.thirdFailure] }
+        if ($Properties.resetFailCount) { $serviceHash.ResetFailureCount = $Properties.ResetFailureCount }
+        if ($Properties.restartServiceDelay) { $serviceHash.RestartDelay = $Properties.restartServiceDelay }
+        if ($Properties.program) { $serviceHash.Command = $Properties.program + " " + $Properties.args }
+        Write-DSCString -Resource -Type Carbon_Service -Name "(Carbon_Service) NTService: $($serviceHash.Name)" -Parameters $serviceHash
+    }
 }
 
 Function Write-GPOServiceINFData

@@ -114,6 +114,17 @@ Function Test-Conflicts
     return ($GlobalConflict -or $ResourceNotFound -or $CommentOut)
 }
 
+Function Get-Tabs
+{
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [int]$Tabs
+    )
+    (1..$Tabs) | ForEach-Object {"`t"}
+}
+
 Function Write-DSCStringKeyPair
 {
     [CmdletBinding()]
@@ -134,11 +145,11 @@ Function Write-DSCStringKeyPair
     if ($Value -eq $null)
     {
         # Do not allow $null Values
-        return "# `n$((1..$Tabs) | ForEach-Object {"`t"})$($key) = $null"
+        return "# `n$(Get-Tabs $Tabs)$($key) = $null"
     }
     
     # Start the Resource Key/Value Pair.
-    $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"})$($key) = "
+    $DSCString += "`n$(Get-Tabs $Tabs)$($key) = "
     $Separator = ", "
     # If the Value is an array, increase the tab stops and add the array operators.
     if ($Value -is [Array]) 
@@ -184,19 +195,19 @@ Function Write-DSCStringKeyPair
                 
                 if ($Value -is [Array])
                 {
-                    $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"})"
+                    $DSCString += "`n$(Get-Tabs $Tabs)"
                 }
 
                 $DSCString += "$identifier"
                 $Tabs += 2
-                $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"}){"
+                $DSCString += "`n$(Get-Tabs $Tabs){"
                 $Tabs++
                 foreach ($keypair in $_.GetEnumerator())
                 {
                     $DSCString += Write-DSCStringKeyPair -Key $Keypair.Name -Value $Keypair.Value -Tabs $Tabs
                 }
                 $Tabs--
-                $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"})}"
+                $DSCString += "`n$(Get-Tabs $Tabs)}"
                 $Tabs -= 2
             }
 
@@ -216,7 +227,7 @@ Function Write-DSCStringKeyPair
     if ($Value -is [Array]) 
     {
         $Tabs--
-        $DSCString += "`n$((1..$Tabs) | ForEach-Object {"`t"}))"
+        $DSCString += "`n$(Get-Tabs $Tabs))"
     }
 
     return $DSCString
@@ -291,6 +302,10 @@ Function Write-DSCString
         # This allows comments to be added to various code blocks.
         [string]$Comment,
 
+        # This allows conditional resource blocks
+        [Parameter(ParameterSetName = "Resource")]
+        [scriptblock]$Condition,
+
         # This Output Path is for the Configuration Block, not this function.
         [Parameter(ParameterSetName = "InvokeConfiguration")]
         [string]$OutputPath = $(Join-Path -Path $PSScriptRoot -ChildPath "Output")
@@ -359,8 +374,15 @@ Configuration $Name`n{`n`n`t
             $ModuleName = $ModuleName | Where-Object {$_ -notin $ModuleNotFound}
 
             # Output our Import-Module string.
-            $DSCString = "Import-DSCResource -ModuleName $(($ModuleName | ForEach-Object {"'$_'"}) -join ", ")`n`t" 
-            $DSCString += "# Import-DSCResource -ModuleName $(($ModuleNotFound | ForEach-Object {"'$_'"}) -join ", ")`n`t" 
+            foreach ($m in $ModuleName)
+            {
+                $DSCString += "Import-DSCResource -ModuleName '$m'`n`t" 
+            }
+
+            foreach ($m in $ModuleNotFound)
+            {
+                $DSCString += "# Module Not Found: Import-DSCResource -ModuleName '$m'`n`t" 
+            }
         }
         "Node" { $DSCString = "Node $Name`n`t{`n" }
         "InvokeConfiguration" { $DSCString = "$Name -OutputPath '$($OutputPath)'" }
@@ -368,6 +390,15 @@ Configuration $Name`n{`n`n`t
         "CloseConfigurationBlock" { $DSCString = "`n}`n" }          
         "Resource"
         {
+            $Tabs = 2
+            $DSCString = ""
+            # A Condition was specified for this resource block.
+            if ($PSBoundParameters.ContainsKey("Condition"))
+            {
+                $DSCString += "$(Get-Tabs $Tabs)if ($($Condition.ToString()))`n $(Get-Tabs $Tabs){`n"
+                $Tabs++
+            }
+
             # Variables to be used for commeting out resource if necessary.
             $CommentStart = ""
             $CommentEnd = ""
@@ -386,8 +417,8 @@ Configuration $Name`n{`n`n`t
             {
                 $tmpComment = "<#`n"
                 # Changed from ForEach-Object { $tmpComment += "`t`t$_`n"}
-                $tmpComment += $Comment -split "`n" | ForEach-Object { "`t`t$_`n"}
-                $tmpComment += "`t`t#>`n`t`t"
+                $tmpComment += $Comment -split "`n" | ForEach-Object { "$(Get-Tabs $Tabs)$_`n"}
+                $tmpComment += "$(Get-Tabs $Tabs)#>`n$(Get-Tabs $Tabs)"
                 $Comment = $tmpComment
             }
             else
@@ -396,14 +427,27 @@ Configuration $Name`n{`n`n`t
             }
 
             # Start the Resource Block with Comment and CommentOut characters if necessary.
-            $DSCString = "`t`t$Comment$($CommentStart)$Type '$($Name)'`n`t`t{"
+            $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type '$($Name)'`n$(Get-Tabs $Tabs){"
+            $Tabs++
             foreach ($key in $Parameters.Keys)
             {
-                $DSCString += Write-DSCStringKeyPair -Key $key -Value $Parameters[$key] -Tabs 3
+                $DSCString += Write-DSCStringKeyPair -Key $key -Value $Parameters[$key] -Tabs $Tabs
             }
-             
-            # Output our Resource Block String                    
-            $DSCString += "`n`n`t`t}$CommentEnd`n`n"
+            $Tabs--
+            $DSCString += "`n`n$(Get-Tabs $Tabs)}$CommentEnd"
+
+            if ($PSBoundParameters.ContainsKey("Condition"))
+            {
+                $DSCString += "$(Get-Tabs $Tabs)if ($($Condition.ToString()))`n $(Get-Tabs $Tabs){`n"
+                $Tabs++
+            }
+            $Tabs--
+            if ($PSBoundParameters.ContainsKey("Condition"))
+            {
+                $DSCString += "`n`n$(Get-Tabs $Tabs)}"
+            }
+            
+            $DSCString += "`n`n"
         }
     }
 
