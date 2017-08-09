@@ -1,0 +1,92 @@
+TOPIC
+    about_Carbon
+    
+SHORT DESCRIPTION
+    Carbon is a PowerShell module for automating the configuration of computers 
+    running Windows 7, 8, 2008, and 2012. It can configure and manage:
+    
+     * Local users and groups
+     * IIS websites, virtual directories, and applications
+     * File system, registry, and certificate permissions
+     * Certificates
+     * Privileges
+     * Services
+     * Encryption
+     * Junctions
+     * Hosts file
+     * INI files
+     * Performance counters
+     * Shares
+     * .NET connection strings and app settings
+     * And much more!
+    
+    All functions are designed to be idempotent: when run multiple times with the 
+    same arguments, your system will be in the same state without failing or producing
+    errors.  
+    
+SYSTEM REQUIREMENTS
+    PowerShell 4.0/5.0 and .NET Framework 4.5 
+
+    Windows 7, 8, 2008, or 2012.
+
+    To use IIS functions, IIS  must be installed/enabled, including the 
+    `Web-Scripting-Tools` feature.
+
+INSTALLATION
+    See the `about_Carbon_Installation` help topic for installation instructions.
+
+SUPPORT
+    See the `about_Carbon_Support` help topic for ways to ask questions about using 
+    Carbon.
+    
+OVERVIEW  
+    Only PowerShell [approved verbs](http://msdn.microsoft.com/en-us/library/windows/desktop/ms714428.aspx)
+    are used for command names. Carbon assigns special meaning to these verbs:
+    
+    * Format: Escape (e.g. `Format-ADSearchFilterValue`).
+    * Install: Create a resource if it doesn't exist. If it does exist, update its 
+      configuration to your desired state (e.g. `Install-User`, `Install-IisWebsite`,
+      etc.).
+    * Split: Parse (e.g. Split-Ini)
+    * Uninstall: Remove a resource if it exists. If it doesn't exist, do nothing.
+    
+    Carbon has no dependencies and is designed to work on a computer running a fresh
+    install of Windows. Some functions do interact with some Windows features. If those 
+    features aren't installed, you'll get errors.
+    
+    Carbon has an automated test suite that runs after every change on a computer
+    running Windows 2012 R2. Before release, the test suite is run automatically on a 
+    computer running Windows 7 and PowerShell 5. No releases are made unless all tests 
+    pass.
+
+VERSIONING
+
+    Carbon uses [semantic versioning](http://semver.org/). We use our version number
+    to communicate how Carbon changes from the last version. Carbon version numbers have
+    the form Major.Minor.Patch.
+    
+    When upgrading to a new version, if:
+    
+     * Just the patch number has changed (e.g. 1.5.0 -> 1.5.1) then we've only fixed bugs
+       in a 100% backwards-compatible way. You should feel comfortable upgrading with no
+       or limited testing.
+     * The Minor version has changed (e.g. 1.8.0 -> 1.9.0), then we've only fixed bugs or
+       introduced new functionality in a 100% backwards-compatible way. Again, you should
+       feel comfortable upgrading with light to limited testing.
+       
+       When upgrading to a new minor version, always upgrade to the minor version with the
+       highest patch number.   
+     * The Major version has changed (e.g. 1.9.0 -> 2.0.0), then we've broken 
+       compatibility with previous versions of Carbon. You should carefully review the
+       release notes and update your code to work with the new version. You'll need to do
+       a thorough test of any changes to ensure your scripts still work.
+    
+SEE ALSO
+    http://get-carbon.org
+    https://github.com/pshdo/Carbon/
+    about_Carbon_Installation
+    about_Carbon_Support
+    about_Carbon_Extended_Type_Data
+    about_Carbon_2.0
+    about_Carbon_Contributing
+    http://semver.org

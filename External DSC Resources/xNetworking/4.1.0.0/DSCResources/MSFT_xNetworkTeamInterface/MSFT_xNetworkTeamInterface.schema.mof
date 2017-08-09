@@ -1,0 +1,9 @@
+
+[ClassVersion("1.0"), FriendlyName("xNetworkTeamInterface")]
+class MSFT_xNetworkTeamInterface : OMI_BaseResource
+{
+    [Key, Description("Specifies the name of the network team interface to create.")] String Name;
+    [Required, Description("Specifies the name of the network team on which this particular interface should exist.")] String TeamName;
+    [Write, Description("Specifies VlanID to be set on network team interface.")] Uint32 VlanID;
+    [Write, Description("Specifies if the network team interface should be created or deleted."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};

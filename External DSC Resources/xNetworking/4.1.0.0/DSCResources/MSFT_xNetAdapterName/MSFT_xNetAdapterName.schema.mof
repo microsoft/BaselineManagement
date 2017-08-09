@@ -1,0 +1,15 @@
+[ClassVersion("1.0.0"), FriendlyName("xNetAdapterName")]
+class MSFT_xNetAdapterName : OMI_BaseResource
+{
+    [Key, Description("Specifies the new name of the network adapter.")] String NewName;
+    [Write, Description("This is the name of the network adapter to find.")] String Name;
+    [Write, Description("This is the media type of the network adapter to find.")] String PhysicalMediaType;
+    [Write, Description("This is the status of the network adapter to find."), ValueMap{"Up", "Disconnected", "Disabled"}, Values{"Up", "Disconnected", "Disabled"}] String Status;
+    [Write, Description("This is the MAC address of the network adapter to find.")] String MacAddress;
+    [Write, Description("This is the interface description of the network adapter to find.")] String InterfaceDescription;
+    [Write, Description("This is the interface index of the network adapter to find.")] UInt32 InterfaceIndex;
+    [Write, Description("This is the interface GUID of the network adapter to find.")] String InterfaceGuid;
+    [Write, Description("This is the driver description of the network adapter.")] String DriverDescription;
+    [Write, Description("This is the interface number of the network adapter if more than one are returned by the parameters.")] UInt32 InterfaceNumber;
+    [Write, Description("This switch will suppress an error occurring if more than one matching adapter matches the parameters passed.")] Boolean IgnoreMultipleMatchingAdapters;
+};

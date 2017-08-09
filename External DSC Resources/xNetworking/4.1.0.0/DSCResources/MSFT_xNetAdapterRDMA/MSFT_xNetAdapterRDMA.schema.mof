@@ -1,0 +1,6 @@
+[ClassVersion("1.0.0.0"), FriendlyName("xNetAdapterRDMA")]
+class MSFT_xNetAdapterRDMA : OMI_BaseResource
+{
+    [Key, Description("Specifies the name of network adapter for which RDMA needs to be configured.")] String Name;
+    [Write, Description("Specifies whether RDMA is enabled or disabled.")] Boolean Enabled;
+};

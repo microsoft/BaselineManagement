@@ -7,8 +7,8 @@ There will be one 3 main cmdlets:
 
 These cmdlets are designed to convert from baselines in Group Policy or SCM into corresponding DSC Configurations and MOF Files.
  - ConvertFrom-GPO - Converts from GPO Backups into DSC Configuration and accompanying MOF
- - ConvertFrom-SCMXML - Converts from SCMXML into DSC Configuration and accompanying MOF
- - ConvertFrom-SCMJSON - Converts from SCMJSON into DSC Configuration and accompanying MOF
+ - ConvertFrom-SCM - Converts from SCMXML into DSC Configuration and accompanying MOF
+ - ConvertFrom-ASC - Converts from SCMJSON into DSC Configuration and accompanying MOF
 
  - ConvertTo-DSC - "proxy" cmdlet that allows you to pass any of the baselines in and then automatically chooses the correct cmdlet for you.
 
@@ -60,5 +60,5 @@ Additional SCM Baselines are currently in the work
 
 If you have any issues, please submit them and I will get to them as I am able :-)
 
-	
+
 

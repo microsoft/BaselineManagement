@@ -1,0 +1,11 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("cPowerPlan")]
+class cPowerPlan : OMI_BaseResource
+{
+    [Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+    [Key] String GUID;
+    [Required] String Name;
+    [Write] String Description;
+    [Write] Boolean Active;
+};
+

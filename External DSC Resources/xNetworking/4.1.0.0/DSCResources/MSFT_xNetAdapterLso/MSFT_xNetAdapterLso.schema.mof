@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0.0"), FriendlyName("xNetAdapterLso")]
+class MSFT_xNetAdapterLso : OMI_BaseResource
+{
+    [Key, Description("Specifies the name of network adapter.")] String Name;
+    [Required, Description("Specifies which protocol to make changes to."), ValueMap{"V1IPv4","IPv4","IPv6"}, Values{"V1IPv4","IPv4","IPv6"}] String Protocol;
+    [Required, Description("Specifies whether LSO should be enabled or disabled.")] Boolean State;
+};

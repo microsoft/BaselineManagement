@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0"), FriendlyName("xDHCPClient")]
+class MSFT_xDHCPClient : OMI_BaseResource
+{
+    [Key, Description("Alias of the network interface for which the DHCP Client is set.")] string InterfaceAlias;
+    [Key, Description("IP address family."), ValueMap{"IPv4", "IPv6"}, Values{"IPv4", "IPv6"}] string AddressFamily;
+    [Required, Description("The desired state of the DHCP Client."), ValueMap{"Enabled", "Disabled"}, Values{"Enabled", "Disabled"}] string State;
+};

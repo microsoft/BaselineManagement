@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0.0"), FriendlyName("xHostsFile")]
+class MSFT_xHostsFile : OMI_BaseResource
+{
+    [Key, Description("Specifies the name of the computer that will be mapped to an IP address.")] string HostName;
+    [Write, Description("Specifies the IP Address that should be mapped to the host name.")] string IPAddress;
+    [Write, Description("Specifies if the hosts file entry should be created or deleted."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] string Ensure;
+};

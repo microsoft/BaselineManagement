@@ -1,0 +1,9 @@
+[ClassVersion("1.1"), FriendlyName("xNetworkTeam")]
+class MSFT_xNetworkTeam : OMI_BaseResource
+{
+    [Key, Description("Specifies the name of the network team to create.")] String Name;
+    [Required, Description("Specifies the network interfaces that should be a part of the network team. This is a comma-separated list.")] String TeamMembers[];
+    [Write, Description("Specifies the teaming mode configuration."), ValueMap{"SwitchIndependent","LACP","Static"}, Values{"SwitchIndependent","LACP","Static"}] String TeamingMode;
+    [Write, Description("Specifies the load balancing algorithm for the network team."), ValueMap{"Dynamic","HyperVPort","IPAddresses","MacAddresses","TransportPorts"}, Values{"Dynamic","HyperVPort","IPAddresses","MacAddresses","TransportPorts"}] String LoadBalancingAlgorithm;
+    [Write, Description("Specifies if the network team should be created or deleted."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};

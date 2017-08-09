@@ -1,0 +1,12 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("cPowerPlanSetting")]
+class cPowerPlanSetting : OMI_BaseResource
+{
+    [Key, ValueMap{"AC","DC", "Both"}, Values{"AC","DC", "Both"}] String AcDc;
+    [Key] String SettingGuid;
+    [Key] String PlanGuid;
+    [Required] UInt32 Value;
+    [Read] UInt32 ACValue;
+    [Read] UInt32 DCValue;
+};
+

@@ -1,0 +1,83 @@
+#---------------------------------#
+#      environment configuration  #
+#---------------------------------#
+
+os: WMF 5
+version: 1.3.0.{build}
+install:
+    - cinst -y pester
+    - git clone https://github.com/PowerShell/DscResource.Tests
+    - ps: Push-Location
+    - cd DscResource.Tests
+    - ps: Import-Module -Name '.\TestHelper.psm1' -Force
+    - ps: Pop-Location
+    - ps: Get-PackageProvider -Name NuGet -ForceBootstrap -Force
+
+#---------------------------------#
+#      build configuration        #
+#---------------------------------#
+
+build: false
+
+#---------------------------------#
+#      test configuration         #
+#---------------------------------#
+
+test_script:
+    - ps: |
+        $TestResultsFilePath = '.\TestsResults.xml'
+        $TestResults = Invoke-Pester -OutputFormat NUnitXml -OutputFile $TestResultsFilePath -PassThru
+        (New-Object -TypeName System.Net.WebClient).UploadFile(
+            "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)",
+            (Resolve-Path -Path $TestResultsFilePath))
+        if ($TestResults.FailedCount -gt 0) {throw "$($TestResults.FailedCount) tests failed."}
+
+#---------------------------------#
+#      deployment configuration   #
+#---------------------------------#
+
+deploy_script:
+    - ps: |
+        $ManifestFileName = 'cNtfsAccessControl.psd1'
+        $ManifestFilePath = Join-Path -Path $PWD -ChildPath $ManifestFileName
+        $StagingDirectoryPath = (Resolve-Path -Path '..').Path
+
+        # Replace module version in the manifest file
+        (Get-Content -Path $ManifestFilePath) -replace "(ModuleVersion\s*?=\s*?['|`"])(.*?)(['|`"])", ('${1}' + $env:APPVEYOR_BUILD_VERSION + '${3}') |
+        Set-Content -Path $ManifestFilePath
+
+        # Load module manifest
+        $Manifest = Invoke-Expression -Command (Get-Content -Path $ManifestFilePath | Out-String)
+
+        # Create project artifact
+        $ZipFilePath = Join-Path -Path $StagingDirectoryPath -ChildPath "$(Split-Path -Path $PWD -Leaf).zip"
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($PWD, $ZipFilePath)
+
+        # Create NuGet package artifact
+        $NuspecSplat = @{
+            packageName        = $env:APPVEYOR_PROJECT_NAME
+            version            = $env:APPVEYOR_BUILD_VERSION
+            author             = $Manifest.Author
+            owners             = $Manifest.Author
+            licenseUrl         = $Manifest.PrivateData.PSData.LicenseUri
+            projectUrl         = $Manifest.PrivateData.PSData.ProjectUri
+            packageDescription = $env:APPVEYOR_PROJECT_NAME
+            tags               = (($Manifest.PrivateData.PSData.Tags) -join ' ')
+            destinationPath    = '.'
+        }
+
+        New-Nuspec @NuspecSplat
+        nuget pack ".\$($env:APPVEYOR_PROJECT_NAME).nuspec" -OutputDirectory '.'
+        $NuGetPackageName = "$($env:APPVEYOR_PROJECT_NAME).$($env:APPVEYOR_BUILD_VERSION).nupkg"
+        $NuGetPackagePath = (Get-Item -Path $NuGetPackageName).FullName
+
+        # Push artifacts
+        @(
+            $ZipFilePath
+            $NuGetPackagePath
+        ) |
+        ForEach-Object -Process {
+            Write-Verbose -Message "Pushing package '$($_)' to AppVeyor artifacts." -Verbose
+            Push-AppVeyorArtifact -Path $_
+        }

@@ -67,12 +67,21 @@ Function Test-Conflicts
     # Determine if we have already processed a Resource Block of this type.
     if ($Script:GlobalConflictEngine.ContainsKey($Type))
     {
+        if (($Script:GlobalConflictEngine[$Type][0].Values | Where-Object {![string]::IsNullOrEmpty($_)}).Count -gt 0)
+        {
+            $ResourceNotFound = $false
+        }
+        else 
+        {
+            $ResourceNotFound = $true
+        }   
+        
         # Loop through every Resource definition of this type.
         foreach ($hashtable in $Script:GlobalConflictEngine[$Type])
         {
             $Conflict = @()
             $ResourceKeys = @()
-                    
+
             # Loop through every Key/Value Pair in the Resource definition to see if they match the current one.
             foreach ($KeyPair in $hashtable.GetEnumerator())
             {
