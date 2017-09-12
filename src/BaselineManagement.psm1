@@ -241,7 +241,7 @@ function ConvertFrom-GPO
     # Loop through each Audit CSV in the GPO Directory.
     foreach ($AuditCSV in $AuditCSVs)
     {
-        foreach ($CSV in $AuditCSV)
+        foreach ($CSV in (Import-CSV -Path $AuditCSV.FullName))
         {
             $ConfigString += Write-GPOAuditCSVData -Entry $CSV
         }
