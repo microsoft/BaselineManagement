@@ -18,7 +18,12 @@ Function Write-GPOFileSecurityINFData
     $aclHash.DACLString = ""
 
     # These are DACLS                       
-    $aclHash.Path = ((($Path -replace "^%", "`env:") -replace "%\\", "\") -replace "%", "")
+    if ($Path -match "(?<Path>%.*%)")
+    {
+        $Path = $Path -replace ("%.*%"), [System.Environment]::ExpandEnvironmentVariables($Matches.Path)
+    }
+
+    $aclHash.Path = ((($Path -replace "^%", "`$env:") -replace "%\\", "\") -replace "%", "")
     if ($aclData -match "[0-9],(.*)$")
     {
         $aclHash.DACLString = $Matches[1]

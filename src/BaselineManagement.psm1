@@ -143,25 +143,33 @@ function ConvertFrom-GPO
     param
     (
         # This is the Path of the GPO Backup Directory.
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName="Path")]
-        [ValidateScript({Test-Path $_})]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
+        [ValidateScript( {Test-Path $_})]
         [string]$Path,
         
         # This is the GPO Object returned from Backup-GPO.
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName="GPO")]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "GPO")]
         [Psobject]$GPO,
 
         # Output Path that will default to an Output directory under the current Path.
-        [ValidateScript({Test-Path $_})]
+        [ValidateScript( {Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
         # ComputerName for Node processing.
         [string]$ComputerName = "localhost",
 
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript
+        [switch]$OutputConfigurationScript,
+
+        [switch]$Silent
     )
 
+    if ($Silent)
+    {
+        $oldWarningPreference = $WarningPreference
+        $WarningPreference = "SilentlyContinue"
+    }
+    
     # If we are passed a GPO object, we can get the path to the files from that object.
     if ($PSCmdlet.ParameterSetName -eq "GPO")
     {
@@ -231,7 +239,7 @@ function ConvertFrom-GPO
         # Loop through every policy in the Pol File.
         Foreach ($Policy in $registryPolicies)
         {
-            $Hive = @{User="HKCU";Machine="HKLM"}
+            $Hive = @{User = "HKCU"; Machine = "HKLM"}
             
             # Convert each Policy Registry object into a Resource Block and add it to our Configuration string.
             $ConfigString += Write-GPORegistryPOLData -Data $Policy -Hive $Hive[$polFile.Directory.BaseName]
@@ -241,10 +249,55 @@ function ConvertFrom-GPO
     # Loop through each Audit CSV in the GPO Directory.
     foreach ($AuditCSV in $AuditCSVs)
     {
+        $otherSettingsCSV = @()
         foreach ($CSV in (Import-CSV -Path $AuditCSV.FullName))
         {
-            $ConfigString += Write-GPOAuditCSVData -Entry $CSV
+            switch ($CSV)
+            {
+                {$_.Subcategory -match "GlobalSacl"}
+                {
+                    $otherSettingsCSV += $CSV
+                    break
+                }
+                    
+                {!([string]::IsNullOrEmpty($_.'Subcategory GUID'))}
+                {
+                    $ConfigString += Write-GPOAuditCSVData -Entry $CSV
+                    break
+                }    
+
+                {$_.Subcategory -match "^Option"}
+                {
+                    $ConfigString += Write-GPOAuditOptionCSVData -Entry $CSV
+                    break
+                }
+                Default 
+                {
+                    Write-Warning  "ConvertFrom-GPO: $($CSV.SubCategory) is not currently supported"
+                }
+            }   
         }
+
+        <# Still trying to figure out how to handle Resource SACLS
+        if ($othersettingsCSV.count -gt 0)
+        {
+            $contents = ""
+            for ($i = 0; $i -lt $othersettingsCSV.Count; $i++)
+            {
+                $setting = $othersettingsCSV[$i]
+                $contents += "$($setting.'Machine Name'),$($setting.'Policy Target'),$($setting.Subcategory),$($setting.'Subcategory GUID'),$($setting.'Inclusion Setting'),$($setting.'Exclusion Setting'),$($setting.'Setting Value')"
+                if (($i + 1) -lt $othersettingsCSV.Count)
+                {
+                    $contents += ","
+                }
+                $contents += "`n"
+            }
+            
+            $tempCSVPath = "C:\windows\temp\polaudit.csv"
+            $ConfigString += Write-DscString -Resource -Name "OtherAuditSettingsCSV" -Type File -Parameters @{DestinationPath=$tempCSVPath;Force=$true;Contents=$contents} 
+            $ConfigString += Write-DscString -Resource -Name "AuditPolicyDSC: Other Audit Settings" -Type AuditPolicyCSV -Parameters @{IsSingleInstance = "Yes"; CsvPath = $tempCSVPath; DependsOn = "[File]OtherAuditSettingsCSV"} 
+        } 
+        #>
     }
 
     # Loop through all the GPTemplate files.
@@ -348,7 +401,7 @@ function ConvertFrom-GPO
                     {
                         if ($GroupData.Count -gt 0)
                         {
-                            foreach($Group in $GroupData)
+                            foreach ($Group in $GroupData)
                             {
                                 if ($groupMembership.ContainsKey($Group))
                                 {
@@ -369,7 +422,7 @@ function ConvertFrom-GPO
                         Write-Warning "Group Membership: $Property is not a valid Property"
                         continue
                     }
-                 }
+                }
             }
 
             foreach ($Key in $GroupMembership.Keys)
@@ -607,8 +660,15 @@ function ConvertFrom-GPO
     # Create the MOF File if possible.
     $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
     
-    # Write out a Summary of our parsing activities.
-    Write-ProcessingHistory -Pass $Pass
+    if (!$Silent)
+    {
+        # Write out a Summary of our parsing activities.
+        Write-ProcessingHistory -Pass $Pass
+    }
+    else 
+    {
+        $WarningPreference = $oldWarningPreference    
+    }
 
     if ($pass)
     {

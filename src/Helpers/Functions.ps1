@@ -67,14 +67,14 @@ Function Test-Conflicts
     # Determine if we have already processed a Resource Block of this type.
     if ($Script:GlobalConflictEngine.ContainsKey($Type))
     {
-        if (($Script:GlobalConflictEngine[$Type][0].Values | Where-Object {![string]::IsNullOrEmpty($_)}).Count -gt 0)
+        <#if (($Script:GlobalConflictEngine[$Type].Values | Where-Object {![string]::IsNullOrEmpty($_)}).Count -gt 0)
         {
             $ResourceNotFound = $false
         }
         else 
         {
             $ResourceNotFound = $true
-        }   
+        }#>   
         
         # Loop through every Resource definition of this type.
         foreach ($hashtable in $Script:GlobalConflictEngine[$Type])

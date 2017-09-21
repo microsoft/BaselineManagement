@@ -69,6 +69,12 @@ Describe "Write-GPOAuditCSVData" {
 
     foreach ($Entry in $auditData)
     {
+        if ($Entry.'Subcategory' -match "(GlobalSACL|Option:)")
+        {
+            # Adding Separate tests for these.
+            continue
+        }
+
         $Parameters = Write-GPOAuditCSVData -Entry $Entry
 
         switch -regex ($Entry."Inclusion Setting")

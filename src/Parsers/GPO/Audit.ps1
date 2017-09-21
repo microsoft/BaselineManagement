@@ -1,3 +1,21 @@
+Function Write-GPOAuditOptionCSVData
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [System.Object]$Entry
+    )
+
+    $Value = $Entry.'Inclusion Setting'
+    $Name = $Entry.'Subcategory'.TrimStart("Option:")
+
+    $rethash.Name = $Name
+    $rethash.Value = $Value
+
+    Write-DSCString -Resource -Name "AuditPolicyOption: $Name" -Type AuditPolicyOption -Parameters $rethash
+}
 Function Write-GPOAuditCSVData
 {
     [CmdletBinding()]
@@ -9,7 +27,15 @@ Function Write-GPOAuditCSVData
     )
 
     $retHash = @{}
-    $retHash.Name = $Entry.SubCategory
+    $GUID = $Entry.'Subcategory GUID'.TrimStart("{").TrimEnd("}")
+    if (!$AuditSubcategoryHash.ContainsKey($GUID))
+    {
+        Write-Warning "Write-GPOAuditCSVData:$GUID ($($Entry.Subcategory)) is no longer supported or not implemented"
+        Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(GPO) $($Entry.SubCategory)" -ParsingError
+        return ""
+    }
+
+    $retHash.Name = $AuditSubCategoryHash[$GUID]
     $Name = $Entry.SubCategory
 
     switch -regex ($Entry."Inclusion Setting")
