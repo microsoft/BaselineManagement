@@ -17,6 +17,8 @@ Function Write-GPOPrivilegeINFData
     $privilegeHash = @{}
     $privilegeHash.Policy = ""
     $privilegeHash.Identity = ""
+    $privilegeHash.Ensure = 'Present'
+    $privilegeHash.Force = $true
 
     # These are UserRights
     if ($UserRightsHash.ContainsKey($Privilege))
