@@ -161,14 +161,8 @@ function ConvertFrom-GPO
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript,
 
-        [switch]$Silent
+        [switch]$ShowPesterOutput
     )
-
-    if ($Silent)
-    {
-        $oldWarningPreference = $WarningPreference
-        $WarningPreference = "SilentlyContinue"
-    }
     
     # If we are passed a GPO object, we can get the path to the files from that object.
     if ($PSCmdlet.ParameterSetName -eq "GPO")
@@ -674,14 +668,10 @@ function ConvertFrom-GPO
     # Create the MOF File if possible.
     $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
     
-    if (!$Silent)
+    if ($ShowPesterOutput)
     {
         # Write out a Summary of our parsing activities.
         Write-ProcessingHistory -Pass $Pass
-    }
-    else 
-    {
-        $WarningPreference = $oldWarningPreference    
     }
 
     if ($pass)
