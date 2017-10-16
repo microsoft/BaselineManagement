@@ -364,12 +364,15 @@ Describe "GPtTempl.INF Data" {
                 "System Access"
                 {
                     $Parameters = Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
-                    Context $Parameters.Name {                        
-                        It "Parses System Access Settings" {
-                            $Parameters.Type | Should Be "SecuritySetting"
-                            [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
-                            $SecuritySettings -contains $Parameters.Parameters.Name | Should Be $true
-                            $Parameters.Parameters.ContainsKey($Parameters.Parameters.Name) | Should Be $true
+                    if ($Parameters -ne "")
+                    {
+                        Context $Parameters.Name {                        
+                            It "Parses System Access Settings" {
+                                $Parameters.Type | Should Be "SecuritySetting"
+                                [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
+                                $SecuritySettings -contains $Parameters.Parameters.Name | Should Be $true
+                                $Parameters.Parameters.ContainsKey($Parameters.Parameters.Name) | Should Be $true
+                            }
                         }
                     }
                 }

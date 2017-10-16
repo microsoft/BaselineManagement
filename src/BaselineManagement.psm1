@@ -337,7 +337,14 @@ function ConvertFrom-GPO
                 
                     "Kerberos Policy"
                     {
-                        $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                        if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
+                        {
+                            $ConfigString += Write-GPONewSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                        }
+                        else
+                        {
+                            $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                        }
                     }
                 
                     "Registry Keys"
@@ -347,7 +354,14 @@ function ConvertFrom-GPO
                 
                     "System Access"
                     {
-                        $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                        if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
+                        {
+                            $ConfigString += Write-GPONewSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                        }
+                        else
+                        {
+                            $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                        }
                     }
 
                     "Event Audit"

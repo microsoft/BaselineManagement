@@ -104,7 +104,7 @@ Task Stage.CoreFiles -requiredVariables ModuleOutDir, SrcRootDir {
         Write-Verbose "$($psake.context.currentTaskName) - directory already exists '$ModuleOutDir'."
     }
 
-    Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
+    Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Force -Verbose:$VerbosePreference
 }
 
 Task Deploy -depends Init, Clean, Build, Deploy.Before, Deploy.Core, Deploy.After {
