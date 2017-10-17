@@ -192,7 +192,7 @@ Task Build.Before {
         $args[0] -is [System.Management.Automation.Language.CommandAst] -and 
             $args[0].CommandElements.Value -eq 'Export-ModuleMember' }, $true) 
     
-    $values = $ModuleMember.Parent.PipelineElements.CommandElements.SubExpression.Statements.PipelineElements.Expression
+    $values = $ModuleMember.Parent.PipelineElements.commandelements
 
     # If a single function is exported then the elements array is not returned, so this just checks for an elements attribute.
     if ( $values.Elements )

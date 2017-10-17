@@ -1008,7 +1008,14 @@ Function ConvertFrom-SCM
                 
                 "WMI"
                 {
-                    $ConfigString += Write-SCMSecuritySettingXMLData -DiscoveryData $node -ValueData $valueNodeData
+                    if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
+                    {
+                        $ConfigString += Write-SCMNewSecuritySettingXMLData -DiscoveryData $node -ValueData $valueNodeData
+                    }
+                    else
+                    {
+                        $ConfigString += Write-SCMSecuritySettingXMLData -DiscoveryData $node -ValueData $valueNodeData
+                    }
                 }
 
                 "AdvancedAuditPolicy"
@@ -1062,4 +1069,4 @@ Function ConvertFrom-SCM
     }
 }
 
-Export-ModuleMember -Function Convert*
+Export-ModuleMember -Function ConvertFrom-SCM, ConvertFrom-ASC, ConvertFrom-GPO, ConvertTo-DSC
