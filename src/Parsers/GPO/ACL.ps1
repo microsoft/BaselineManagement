@@ -23,6 +23,8 @@ Function Write-GPOFileSecurityINFData
         $Path = [System.Environment]::ExpandEnvironmentVariables($Path)
     }
 
+    $aclHash.Path = $Path
+
     if ([system.io.path]::HasExtension($Path))
     {
         $aclHash.ObjectType = "File"

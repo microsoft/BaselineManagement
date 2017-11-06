@@ -30,8 +30,8 @@ Function Write-ASCAuditJSONData
                 $policyHash.AuditFlag = "Success"
                 $Duplicate = $policyHash.Clone()
                 $Duplicate.AuditFlag = "Failure"
-                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Success)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
-                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Failure)" -Parameters $Duplicate -CommentOUT:($AuditData.State -ne 'Enabled')
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Success)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled') -DoubleQuoted
+                Write-DSCString -Resource -Type AuditPolicySubCategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Failure)" -Parameters $Duplicate -CommentOUT:($AuditData.State -ne 'Enabled') -DoubleQuoted
             }
             
             "NoAuditing" 
@@ -40,13 +40,13 @@ Function Write-ASCAuditJSONData
                 $policyHash.AuditFlag = "Success"
                 $Duplicate = $policyHash.Clone()
                 $Duplicate.AuditFlag = "Failure"
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Success)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Failure)" -Parameters $Duplicate -CommentOUT:($AuditData.State -ne 'Enabled')
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Success)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled') -DoubleQuoted
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.ruleName) (Failure)" -Parameters $Duplicate -CommentOUT:($AuditData.State -ne 'Enabled') -DoubleQuoted
             } 
 
             Default
             {
-                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.ruleName)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled')
+                Write-DSCString -Resource -Type AuditPolicySubcategory -Name "$($AuditData.CCEID): $($AuditData.ruleName)" -Parameters $policyHash -CommentOUT:($AuditData.State -ne 'Enabled') -DoubleQuoted
             }
         }
     }

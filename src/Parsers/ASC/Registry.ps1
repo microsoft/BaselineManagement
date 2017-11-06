@@ -71,5 +71,5 @@ Function Write-ASCRegistryJSONData
         $CommentOUT = $true
     }
              
-    return Write-DSCString -Resource -Type Registry -Name "$($RegistryData.CCEID): $($RegistryData.ruleName)" -Parameters $policyHash -CommentOUT:($RegistryData.State -ne 'Enabled')
+    return Write-DSCString -Resource -Type Registry -Name "$($RegistryData.CCEID): $($RegistryData.ruleName)" -Parameters $policyHash -CommentOUT:($RegistryData.State -ne 'Enabled') -DoubleQuoted
 }

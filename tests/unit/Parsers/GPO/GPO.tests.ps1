@@ -315,8 +315,8 @@ Describe "GPtTempl.INF Data" {
                     $Parameters = Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
                     Context $Parameters.Name {
                         It "Parses File ACL Data" {
-                            $Parameters.Type | Should Be ACL
-                            [String]::IsNullOrEmpty($Parameters.Parameters.DACLString) | Should Be $false
+                            $Parameters.Type | Should Be cSecurityDescriptorSddl
+                            [String]::IsNullOrEmpty($Parameters.Parameters.sddl) | Should Be $false
                             Test-PAth -Path "$($Parameters.Parameters.Path)" -IsValid | Should Be $true
                             [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
                         }
@@ -356,7 +356,8 @@ Describe "GPtTempl.INF Data" {
                         It "Parses Registry ACL Data" {
                             [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
                             Test-Path -Path $Parameters.Parameters.Path -IsValid | Should Be $true
-                            [string]::IsNullOrEmpty($Parameters.Parameters.DACLString) | SHould Be $false
+                            $Parameters.Parameters.ObjectType | Should Be "RegistryKey"
+                            [string]::IsNullOrEmpty($Parameters.Parameters.Sddl) | SHould Be $false
                         }
                     }
                 }

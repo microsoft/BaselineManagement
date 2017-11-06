@@ -315,6 +315,11 @@ Function Write-DSCString
         [Parameter(ParameterSetName = "Resource")]
         [scriptblock]$Condition,
 
+        # This is meant to fix a bug in the ASC Baselines themselves, and will be removed when the bug is fixed.
+        # This will use DoubleQuotes on Resource Names instead of Single thus solving any parsing errors where stray quotes are present.
+        [Parameter(ParameterSetName = "Resource")]
+        [switch]$DoubleQuoted,
+
         # This Output Path is for the Configuration Block, not this function.
         [Parameter(ParameterSetName = "InvokeConfiguration")]
         [string]$OutputPath = $(Join-Path -Path $PSScriptRoot -ChildPath "Output")
@@ -436,7 +441,14 @@ Configuration $Name`n{`n`n`t
             }
 
             # Start the Resource Block with Comment and CommentOut characters if necessary.
-            $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type '$($Name)'`n$(Get-Tabs $Tabs){"
+            if ($DoubleQuoted)
+            {
+                $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type `"$($Name)`"`n$(Get-Tabs $Tabs){" 
+            }
+            else 
+            {
+                $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type '$($Name)'`n$(Get-Tabs $Tabs){"    
+            }
             $Tabs++
             foreach ($key in $Parameters.Keys)
             {

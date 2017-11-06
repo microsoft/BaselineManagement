@@ -45,5 +45,5 @@ Function Write-ASCPrivilegeJSONData
     $policyHash.Policy = $Privilege
     $policyHash.Identity = $Accounts                    
                     
-    return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.ruleName)" -Type UserRightsAssignment -Parameters $policyHash -CommentOUT:($PrivilegeData.State -ne 'Enabled')
+    return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.ruleName)" -Type UserRightsAssignment -Parameters $policyHash -CommentOUT:($PrivilegeData.State -ne 'Enabled') -DoubleQuoted
 }

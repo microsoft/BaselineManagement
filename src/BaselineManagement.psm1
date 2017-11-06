@@ -738,7 +738,7 @@ function ConvertFrom-ASC
         if (Test-Path $Path)
         {
             $JSON = Get-Content -Path $Path | ConvertFrom-Json
-            $JSONBaselines = $global:JSON.properties.rulesetscollection.baselinerulesets.baselineName
+            $JSONBaselines = $global:JSON.baselinerulesets.baselineName
                                     
             $attributes = new-object System.Management.Automation.ParameterAttribute
             $attributes.ParameterSetName = "__AllParameterSets"
@@ -776,7 +776,7 @@ function ConvertFrom-ASC
         }
   
         $BaselineName = $PSBoundParameters.BaselineName  
-        $RULES = $JSON.properties.rulesetsCollection.baselineRulesets.Where( {$_.BaselineName -eq $BaselineName}).RULES
+        $RULES = $JSON.baselineRulesets.Where( {$_.BaselineName -eq $BaselineName}).RULES
 
         # Start tracking Processing History.
         Clear-ProcessingHistory
