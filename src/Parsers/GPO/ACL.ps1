@@ -15,7 +15,7 @@ Function Write-GPOFileSecurityINFData
 
     $aclHash = @{}
     $aclHash.Path = ""
-    $aclHash.DACLString = ""
+    $aclHash.Sddl = ""
 
     # These are DACLS                       
     if ($Path -match "(?<Path>%.*%)")
