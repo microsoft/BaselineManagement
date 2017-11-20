@@ -12,7 +12,7 @@
 RootModule = 'BaselineManagement.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.5.3000'
+ModuleVersion = '2.6.8000'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -51,9 +51,9 @@ PowerShellVersion = '5.0'
 ProcessorArchitecture = 'None'
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.1.0.0'; }, 
-               @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '1.3.0.0'; }, 
-               'GPRegistryPolicyParser')
+RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; RequiredVersion = '1.1.0.0'; }, 
+               @{ModuleName = 'SecurityPolicyDSC'; RequiredVersion = '2.1.0.0'; }, 
+               @{ModuleName = 'GPRegistryPolicyParser'; RequiredVersion = '0.2'})
 
 # Assemblies that must be loaded prior to importing this module
 RequiredAssemblies = @()

@@ -380,7 +380,7 @@ Configuration $Name`n{`n`n`t
                 }
                 else
                 {
-                    Write-Warning "Write-DSCString: Module ($m) not found on System.  Please re-run conversion when module is available."
+                    #Write-Warning "Write-DSCString: Module ($m) not found on System.  Please re-run conversion when module is available."
                     $ModuleNotFound += $m
                 }
             }
