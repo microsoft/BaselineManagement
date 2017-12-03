@@ -208,7 +208,37 @@ Describe "Write-GPOAuditCSVData" {
 
 Describe "Write-GPORegistryPOLData" {
     Mock Write-DSCString -Verifiable { return @{} + $___BoundParameters___ } 
-    $registryPolicies = Read-PolFile -Path $SamplePOL
+    if ((Get-Command "Read-PolFile" -ErrorAction SilentlyContinue) -ne $null)
+    {
+        # Reaad each POL file found.
+        Write-Verbose "Reading Pol File ($($SamplePol))"
+        Try
+        {
+            $registryPolicies = Read-PolFile -Path $SamplePol
+        }
+        Catch
+        {
+            Write-Error $_
+        }
+    }
+    elseif ((Get-Command "Parse-PolFile" -ErrorAction SilentlyContinue) -ne $null)
+    {
+        # Reaad each POL file found.
+        Write-Verbose "Reading Pol File ($($SamplePol))"
+        Try
+        {
+            $registryPolicies = Parse-PolFile -Path $SamplePol
+        }
+        catch
+        {
+            Write-Error $_ 
+        }
+    }
+    else
+    {
+        Write-Error "Cannot Parse Pol files! Please download and install GPRegistryPolicyParser from github here: https://github.com/PowerShell/GPRegistryPolicyParser"
+        break
+    }
 
     It "Parses Registry Policies" {
         $registryPolicies | Should Not Be $Null
