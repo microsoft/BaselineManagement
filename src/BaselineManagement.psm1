@@ -180,18 +180,23 @@ function ConvertFrom-GPO
         
     $PreferencesDirectory = Get-ChildItem -Path $Path -Directory -Filter "Preferences" -Recurse
 
+    # These are the DSC Resources needed for NON-preference based GPOS.
+    $NeededModules = 'PSDesiredStateConfiguration', 'AuditPolicyDSC', 'SecurityPolicyDSC'
+
     if ($PreferencesDirectory -ne $null)
     {
         $PreferencesXMLs = Get-ChildItem -Path $PreferencesDirectory.FullName -Filter *.xml -Recurse
+        # These are the Preference Based DSC Resources.
+        $NeededModules += 'xSMBShare', 'DSCR_PowerPlan', 'xScheduledTask', 'Carbon', 'PrinterManagement', 'rsInternationalSettings'
     }
-
+    
     # Start tracking Processing History.
     Clear-ProcessingHistory
     
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name "DSCFromGPO"
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, PowerShellAccessControl, SecurityPolicyDSC, BaselineManagement, xSMBShare, DSCR_PowerPlan, xScheduledTask, Carbon, PrinterManagement, rsInternationalSettings
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName $NeededModules
     # Add Node Data
     $configString += Write-DSCString -Node -Name $ComputerName
     
@@ -736,7 +741,9 @@ Function ConvertFrom-SCM
         [string]$ComputerName = "localhost",
 
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript
+        [switch]$OutputConfigurationScript,
+
+        [switch]$ShowPesterOutput
     )
 
     # If they passed in a path we have to grab the XML object from it.
@@ -906,7 +913,9 @@ function ConvertFrom-ASC
         [string]$ComputerName = "localhost",
 
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript
+        [switch]$OutputConfigurationScript,
+
+        [switch]$ShowPesterOutput
     )
 
     DynamicParam
@@ -1067,8 +1076,11 @@ function ConvertFrom-ASC
         # Try to compile configuration.
         $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
     
-        # Write out Summary data of parsing history.
-        Write-ProcessingHistory -Pass $Pass
+        if ($ShowPesterOutput)
+        {
+            # Write out Summary data of parsing history.
+            Write-ProcessingHistory -Pass $Pass
+        }
 
         if ($pass)
         {
@@ -1086,7 +1098,233 @@ function ConvertFrom-ASC
     }
 }
 
-Function Read-BaselineName
+<#
+.Synopsis
+   This cmdlet converts from ASC JSON into DSC.
+.DESCRIPTION
+   This cmdlet will look at all baselines entries within an SCM JSON file and convert them to DSC.
+.EXAMPLE
+   ConvertFrom-ASC -Path .\ASC.Json
+.EXAMPLE
+   dir .\scm.json | ConvertFrom-ASC -OutputConfigurationScript
+.INPUTS
+   The ASC JSON File.
+.OUTPUTS
+   Success or Failure will yield detailed results along with a localhost.mof if successful or error file if unsuccessful.  It also yields a ConfigurationScript on request.
+.NOTES
+   General notes
+.COMPONENT
+   The component this cmdlet belongs to
+.ROLE
+   The role this cmdlet belongs to
+.FUNCTIONALITY
+   The functionality that best describes this cmdlet
+#>
+function ConvertFrom-ASC
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        # This is the Path to the JSON file.
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
+        [ValidateScript( {Test-Path $_})]
+        [string]$Path,
+        
+        # Output Path that will default to an Output directory under the current Path.        
+        [ValidateScript( {Test-Path $_})]
+        [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
+
+        # ComputerName for Node processing.
+        [string]$ComputerName = "localhost",
+
+        # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
+        [switch]$OutputConfigurationScript, 
+
+        [switch]$ShowPesterOutput
+    )
+
+    DynamicParam
+    {
+        if (Test-Path $Path)
+        {
+            $JSON = Get-Content -Path $Path | ConvertFrom-Json
+            $JSONBaselines = @()
+            $JSONBaselines = $JSON.baselinerulesets.baselineName
+            $JSONBaselines = $null
+                                    
+            $attributes = new-object System.Management.Automation.ParameterAttribute
+            $attributes.ParameterSetName = "__AllParameterSets"
+            $attributes.Mandatory = $false
+
+            $attributeCollection = new-object -Type System.Collections.ObjectModel.Collection[System.Attribute]
+            $attributeCollection.Add($attributes)
+            
+            if ($JSONBaselines -eq $null)
+            {
+                return
+            }
+
+            $ValidateSet = new-object System.Management.Automation.ValidateSetAttribute($JSONBaselines)
+
+            $attributeCollection.Add($ValidateSet)
+
+            $dynParam1 = new-object -Type System.Management.Automation.RuntimeDefinedParameter("BaselineName", [string], $attributeCollection)
+
+            $paramDictionary = new-object -Type System.Management.Automation.RuntimeDefinedParameterDictionary
+            $paramDictionary.Add("BaselineName", $dynParam1)
+
+            return $paramDictionary 
+        }
+    }
+    
+    Begin
+    {
+        $BaselineName = Read-ASCBaselineName -Pattern '"baselineName": "(.*)"' -BaselineName $BaselineName -Path $Path
+
+        if ($BaselineName -eq $null)
+        {
+            Throw "Select a Valid Baseline!"
+        }
+    }
+
+    Process 
+    {
+        # JSON can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.   
+        Try
+        {
+            $JSON = Get-Content -Path $Path | ConvertFrom-Json
+        }
+        Catch
+        {
+            Write-Error $_
+            Write-Warning "Unable to parse JSON at path $Path - Exiting"
+            continue
+            return
+        }
+  
+        $BaselineName = $PSBoundParameters.BaselineName  
+        $RULES = $JSON.baselineRulesets.Where( {$_.BaselineName -eq $BaselineName}).RULES
+
+        # Start tracking Processing History.
+        Clear-ProcessingHistory
+    
+        # Create the Configuration String
+        $ConfigString = Write-DSCString -Configuration -Name DSCFromASC
+        # Add any resources
+        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
+        # Add Node Data
+        $ConfigString += Write-DSCString -Node -Name $computername
+    
+        # JSON is pretty straightforward where it keeps the individual settings.
+        # These are the registry settings.
+        $registryPolicies = $RULES.BaselineRegistryRules
+
+        # Loop through all the registry settings.
+        Foreach ($Policy in $registryPolicies)
+        {
+            $ConfigString += Write-ASCRegistryJSONData -RegistryData $Policy
+        }
+
+        # Grab the Audit policies.
+        $AuditPolicies = $RULES.BaselineAuditPolicyRule
+    
+        # Loop through the Audit Policies.
+        foreach ($Policy in $AuditPolicies)
+        {
+            $ConfigString += Write-ASCAuditJSONData -AuditData $Policy
+        }
+
+        # Grab all the Security Policy Settings.
+        $securityPolicies = $RULES.BaselineSecurityPolicyRule
+    
+        # Loop through the Security Policies.
+        foreach ($Policy in $securityPolicies)
+        {
+            # Security Policies can have a variety of types as they are represenations of the GPTemp.inf.
+            # Determine which one the current setting is and apply.
+            switch ($Policy.SectionName)
+            {
+                "Service General Setting"
+                {
+
+                }
+
+                "Registry Values"
+                {
+
+                }
+
+                "File Security"
+                {
+
+                }
+                
+                "Privilege Rights"
+                {            
+                    $ConfigString += Write-ASCPrivilegeJSONData -PrivilegeData $Policy
+                }
+                
+                "Kerberos Policy"
+                {
+                
+                }
+                
+                "Registry Keys"
+                {
+
+                }
+                
+                "System Access"
+                {
+
+                }
+            }
+        }
+    
+        # Close out the Configuration block.
+        $ConfigString += Write-DSCString -CloseNodeBlock
+        $ConfigString += Write-DSCString -CloseConfigurationBlock
+        $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromASC -OutputPath $OutputPath
+    
+        # If the switch was specified, output a Configuration Script regardless of success/failure.
+        if ($OutputConfigurationScript)
+        {
+            if (!(Test-Path $OutputPath))
+            {
+                mkdir $OutputPath
+            }
+        
+            $Scriptpath = Join-Path $OutputPath "DSCFromASC.ps1"
+            $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
+        }
+
+        # Try to compile configuration.
+        $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
+    
+        if ($ShowPesterOutput)
+        {
+            # Write out Summary data of parsing history.
+            Write-ProcessingHistory -Pass $Pass
+        }
+
+        if ($pass)
+        {
+            if ($OutputConfigurationScript)
+            {
+                Get-Item $Scriptpath
+            }
+
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
+        }
+        else
+        {
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "DSCFromASC.ps1.error")
+        }
+    }
+}
+
+Function Read-ASCBaselineName
 {
     [CmdletBinding()]
     param
@@ -1137,7 +1375,7 @@ Function Read-BaselineName
             $arguments = "-NoProfile -File " + $argPath
             $menuoutputpath = $(Join-Path $PSScriptRoot "Menus\menu_output.txt")
             $menuinputpath = $(Join-Path $PSScriptRoot "Menus\menu_input.txt")
-            $tmpValues | Out-File -FilePath $menuinputpath
+            $tmpValues | ForEach-Object { "=$_" } Out-File -FilePath $menuinputpath
             Remove-Item -ErrorAction SilentlyContinue $menuoutputpath
             Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments 
             Remove-Item -ErrorAction SilentlyContinue $menuinputpath
@@ -1179,4 +1417,327 @@ Function Read-BaselineName
     }
 }
 
-Export-ModuleMember -Function ConvertFrom-SCM, ConvertFrom-ASC, ConvertFrom-GPO, ConvertTo-DSC
+Function Read-CSVBaselineName
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        
+        [Parameter()]
+        [string]$OS,
+
+        [Parameter()]
+        [string]$ServerType
+    )
+
+    if (!(Test-Path $Path))
+    {
+        Throw "$Path is not Valid!"
+    }
+    
+    Try { $CSV = Import-CSV -Path $Path } Catch { Throw $_ } 
+    
+    if ($Host.Name -match "ISE")
+    {
+        $MenuPath = Join-Path $PSScriptRoot "Menus\menu_input.txt"
+        Remove-Item -Force -Path $MenuPath -ErrorAction SilentlyContinue
+
+        if ([string]::IsNullOrEmpty($OS) -and !([string]::IsNullOrEmpty($ServerType)))
+        {
+            # Prompt for OS
+            foreach ($o in (($CSV.Where({$_.ServerType -match "$ServerType"})) | group).Name)
+            {
+                "=$o" | Add-Content $MenuPath
+            }        
+        }
+        elseif (!([string]::IsNullOrEmpty($OS)) -and ([string]::IsNullOrEmpty($ServerType)))
+        {
+            # Prompt for ServerType
+            foreach ($S in (($CSV.Where({$_.Filter -match "$OS"})) | group).Name)
+            {
+                "=$s" | Add-Content $MenuPath
+            }
+        }
+        else
+        {
+            # Prompt for Both
+            $ServerTypes = ($CSV.'Server Type'.ForEach({$_ -replace "(\[|\])", ""}) -split ", " | Group).Name
+            foreach ($type in $ServerTypes) 
+            { 
+                $type | Add-Content $MenuPath
+                $Entries = $CSV.Where({$_.'Server Type' -match $type})
+                $Filters = $Entries.Filter.Where({![string]::IsNullOrEmpty($_)})
+                $Names = ($Filters.ForEach({($_.Replace("OSVersion = [", "").Replace("]", "") -split ",\s+")}) | group).Name
+                $Names.ForEach({"=$_"}) | Add-Content $MenuPath
+            }
+        }
+
+        $argPath = Join-path $PSScriptRoot "Menus\ISEMenu.ps1"
+        $arguments = "-NoProfile -File " + $argPath
+        $menuoutputpath = $(Join-Path $PSScriptRoot "Menus\menu_output.txt")
+        Remove-Item -ErrorAction SilentlyContinue $menuoutputpath
+        Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments 
+        if (Test-Path $menuoutputpath)
+        {
+            $result = (Get-Content $menuoutputpath)
+        }
+        else
+        {
+            Throw "Please Select a valid Baseline!"
+            return $null
+        }
+    }
+    else
+    {
+        # Prompt for Both
+        $OSHash = [ordered]@{}
+        $ServerTypes = ($CSV.'Server Type'.ForEach({$_ -replace "(\[|\])", ""}) -split ", " | Group).Name
+        foreach ($type in $ServerTypes) 
+        { 
+            $OSHash[$Type] = [ordered]@{};
+            $OSHash[$Type].Title = $Type
+            $Entries = $CSV.Where({$_.'Server Type' -match $type})
+            $Filters = $Entries.Filter.Where({![string]::IsNullOrEmpty($_)})
+            $Names = ($Filters.ForEach({($_.Replace("OSVersion = [", "").Replace("]", "") -split ",\s+")}) | group).Name
+            $Names.ForEach({
+                            $OSHash[$type][$_] = @{};
+                            $OSHash[$type][$_].Title = $_
+                            $OSHash[$type][$_].Key = "$type|$_"
+                          })
+        }
+
+        # Display our menu.
+        $result = Show-Menu -sMenuTitle "Select a Valid Baseline" -hMenuEntries ([Ref]$OSHash)
+    }
+
+    if (![string]::IsNullOrEmpty($result))
+    {
+        if ($result -match "|")
+        {
+            $ServerType, $OS = $result -split "\|"
+        }
+        else
+        {
+            if ([string]::IsNullOrEmpty($OS)) 
+            {
+                $ServerType = $result
+            }
+            else
+            {
+                $OS = $result
+            }
+        }
+
+        return @{OS=$OS;ServerType=$ServerType}
+    }
+    else
+    {
+        Throw "Please select a valid Baseline!"
+        return $null
+    }
+}
+
+<#
+.Synopsis
+   This cmdlet converts from ASC JSON into DSC.
+.DESCRIPTION
+   This cmdlet will look at all baselines entries within an Excel CSV (Need a correct nomenclature).
+.EXAMPLE
+   ConvertFrom-Excel -Path .\Source.csv
+.EXAMPLE
+   dir .\Source.csv | ConvertFrom-Excel -OutputConfigurationScript
+.INPUTS
+   The Excel CSV File.
+.OUTPUTS
+   Success or Failure will yield detailed results along with a localhost.mof if successful or error file if unsuccessful.  It also yields a ConfigurationScript on request.
+.NOTES
+   General notes
+.COMPONENT
+   The component this cmdlet belongs to
+.ROLE
+   The role this cmdlet belongs to
+.FUNCTIONALITY
+   The functionality that best describes this cmdlet
+#>
+function ConvertFrom-Excel
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        # This is the Path to the JSON file.
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateScript( {Test-Path $_})]
+        [string]$Path,
+        
+        # Output Path that will default to an Output directory under the current Path.        
+        [ValidateScript( {Test-Path $_})]
+        [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
+
+        # ComputerName for Node processing.
+        [string]$ComputerName = "localhost",
+
+        # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
+        [switch]$OutputConfigurationScript, 
+
+        [switch]$ShowPesterOutput,
+
+        [ValidateSet('WS2008', 'WS2008R2', 'WS2012', 'WS2012R2', 'WS2016')]
+        [string]$OS,
+
+        [ValidateSet('Domain Controller', 'Domain Member', 'Workgroup Member', 'Exclude', 'Inventory Setting')]
+        [string]$ServerType
+    )
+    
+    Begin
+    {
+        if (([string]::IsNullOrEmpty($OS)) -or ([string]::IsNullOrEmpty($ServerType)))
+        {
+            # One of the OS and ServerType was not specified, prompting will be necessary.
+            $Baseline = Read-CSVBaselineName -OS $OS -ServerType $ServerType -Path $Path
+
+            if ($Baseline -ne $null)
+            {
+                $OS = $Baseline.OS
+                $ServerType = $Baseline.ServerType
+            }
+            else
+            {
+                Throw "Select a valid Baseline!"
+            }
+        }
+    }
+
+    Process 
+    {
+        # CSV can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.   
+        Try
+        {
+            $CSV = Import-CSV -Path $Path 
+        }
+        Catch
+        {
+            Write-Error $_
+            Write-Warning "Unable to parse CSV at path $Path - Exiting"
+            continue
+            return
+        }
+  
+        $Rules = $CSV.Where({$_.Filter -match $OS -and $_.'Server Type' -match $ServerType})
+        
+        # Start tracking Processing History.
+        Clear-ProcessingHistory
+    
+        # Create the Configuration String
+        $ConfigString = Write-DSCString -Configuration -Name DSCFromCSV
+        # Add any resources
+        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
+        # Add Node Data
+        $ConfigString += Write-DSCString -Node -Name $computername
+    
+        # Find all of our required settings.
+        $registryPolicies = $RULES.Where({$_.DataSourceType -eq "Registry"})
+        $securityPolicies = $RULES.Where({$_.DataSourceType -eq "Policy"})
+        $auditPolicies = $RULES.Where({$_.DataSourceType -eq "Audit"})
+
+        # Loop through all the registry settings.
+        Foreach ($Policy in $registryPolicies)
+        {
+            $ConfigString += Write-RegistryCSVData -RegistryData $Policy
+        }
+
+        # Loop through the Audit Policies.
+        foreach ($Policy in $AuditPolicies)
+        {
+            $ConfigString += Write-AuditCSVData -AuditData $Policy
+        }
+
+        # Loop through the Security Policies.
+        foreach ($Policy in $securityPolicies)
+        {
+            # Security Policies can have a variety of types as they are represenations of the GPTemp.inf.
+            # Determine which one the current setting is and apply.
+            switch -regex ($Policy.DataSourceKey)
+            {
+                "Service General Setting"
+                {
+
+                }
+
+                "Registry Values"
+                {
+
+                }
+
+                "File Security"
+                {
+
+                }
+                
+                "Privilege Rights"
+                {            
+                    $ConfigString += Write-PrivilegeCSVData -PrivilegeData $Policy
+                }
+                
+                "Kerberos Policy"
+                {
+                
+                }
+                
+                "Registry Keys"
+                {
+
+                }
+                
+                "System Access"
+                {
+
+                }
+            }
+        }
+    
+        # Close out the Configuration block.
+        $ConfigString += Write-DSCString -CloseNodeBlock
+        $ConfigString += Write-DSCString -CloseConfigurationBlock
+        $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromCSV -OutputPath $OutputPath
+    
+        # If the switch was specified, output a Configuration Script regardless of success/failure.
+        if ($OutputConfigurationScript)
+        {
+            if (!(Test-Path $OutputPath))
+            {
+                mkdir $OutputPath
+            }
+        
+            $Scriptpath = Join-Path $OutputPath "DSCFromCSV.ps1"
+            $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
+        }
+
+        # Try to compile configuration.
+        $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
+    
+        if ($ShowPesterOutput)
+        {
+            # Write out Summary data of parsing history.
+            Write-ProcessingHistory -Pass $Pass
+        }
+
+        if ($pass)
+        {
+            if ($OutputConfigurationScript)
+            {
+                Get-Item $Scriptpath
+            }
+
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
+        }
+        else
+        {
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "DSCFromCSV.ps1.error")
+        }
+    }
+}
+
+Export-ModuleMember -Function ConvertFrom-SCM, ConvertFrom-ASC, ConvertFrom-GPO, ConvertTo-DSC, ConvertFrom-Excel

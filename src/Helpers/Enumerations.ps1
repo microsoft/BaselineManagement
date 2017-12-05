@@ -264,5 +264,5 @@ $AccountPolicySettings = @{
     'ResetLockoutCount'     = 'Reset_account_lockout_counter_after';
 }
 
-$SecuritySettingsWEnabledDisabled = "Accounts_Administrator_account_status", "Accounts_Guest_account_status", "Enforce_user_logon_restrictions", "Password_must_meet_complexity_requirements", "Store_passwords_using_reversible_encryption", "Network_access_Allow_anonymous_SID_Name_translation"
+$SecuritySettingsWEnabledDisabled = "Accounts_Administrator_account_status", "Accounts_Guest_account_status", "Enforce_user_logon_restrictions", "Password_must_meet_complexity_requirements", "Store_passwords_using_reversible_encryption", "Network_access_Allow_anonymous_SID_Name_translation", "Network_security_Force_logoff_when_logon_hours_expire"
 $EnabledDisabled = "Disabled", "Enabled"

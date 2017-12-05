@@ -3,9 +3,30 @@ if (Test-Path $menuinputpath)
 {
     $menuinput = Get-Content $menuinputpath
     $Values = [ordered]@{}
+    $Key = $null
     foreach ($input in $menuinput)
     {
-        $Values["$input"] = $input
+        if ($input -notmatch "=")
+        {
+            $Values[$input] = [ordered]@{}
+            $Values[$input].Title = $input
+            $Key = $input
+            continue
+        }
+        else
+        {        
+            $input = $input.TrimStart("=")
+            If ($Key -ne $null)
+            {
+                $Values[$key][$input] = @{}
+                $Values[$key][$input].Title = $input
+                $Values[$key][$input].Key = "$Key|$input"
+            }
+            else
+            {
+                $Values[$input] = $input
+            }
+        }
     }
 
     Import-Module $(Join-Path $PSScriptRoot "Menu.psm1") -Force

@@ -452,6 +452,11 @@ Configuration $Name`n{`n`n`t
             $Tabs++
             foreach ($key in $Parameters.Keys)
             {
+                if ($Parameters[$key] -eq $null) 
+                {
+                    "WTF"  |out-null
+                }
+
                 $DSCString += Write-DSCStringKeyPair -Key $key -Value $Parameters[$key] -Tabs $Tabs
             }
             $Tabs--
