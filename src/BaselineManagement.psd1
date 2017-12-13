@@ -12,7 +12,7 @@
 RootModule = 'BaselineManagement.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.8.7000'
+ModuleVersion = '2.8.8000'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()

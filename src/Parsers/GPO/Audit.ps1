@@ -11,6 +11,8 @@ Function Write-GPOAuditOptionCSVData
     $Value = $Entry.'Inclusion Setting'
     $Name = $Entry.'Subcategory'.TrimStart("Option:")
 
+    $retHash = @{}
+    
     $rethash.Name = $Name
     $rethash.Value = $Value
 
