@@ -37,32 +37,47 @@
             "taskName": "Clean",
             "suppressTaskName": true,
             "showOutput": "always",
-            "args": ["-Task", "Clean"]
+            "args": [
+                "-Task",
+                "Clean"
+            ]
         },
         {
             "taskName": "Build",
             "suppressTaskName": true,
             "isBuildCommand": true,
             "showOutput": "always",
-            "args": ["-Task", "Build" ]
+            "args": [
+                "-Task",
+                "Build"
+            ]
         },
         {
             "taskName": "Deploy",
             "suppressTaskName": true,
             "isBuildCommand": true,
             "showOutput": "always",
-            "args": ["-Task", "Deploy" ]
+            "args": [
+                "-Task",
+                "Deploy"
+            ],
+            "problemMatcher": []
         },
         {
             "taskName": "Test",
             "suppressTaskName": true,
             "isTestCommand": true,
             "showOutput": "always",
-            "args": ["-Task", "Test"],
+            "args": [
+                "-Task",
+                "Test"
+            ],
             "problemMatcher": [
                 {
                     "owner": "powershell",
-                    "fileLocation": ["absolute"],
+                    "fileLocation": [
+                        "absolute"
+                    ],
                     "severity": "error",
                     "pattern": [
                         {
@@ -78,5 +93,5 @@
                 }
             ]
         }
-	]
+    ]
 }
