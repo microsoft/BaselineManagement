@@ -186,8 +186,12 @@ function ConvertFrom-GPO
     if ($PreferencesDirectory -ne $null)
     {
         $PreferencesXMLs = Get-ChildItem -Path $PreferencesDirectory.FullName -Filter *.xml -Recurse
-        # These are the Preference Based DSC Resources.
-        $NeededModules += 'xSMBShare', 'DSCR_PowerPlan', 'xScheduledTask', 'Carbon', 'PrinterManagement', 'rsInternationalSettings'
+
+        if ($PreferencesXMLs -ne $null)
+        {
+            # These are the Preference Based DSC Resources.
+            $NeededModules += 'xSMBShare', 'DSCR_PowerPlan', 'xScheduledTask', 'Carbon', 'PrinterManagement', 'rsInternationalSettings'
+        }
     }
     
     # Start tracking Processing History.

@@ -212,7 +212,7 @@ Task Build.Before {
 
 Task Build.After {
     # Update the module manifest in the release that was just built using the existing Maj.Min numbers from the manifest. 
-    $PsModulePath = "$PsScriptRoot\..\release\$ModuleName\$ModuleName.psd1"
+    <#$PsModulePath = "$PsScriptRoot\..\release\$ModuleName\$ModuleName.psd1"
     [version] $PsModuleVersion = (Import-PowerShellDataFile -Path $PsModulePath).ModuleVersion
 
     if ($nulll -eq $Env:BUILD_BUILDNUMBER)
@@ -226,7 +226,7 @@ Task Build.After {
         Write-Host "##vso[task.setvariable variable=MinorVersion]$($PsModuleVersion.Minor)"
     }
 
-    Update-ModuleManifest -Path $PsModulePath -ModuleVersion "$($PsModuleVersion.Major).$($PsModuleVersion.Minor).$BUILDNUMBER"
+    Update-ModuleManifest -Path $PsModulePath -ModuleVersion "$($PsModuleVersion.Major).$($PsModuleVersion.Minor).$BUILDNUMBER"#>
 }
 
 Task Deploy.Before {
