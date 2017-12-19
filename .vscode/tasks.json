@@ -52,12 +52,12 @@
     // Associate with test task runner
     "tasks": [
         {
-            "taskName": "Clean",
+            "label": "Clean",
             "type": "shell",
             "command": "Invoke-PSake -taskList Clean -buildFile ${workspaceRoot}\\build\\psake.tasks.ps1"
         },
         {
-            "taskName": "Build",
+            "label": "Build",
             "type": "shell",
             "command": "Invoke-PSake -taskList Build -buildFile ${workspaceRoot}\\build\\psake.tasks.ps1",
             "group": {
@@ -66,7 +66,7 @@
             }
         },
         {
-            "taskName": "Deploy",
+            "label": "Deploy",
             "type": "shell",
             "command": "Invoke-PSake -taskList Deploy -buildFile ${workspaceRoot}\\build\\psake.tasks.ps1",
             "group": {
@@ -76,12 +76,12 @@
             "problemMatcher": []
         },
         {
-            "taskName": "Publish",
+            "label": "Publish",
             "type": "shell",
             "command": "Invoke-PSake -taskList Publish -buildFile ${workspaceRoot}\\build\\psake.tasks.ps1"
         },
         {
-            "taskName": "Test",
+            "label": "Test",
             "type": "shell",
             "command": "Invoke-PSake -taskList Test -buildFile ${workspaceRoot}\\build\\psake.tasks.ps1",
             "group": {
