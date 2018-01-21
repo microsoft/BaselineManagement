@@ -1155,7 +1155,7 @@ function ConvertFrom-ASC
             $JSON = Get-Content -Path $Path | ConvertFrom-Json
             $JSONBaselines = @()
             $JSONBaselines = $JSON.baselinerulesets.baselineName
-            $JSONBaselines = $null
+            #$JSONBaselines = $null
                                     
             $attributes = new-object System.Management.Automation.ParameterAttribute
             $attributes.ParameterSetName = "__AllParameterSets"
@@ -1184,7 +1184,15 @@ function ConvertFrom-ASC
     
     Begin
     {
-        $BaselineName = Read-ASCBaselineName -Pattern '"baselineName": "(.*)"' -BaselineName $BaselineName -Path $Path
+        if(-not ($PSBoundParameters.BaselineName))
+        {
+            $BaselineName = Read-ASCBaselineName -Pattern '"baselineName": "(.*)"' -BaselineName $BaselineName -Path $Path
+        }
+        else
+        {
+            $BaselineName = $PSBoundParameters.BaselineName
+        }
+        
 
         if ($BaselineName -eq $null)
         {
@@ -1207,7 +1215,7 @@ function ConvertFrom-ASC
             return
         }
   
-        $BaselineName = $PSBoundParameters.BaselineName  
+        #$BaselineName = $PSBoundParameters.BaselineName  
         $RULES = $JSON.baselineRulesets.Where( {$_.BaselineName -eq $BaselineName}).RULES
 
         # Start tracking Processing History.
@@ -1231,7 +1239,7 @@ function ConvertFrom-ASC
         }
 
         # Grab the Audit policies.
-        $AuditPolicies = $RULES.BaselineAuditPolicyRule
+        $AuditPolicies = $RULES.BaselineAuditPolicyRules
     
         # Loop through the Audit Policies.
         foreach ($Policy in $AuditPolicies)
@@ -1240,7 +1248,7 @@ function ConvertFrom-ASC
         }
 
         # Grab all the Security Policy Settings.
-        $securityPolicies = $RULES.BaselineSecurityPolicyRule
+        $securityPolicies = $RULES.BaselineSecurityPolicyRules
     
         # Loop through the Security Policies.
         foreach ($Policy in $securityPolicies)
@@ -1256,7 +1264,7 @@ function ConvertFrom-ASC
 
                 "Registry Values"
                 {
-
+                    
                 }
 
                 "File Security"
@@ -1333,12 +1341,13 @@ Function Read-ASCBaselineName
     [CmdletBinding()]
     param
     (
-        [Parameter(Mandatory = $true)]
-        [string]$Pattern,
 
         [Parameter(Mandatory = $true)]
         [string]$Path,
         
+        [Parameter(Mandatory = $true)]
+        [string]$Pattern,
+
         [Parameter()]
         [string]$BaselineName
     )
@@ -1371,52 +1380,22 @@ Function Read-ASCBaselineName
     {
         $tmpValues = (Get-Item $Path | Select-String -Pattern $Pattern).Matches.Groups.Where({$_.Name -eq 1}).Value
                 
-        # Baseline was either not provided or invalid. 
-        # Use ISE/Shell to prompt for appropriate Baseline.
-        if ($Host.Name -match "ISE")
-        {
-            $argPath = Join-path $PSScriptRoot "Menus\ISEMenu.ps1"
-            $arguments = "-NoProfile -File " + $argPath
-            $menuoutputpath = $(Join-Path $PSScriptRoot "Menus\menu_output.txt")
-            $menuinputpath = $(Join-Path $PSScriptRoot "Menus\menu_input.txt")
-            $tmpValues | ForEach-Object { "=$_" } Out-File -FilePath $menuinputpath
-            Remove-Item -ErrorAction SilentlyContinue $menuoutputpath
-            Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments 
-            Remove-Item -ErrorAction SilentlyContinue $menuinputpath
-            if (Test-Path $menuoutputpath)
-            {
-                $BaselineName = (Get-Content $menuoutputpath)
-                return $BaselineName
-            }
-            else
-            {
-                Throw "Please Select a valid Baseline!"
-            }
-        }
-        else
-        {
-            if ($tmpValues -eq $null)
-            {
-                Throw "Could not get Baselines From ($($Path)) based on Pattern ($Pattern)"
-            }
+        $i = 1 
+        $message = "Select a baseline you want to convert: `n`n"
 
-            $Values = [ordered]@{}
-            foreach ($value in $tmpValues)
-            {
-                $Values["$Value"] = $value
-            }
-            
-            # Display our menu.
-            $BaselineName = Show-Menu -sMenuTitle "Select a Valid Baseline" -hMenuEntries ([Ref]$Values)
+        $choices = $tmpValues | %{
+            $message += "{0} {1}`n" -f $i, $_
+            $i++
 
-            if (![string]::IsNullOrEmpty($BaselineName))
-            {
-                return $BaselineName
-            }
-            else
-            {
-                Throw "Please select a valid Baseline!"
-            }
+        } 
+        $message += "`n"
+        $message += "Enter baseline index number"
+        $answer = Read-Host $message 
+
+        $BaselineName = $tmpValues[$answer - 1]
+        if($BaselineName)
+        {
+            return $BaselineName
         }
     }
 }
