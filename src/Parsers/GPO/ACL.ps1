@@ -15,27 +15,37 @@ Function Write-GPOFileSecurityINFData
 
     $aclHash = @{}
     $aclHash.Path = ""
-    $aclHash.DACLString = ""
+    $aclHash.Sddl = ""
 
     # These are DACLS                       
     if ($Path -match "(?<Path>%.*%)")
     {
-        $Path = $Path -replace ("%.*%"), [System.Environment]::ExpandEnvironmentVariables($Matches.Path)
+        $Path = [System.Environment]::ExpandEnvironmentVariables($Path)
     }
 
-    $aclHash.Path = ((($Path -replace "^%", "`$env:") -replace "%\\", "\") -replace "%", "")
-    if ($aclData -match "[0-9],(.*)$")
+    $aclHash.Path = $Path
+
+    if ([system.io.path]::HasExtension($Path))
     {
-        $aclHash.DACLString = $Matches[1]
+        $aclHash.ObjectType = "File"
+    }
+    else 
+    {
+        $aclHash.ObjectType = "Directory"
+    }
+    
+    if ($aclData -match "[0-9],`"(?<DACLString>.*)`"$")
+    {
+        $aclHash.Sddl = $Matches.DACLString
     }
     else
     {
         Write-Error "Cannot Parse $ACLData for $Path"
-        Add-ProcessingHistory -Type ACL -Name "ACL(INF): $($ACLhash.Path)" -ParsingError
+        Add-ProcessingHistory -Type cSecurityDescriptorSddl -Name "ACL(INF): $($ACLhash.Path)" -ParsingError
         return ""
     }
     
-    Write-DSCString -Resource -Name "ACL(INF): $($ACLhash.Path)" -Type ACL -Parameters $aclHash
+    Write-DSCString -Resource -Name "ACL(INF): $($ACLhash.Path)" -Type cSecurityDescriptorSddl -Parameters $aclHash
 }
 
 Function Write-GPORegistryACLINFData
@@ -53,19 +63,20 @@ Function Write-GPORegistryACLINFData
 
     $regHash = @{}
     $regHash.Path = ""
-    $regHash.DACLString = ""
-                   
+    $regHash.SDDL = ""
+    $regHash.ObjectType = "RegistryKey"
+    
     $regHash.Path = $Path -replace "MACHINE\\", "HKLM:\"
-    if ($ACLData -match "[0-9],(.*)$")
+    if ($ACLData -match "[0-9],`"(?<DACLString>.*)`"$")
     {
-        $regHash.DACLString = $Matches[1]
+        $regHash.SDDL = $Matches.DACLString
     }
     else
     {
         Write-Error "Cannot parse $ACLData for $Key"
-        Add-ProcessingHistory -Type ACL -Name "ACL(INF): $($regHash.Path)" -ParsingError
+        Add-ProcessingHistory -Type cSecurityDescriptorSddl -Name "ACL(INF): $($regHash.Path)" -ParsingError
         return ""
     }
     
-    Write-DSCString -Resource -Name "ACL(INF): $($regHash.Path)" -Type ACL -Parameters $regHash
+    Write-DSCString -Resource -Name "ACL(INF): $($regHash.Path)" -Type cSecurityDescriptorSddl -Parameters $regHash
 }

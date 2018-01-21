@@ -14,14 +14,10 @@ Param
         task configuration. The default value is only available in 
         the TFS build system.
     #>
-    [Parameter(Mandatory=$false)]
-    [string]
-    $ProjectRoot = $($Env:BUILD_SourcesDirectory),
-
-    [Parameter(Mandatory=$true)]
-    [ValidateSet('Analyzle','Build','Clean','Test.Integration','Test.Unit','Deploy','Publish')]
+    [Parameter()]
+    [ValidateSet('Analyze','Build','Clean','Test.Integration','Test.Unit','Deploy','Publish')]
     [String]
-    $Task
+    $Task="Build"
 )
 
 Invoke-psake -buildFile $PSScriptRoot\psake.tasks.ps1 -taskList $task

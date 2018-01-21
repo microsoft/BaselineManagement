@@ -42,8 +42,7 @@ Task Clean -depends Init -requiredVariables releaseDir {
     $startErrorActionPreference = $ErrorActionPreference 
     $ErrorActionPreference = 'SilentlyContinue'
    
-    Get-ChildItem -Path $releaseDir | 
-        Remove-Item -Recurse -Force -Verbose:$VerbosePreference
+    Get-ChildItem -Path $releaseDir | Remove-Item -Recurse -Force -Verbose:$VerbosePreference
         
     Get-ChildItem -Path $TestRootDir -Filter "Test*.xml" -Recurse | Remove-Item -Force -Verbose:$VerbosePreference
     Get-ChildItem -Path $TestRootDir -Filter "Test*.html" -Recurse | Remove-Item -Force -Verbose:$VerbosePreference
@@ -78,8 +77,9 @@ Task Build.Core -requiredVariables ModuleOutDir, SrcRootDir {
     
     # To Do - manage the PData import in the future
     $manifestData.Remove('PrivateData')
-    # Add the path variable to create the file in the release directory
-    $manifestData.add('Path', "$ModuleOutDir\$ModuleName.psd1")
+    
+    $version = [version]$manifestdata["ModuleVersion"]
+    $manifestdata["ModuleVersion"] = "$($version.Major).$($version.Minor).$($version.Build + 1)"
 
     # Remove the FunctionsToExport key and replace it with data from the module
     if ($manifestData.ContainsKey('FunctionsToExport'))
@@ -89,8 +89,15 @@ Task Build.Core -requiredVariables ModuleOutDir, SrcRootDir {
 
     # Update the manifest file with the functions exported from the module
     $manifestData['FunctionsToExport'] = $script:exportedCommands
- 
+    $manifestdata.Add("Path", "$ModuleOutDir\$ModuleName.psd1")    
+
     New-ModuleManifest @manifestData
+
+    $manifestdata.Remove("Path")
+    # Add the path variable to create the file in the release directory
+    $manifestData.add('Path', $moduleManifestPath)
+    
+    New-ModuleManifest @manifestData    
 }
 
 Task Stage.CoreFiles -requiredVariables ModuleOutDir, SrcRootDir {
@@ -104,7 +111,7 @@ Task Stage.CoreFiles -requiredVariables ModuleOutDir, SrcRootDir {
         Write-Verbose "$($psake.context.currentTaskName) - directory already exists '$ModuleOutDir'."
     }
 
-    Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
+    Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Force -Verbose:$VerbosePreference
 }
 
 Task Deploy -depends Init, Clean, Build, Deploy.Before, Deploy.Core, Deploy.After {

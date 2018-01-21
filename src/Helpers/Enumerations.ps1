@@ -237,3 +237,32 @@ $UserRightsHash = @{
 }
 
 $SecuritySettings = "MinimumPasswordAge", "MaximumPasswordAge", "MinimumPasswordLength", "PasswordComplexity", "PasswordHistorySize", "LockoutBadCount", "ForceLogoffWhenHourExpire", "NewAdministratorName", "NewGuestName", "ClearTextPassword", "LSAAnonymousNameLookup", "EnableAdminAccount", "EnableGuestAccount", "ResetLockoutCount", "LockoutDuration", "MaxServiceAge", "MaxTicketAge", "MaxRenewAge", "MaxClockSkew", "TicketValidateClient"
+
+$SecurityOptionSettings = @{
+  'ForceLogoffWhenHourExpire' = 'Network_security_Force_logoff_when_logon_hours_expire';
+  'LSAAnonymousNameLookup' = 'Network_access_Allow_anonymous_SID_Name_translation';
+  'EnableAdminAccount' = 'Accounts_Administrator_account_status'
+  'EnableGuestAccount' = 'Accounts_Guest_account_status'
+  'NewAdministratorName' = 'Accounts_Rename_administrator_account'
+  'NewGuestName' = 'Accounts_Rename_guest_account'
+}
+
+$AccountPolicySettings = @{
+    'MaximumPasswordAge'        = 'Maximum_Password_Age';
+    'MinimumPasswordAge'        = 'Minimum_Password_Age';
+    'MinimumPasswordLength'     = 'Minimum_Password_Length';
+    'PasswordComplexity'        = 'Password_must_meet_complexity_requirements';
+    'ClearTextPassword'         = 'Store_passwords_using_reversible_encryption';
+    'PasswordHistorySize'       = 'Enforce_password_history';
+    'MaxServiceAge'             = 'Maximum_lifetime_for_service_ticket';
+    'MaxTicketAge'              = 'Maximum_lifetime_for_user_ticket';
+    'MaxRenewAge'               = 'Maximum_lifetime_for_user_ticket_renewal';
+    'MaxClockSkew'              = 'Maximum_tolerance_for_computer_clock_synchronization';
+    'TicketValidateClient' = 'Enforce_user_logon_restrictions';
+    'LockoutDuration' = 'Account_lockout_duration';
+    'LockoutBadCount' = 'Account_lockout_threshold';
+    'ResetLockoutCount'     = 'Reset_account_lockout_counter_after';
+}
+
+$SecuritySettingsWEnabledDisabled = "Accounts_Administrator_account_status", "Accounts_Guest_account_status", "Enforce_user_logon_restrictions", "Password_must_meet_complexity_requirements", "Store_passwords_using_reversible_encryption", "Network_access_Allow_anonymous_SID_Name_translation", "Network_security_Force_logoff_when_logon_hours_expire"
+$EnabledDisabled = "Disabled", "Enabled"

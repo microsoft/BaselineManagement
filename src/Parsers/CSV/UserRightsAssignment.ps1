@@ -1,4 +1,4 @@
-Function Write-ASCPrivilegeJSONData
+Function Write-PrivilegeCSVData
 {
     [CmdletBinding()]
     [OutputType([String])]
@@ -8,14 +8,23 @@ Function Write-ASCPrivilegeJSONData
         $PrivilegeData
     )
 
-    $Privilege = $PrivilegeData.SettingName
-    if ($UserRightsHash.ContainsKey($Privilege))
+    if ($PrivilegeData.DataSourceKey.TrimStart("{").TrimEnd("}") -match "\[.*\](?<Privilege>.*)")
     {
-        $Privilege = $UserRightsHash[$PrivilegeData.SettingName]
+        $Privilege = $Matches.Privilege
     }
     else
     {
-        Write-Error "Cannot find privilege $Privilege"
+        Write-Error "Cannot Find Privilege!"
+        return ""
+    }
+
+    if ($UserRightsHash.ContainsKey($Privilege))
+    {
+        $Privilege = $UserRightsHash[$Privilege]
+    }
+    else
+    {
+        Write-Error "Cannot find privilege $($PrivilegeData.DataSourceKey)"
         return ""
     }
 
@@ -30,10 +39,16 @@ Function Write-ASCPrivilegeJSONData
         "Administrators" { $Accounts += "BUILTIN\Administrators" }
         "NETWORK SERVICE" { $Accounts += "NT AUTHORITY\NETWORK SERVICE" }
         "NT AUTHORITY\Local account and member of Administrators group" { $Accounts += "[Local Account|Administrator]" }
+        "Local Account" { $Accounts += "[Local Account|Administrator]" }
         "NT AUTHORITY\Local account" { $Accounts += "[Local Account]"}
+        "Remote Desktop Users" { $Accounts += "BUILTIN\Remote Desktop Users" }
+        "IIS APPPOOL\\DefaultAppPool" { $Accounts += "IIS APPPool\DefaultAppPool" }
         "Guests" { $Accounts += "BUILTIN\Guests"}
         "Backup Operators" { $Accounts += "BUILTIN\Backup Operators"}
-        Default { Write-Warning "Found a new Account Value for JSONPrivilege: $_" }
+        "Server Operators" { $Accounts += "BUILTIN\Server Operators"}
+        "ENTERPRISE DOMAIN CONTROLLERS" { $Accounts += "NT AUTHORITY\Enterprise Domain Controllers"}
+        "NT Service\WdiServiceHost" { $Accounts += "NT Service\WdiServiceHost"}
+        Default { Write-Warning "Found a new Account Value for Privilege: $_" }
     }
                                 
     $policyHash = @{}
@@ -45,5 +60,5 @@ Function Write-ASCPrivilegeJSONData
     $policyHash.Policy = $Privilege
     $policyHash.Identity = $Accounts                    
                     
-    return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.ruleName)" -Type UserRightsAssignment -Parameters $policyHash -CommentOUT:($PrivilegeData.State -ne 'Enabled') -DoubleQuoted
+    return Write-DSCString -Resource -Name "$($PrivilegeData.CCEID): $($PrivilegeData.Name)" -Type UserRightsAssignment -Parameters $policyHash -DoubleQuoted
 }

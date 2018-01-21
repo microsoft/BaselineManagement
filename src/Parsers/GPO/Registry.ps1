@@ -334,7 +334,7 @@ Function Write-GPORegistryPOLData
 
     $regHash.ValueName = $Data.ValueName
     $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Data.KeyName
-    $regHash.ValueType = $Data.ValueType
+    $regHash.ValueType = $Data.ValueType.ToString()
     $regHash.ValueData = $Data.ValueData
     Update-RegistryHashtable $regHash
     
