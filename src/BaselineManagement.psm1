@@ -984,7 +984,6 @@ function ConvertFrom-ASC
             return
         }
   
-        $BaselineName = $PSBoundParameters.BaselineName  
         $RULES = $JSON.baselineRulesets.Where( {$_.BaselineName -eq $BaselineName}).RULES
 
         # Start tracking Processing History.
@@ -1008,7 +1007,7 @@ function ConvertFrom-ASC
         }
 
         # Grab the Audit policies.
-        $AuditPolicies = $RULES.BaselineAuditPolicyRule
+        $AuditPolicies = $RULES.BaselineAuditPolicyRules
     
         # Loop through the Audit Policies.
         foreach ($Policy in $AuditPolicies)
@@ -1017,7 +1016,7 @@ function ConvertFrom-ASC
         }
 
         # Grab all the Security Policy Settings.
-        $securityPolicies = $RULES.BaselineSecurityPolicyRule
+        $securityPolicies = $RULES.BaselineSecurityPolicyRules
     
         # Loop through the Security Policies.
         foreach ($Policy in $securityPolicies)
@@ -1157,7 +1156,7 @@ Function Read-ASCBaselineName
             $arguments = "-NoProfile -File " + $argPath
             $menuoutputpath = $(Join-Path $PSScriptRoot "Menus\menu_output.txt")
             $menuinputpath = $(Join-Path $PSScriptRoot "Menus\menu_input.txt")
-            $tmpValues | ForEach-Object { "=$_" } Out-File -FilePath $menuinputpath
+            $tmpValues | ForEach-Object { "=$_" } | Out-File -FilePath $menuinputpath
             Remove-Item -ErrorAction SilentlyContinue $menuoutputpath
             Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments 
             Remove-Item -ErrorAction SilentlyContinue $menuinputpath
