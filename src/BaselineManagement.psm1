@@ -917,237 +917,14 @@ function ConvertFrom-ASC
         [string]$ComputerName = "localhost",
 
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript,
-
-        [switch]$ShowPesterOutput
-    )
-
-    DynamicParam
-    {
-        if (Test-Path $Path)
-        {
-            $JSON = Get-Content -Path $Path | ConvertFrom-Json
-            $JSONBaselines = @()
-            $JSONBaselines = $JSON.baselinerulesets.baselineName
-            $JSONBaselines = $null
-                                    
-            $attributes = new-object System.Management.Automation.ParameterAttribute
-            $attributes.ParameterSetName = "__AllParameterSets"
-            $attributes.Mandatory = $false
-
-            $attributeCollection = new-object -Type System.Collections.ObjectModel.Collection[System.Attribute]
-            $attributeCollection.Add($attributes)
-            
-            if ($JSONBaselines -eq $null)
-            {
-                return
-            }
-
-            $ValidateSet = new-object System.Management.Automation.ValidateSetAttribute($JSONBaselines)
-
-            $attributeCollection.Add($ValidateSet)
-
-            $dynParam1 = new-object -Type System.Management.Automation.RuntimeDefinedParameter("BaselineName", [string], $attributeCollection)
-
-            $paramDictionary = new-object -Type System.Management.Automation.RuntimeDefinedParameterDictionary
-            $paramDictionary.Add("BaselineName", $dynParam1)
-
-            return $paramDictionary 
-        }
-    }
-    
-    Begin
-    {
-        $BaselineName = Read-BaselineName -Pattern '"baselineName": "(.*)"' -BaselineName $BaselineName -Path $Path
-
-        if ($BaselineName -eq $null)
-        {
-            Throw "$BaselineName is not valid"
-        }
-    }
-
-    Process 
-    {
-        # JSON can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.   
-        Try
-        {
-            $JSON = Get-Content -Path $Path | ConvertFrom-Json
-        }
-        Catch
-        {
-            Write-Error $_
-            Write-Warning "Unable to parse JSON at path $Path - Exiting"
-            continue
-            return
-        }
-  
-        $BaselineName = $PSBoundParameters.BaselineName  
-        $RULES = $JSON.baselineRulesets.Where( {$_.BaselineName -eq $BaselineName}).RULES
-
-        # Start tracking Processing History.
-        Clear-ProcessingHistory
-    
-        # Create the Configuration String
-        $ConfigString = Write-DSCString -Configuration -Name DSCFromASC
-        # Add any resources
-        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
-        # Add Node Data
-        $ConfigString += Write-DSCString -Node -Name $computername
-    
-        # JSON is pretty straightforward where it keeps the individual settings.
-        # These are the registry settings.
-        $registryPolicies = $RULES.BaselineRegistryRules
-
-        # Loop through all the registry settings.
-        Foreach ($Policy in $registryPolicies)
-        {
-            $ConfigString += Write-ASCRegistryJSONData -RegistryData $Policy
-        }
-
-        # Grab the Audit policies.
-        $AuditPolicies = $RULES.BaselineAuditPolicyRule
-    
-        # Loop through the Audit Policies.
-        foreach ($Policy in $AuditPolicies)
-        {
-            $ConfigString += Write-ASCAuditJSONData -AuditData $Policy
-        }
-
-        # Grab all the Security Policy Settings.
-        $securityPolicies = $RULES.BaselineSecurityPolicyRule
-    
-        # Loop through the Security Policies.
-        foreach ($Policy in $securityPolicies)
-        {
-            # Security Policies can have a variety of types as they are represenations of the GPTemp.inf.
-            # Determine which one the current setting is and apply.
-            switch ($Policy.SectionName)
-            {
-                "Service General Setting"
-                {
-
-                }
-
-                "Registry Values"
-                {
-
-                }
-
-                "File Security"
-                {
-
-                }
-                
-                "Privilege Rights"
-                {            
-                    $ConfigString += Write-ASCPrivilegeJSONData -PrivilegeData $Policy
-                }
-                
-                "Kerberos Policy"
-                {
-                
-                }
-                
-                "Registry Keys"
-                {
-
-                }
-                
-                "System Access"
-                {
-
-                }
-            }
-        }
-    
-        # Close out the Configuration block.
-        $ConfigString += Write-DSCString -CloseNodeBlock
-        $ConfigString += Write-DSCString -CloseConfigurationBlock
-        $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromASC -OutputPath $OutputPath
-    
-        # If the switch was specified, output a Configuration Script regardless of success/failure.
-        if ($OutputConfigurationScript)
-        {
-            if (!(Test-Path $OutputPath))
-            {
-                mkdir $OutputPath
-            }
-        
-            $Scriptpath = Join-Path $OutputPath "DSCFromASC.ps1"
-            $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
-        }
-
-        # Try to compile configuration.
-        $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
-    
-        if ($ShowPesterOutput)
-        {
-            # Write out Summary data of parsing history.
-            Write-ProcessingHistory -Pass $Pass
-        }
-
-        if ($pass)
-        {
-            if ($OutputConfigurationScript)
-            {
-                Get-Item $Scriptpath
-            }
-
-            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof")
-        }
-        else
-        {
-            Get-Item $(Join-Path -Path $OutputPath -ChildPath "DSCFromASC.ps1.error")
-        }
-    }
-}
-
-<#
-.Synopsis
-   This cmdlet converts from ASC JSON into DSC.
-.DESCRIPTION
-   This cmdlet will look at all baselines entries within an SCM JSON file and convert them to DSC.
-.EXAMPLE
-   ConvertFrom-ASC -Path .\ASC.Json
-.EXAMPLE
-   dir .\scm.json | ConvertFrom-ASC -OutputConfigurationScript
-.INPUTS
-   The ASC JSON File.
-.OUTPUTS
-   Success or Failure will yield detailed results along with a localhost.mof if successful or error file if unsuccessful.  It also yields a ConfigurationScript on request.
-.NOTES
-   General notes
-.COMPONENT
-   The component this cmdlet belongs to
-.ROLE
-   The role this cmdlet belongs to
-.FUNCTIONALITY
-   The functionality that best describes this cmdlet
-#>
-function ConvertFrom-ASC
-{
-    [CmdletBinding()]
-    [OutputType([string])]
-    param
-    (
-        # This is the Path to the JSON file.
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
-        [ValidateScript( {Test-Path $_})]
-        [string]$Path,
-        
-        # Output Path that will default to an Output directory under the current Path.        
-        [ValidateScript( {Test-Path $_})]
-        [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
-
-        # ComputerName for Node processing.
-        [string]$ComputerName = "localhost",
-
-        # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript, 
 
+        [string]$BaselineName,
+
         [switch]$ShowPesterOutput
     )
 
+    <# Removing temporarily for presentation
     DynamicParam
     {
         if (Test-Path $Path)
@@ -1181,7 +958,7 @@ function ConvertFrom-ASC
             return $paramDictionary 
         }
     }
-    
+    #>
     Begin
     {
         $BaselineName = Read-ASCBaselineName -Pattern '"baselineName": "(.*)"' -BaselineName $BaselineName -Path $Path
@@ -1327,6 +1104,7 @@ function ConvertFrom-ASC
         }
     }
 }
+
 
 Function Read-ASCBaselineName
 {
