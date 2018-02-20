@@ -13,7 +13,7 @@ Function Write-GPOSecuritySettingINFData
     )
            
     $SecurityData = $SecurityData.Trim()
-
+    $CommentOut = $false
     if ($Key -notin $SecuritySettings)
     {
         Write-Warning "Write-InfSecuritySettingData:$Key is no longer supported or is not implemented"
@@ -30,11 +30,11 @@ Function Write-GPOSecuritySettingINFData
     {
         Write-Warning "Write-GPONewSecuritySettingData:$Key is set to -1 which means 'Not Configured'"
         Add-ProcessingHistory -Type SecurityOption -Name "SecuritySetting(INF): $Key" -Disabled
-        return ""
+        $CommentOut = $true
     }
 
     $params = @{$key = $ValueData; Name = $Key}
-    Write-DSCString -Resource -Name "SecuritySetting(INF): $Key" -Type SecuritySetting -Parameters $params
+    Write-DSCString -Resource -Name "SecuritySetting(INF): $Key" -Type SecuritySetting -Parameters $params -CommentOut:$CommentOut
 }
 Function Write-GPONewSecuritySettingINFData
 {
@@ -51,6 +51,7 @@ Function Write-GPONewSecuritySettingINFData
            
     $SecurityData = $SecurityData.Trim()
     $ResourceName = $SecuritySetting = ""
+    $CommentOut = $false
     if ($SecurityOptionSettings.ContainsKey($Key))
     {
         $SecuritySetting = $SecurityOptionSettings[$key]
@@ -77,7 +78,7 @@ Function Write-GPONewSecuritySettingINFData
     {
         Write-Warning "Write-GPONewSecuritySettingData:$Key is set to -1 which means 'Not Configured'"
         Add-ProcessingHistory -Type SecurityOption -Name "SecuritySetting(INF): $Key" -Disabled
-        return ""
+        $CommentOut = $true
     }
     else
     {
@@ -88,5 +89,5 @@ Function Write-GPONewSecuritySettingINFData
     }
 
     $params = @{$SecuritySetting = $ValueData;Name = $SecuritySetting}
-    Write-DSCString -Resource -Name "SecuritySetting(INF): $Key" -Type $ResourceName -Parameters $params
+    Write-DSCString -Resource -Name "SecuritySetting(INF): $Key" -Type $ResourceName -Parameters $params -CommentOut:$CommentOut
 }

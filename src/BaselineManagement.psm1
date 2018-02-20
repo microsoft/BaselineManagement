@@ -181,7 +181,7 @@ function ConvertFrom-GPO
     $PreferencesDirectory = Get-ChildItem -Path $Path -Directory -Filter "Preferences" -Recurse
 
     # These are the DSC Resources needed for NON-preference based GPOS.
-    $NeededModules = 'PSDesiredStateConfiguration', 'AuditPolicyDSC', 'SecurityPolicyDSC'
+    $NeededModules = 'PSDesiredStateConfiguration', 'AuditPolicyDSC', 'SecurityPolicyDSC', 'PowerShellAccessControl'
 
     if ($PreferencesDirectory -ne $null)
     {

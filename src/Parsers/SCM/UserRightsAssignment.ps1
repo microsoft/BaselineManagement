@@ -25,6 +25,7 @@ Function Write-SCMPrivilegeXMLData
     
     $retHash.Identity = @()
     $retHash.Policy = ""
+    $retHash.Force = $true
 
     if ($DiscoveryData.WmiDiscoveryInfo.Where -match "UserRight='(?<Policy>.*)'.*")
     {
