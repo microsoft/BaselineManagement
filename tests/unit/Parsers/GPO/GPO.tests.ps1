@@ -52,7 +52,7 @@ Describe "Write-GPORegistryXMLData" {
                     $Parameters.Type | Should Be "Registry"
                     [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should Be $false
                     Test-Path -Path $Parameters.Parameters.Key -IsValid | Should Be $true
-                    $TypeHash = @{"Binary" = [byte]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
+                    $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
                     ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should Be $true
                     Write-Host $Parameters.Parameter.ValueType
                     $Parameters.Parameters.ValueData | Should BeOfType $TypeHash[$Parameters.Parameters.ValueType]
@@ -257,7 +257,7 @@ Describe "Write-GPORegistryPOLData" {
                 {
                     $Parameters.Type | Should Be "Registry"
                     Test-Path -Path $Parameters.Parameters.Key -IsValid | Should Be $true
-                    $TypeHash = @{"Binary" = [byte]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
+                    $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
                     if ($Parameters.Name.StartsWith("DELVAL"))
                     {
                         if ($ExlusiveFlagAvailable)
@@ -331,7 +331,7 @@ Describe "GPtTempl.INF Data" {
                                 $Parameters.Type | Should Be "Registry"
                                 [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should Be $false
                                 Test-Path -Path $Parameters.Parameters.Key -IsValid | Should Be $true
-                                $TypeHash = @{"Binary" = [byte]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
+                                $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
                                 ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should Be $true
                                 $Parameters.Parameters.ValueData | Should BeOfType $TypeHash[$Parameters.Parameters.ValueType]
                                 [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false

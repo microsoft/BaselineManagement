@@ -232,9 +232,26 @@ Function Update-RegistryHashtable
                 $reghash.ValueType = "Binary" 
                 if ($regHash.ContainsKey("ValueData"))
                 {
-                    $hexified = $regHash.ValueData | ForEach-Object { "0x$_"}
+                    if ($regHash.ValueData.Count -gt 1)
+                    {
+                        Try
+                        {
+                            [string]$hexified = ($regHash.ValueData | ForEach-Object ToString X2) -join ''
+                            [string]$regHash.ValueData = $hexified
+                        }
+                        Catch
+                        {
+                            Write-Error "Error Processing Binary Data for Key ($(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName))"
+                            $regHash.CommentOut = $true
+                            Add-ProcessingHistory -Type Registry -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
+                        }
+                    }
+                    else
+                    {
+                        $regHash.ValueData = "$($regHash.ValueData)"
+                    }
                 }
-                [byte[]]$regHash.ValueData = [byte[]]$hexified
+                
                 $regHash.ValueType = "Binary"
             }  
 
@@ -411,6 +428,11 @@ Function Write-GPORegistryINFData
     }
     
     Update-RegistryHashtable $regHash
+    if ($regHash.ContainsKey("CommentOut"))
+    {
+        $CommentOUT = $true
+        $regHash.Remove("CommentOut")
+    }
     
     Write-DSCString -Resource -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
 }

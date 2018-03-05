@@ -104,6 +104,7 @@ Function Test-Conflicts
     {
         Write-Warning "Write-DSCString: DSC Module ($Type) not found on System.  Please re-run the conversion when the module is available."
         $ResourceNotFound = $true
+        $GlobalConflict = $true
     }
 
     if (!$GlobalConflict) # Add this Resources Key/Value pairs to the collective.
