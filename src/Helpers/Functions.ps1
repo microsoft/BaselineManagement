@@ -147,6 +147,7 @@ Function Write-DSCStringKeyPair
         [int]$Tabs,
 
         [Parameter(Mandatory = $true)]
+        [AllowNull()]
         $Value
     )
     
@@ -154,10 +155,13 @@ Function Write-DSCStringKeyPair
     
     if ($Value -eq $null)
     {
-        # Do not allow $null Values
-        return "# `n$(Get-Tabs $Tabs)$($key) = $null"
+        <# Allowing Null values for now
+            return "# `n$(Get-Tabs $Tabs)$($key) = $null"
+        #>
+        return "`n$(Get-Tabs $Tabs)$($key) = `$null"
     }
     
+
     # Start the Resource Key/Value Pair.
     $DSCString += "`n$(Get-Tabs $Tabs)$($key) = "
     $Separator = ", "
@@ -428,7 +432,7 @@ Configuration $Name`n{`n`n`t
             }
 
             # If they passed a comment FOR the block, add it above the block.
-            if ($PSBoundParameters.ContainsKey("Comment"))
+            if ($PSBoundParameters.ContainsKey("Comment") -and ![string]::IsNullOrEmpty($Comment))
             {
                 $tmpComment = "<#`n"
                 # Changed from ForEach-Object { $tmpComment += "`t`t$_`n"}

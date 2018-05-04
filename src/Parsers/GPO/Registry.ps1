@@ -170,7 +170,7 @@ Function Update-RegistryHashtable
         $regHash.ValueType = "None"
     }
 
-    if ($regHash.ContainsKey("ValueData"))
+    if ($regHash.ContainsKey("ValueData") -and $regHash.ValueData -ne $null)
     {
         switch ($regHash.ValueType)
         {
@@ -352,7 +352,15 @@ Function Write-GPORegistryPOLData
     $regHash.ValueName = $Data.ValueName
     $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Data.KeyName
     $regHash.ValueType = $Data.ValueType.ToString()
-    $regHash.ValueData = $Data.ValueData
+    if ($Data.ValueData -eq "$([char]0)")
+    {
+        $regHash.ValueData = $null
+    }
+    else
+    {
+        $regHash.ValueData = $Data.ValueData
+    }
+
     Update-RegistryHashtable $regHash
     
     $output = Register-RegistryDELVALDependsOn $regHash
@@ -364,7 +372,13 @@ Function Write-GPORegistryPOLData
         
     Add-RegistryDELVALDependsOn $regHash
 
-    Write-DSCString -Resource -Name "Registry(POL): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+    $comment = ""
+    if ($regHash.ValueData -eq $null)
+    {
+        $Comment = "`tThis MultiString Value has a value of `$null, `n`tSome Security Policies require Registry Values to be `$null`n`tIf you believe ' ' is the correct value for this string, you may change it here."
+    }  
+    
+    Write-DSCString -Resource -Name "Registry(POL): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT -Comment $Comment
 }
 
 Function Write-GPORegistryINFData
