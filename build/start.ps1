@@ -17,7 +17,7 @@ Param
     [Parameter()]
     [ValidateSet('Analyze','Build','Clean','Test.Integration','Test.Unit','Deploy','Publish')]
     [String]
-    $Task="Build"
+    $Task="Publish"
 )
 
 Invoke-psake -buildFile $PSScriptRoot\psake.tasks.ps1 -taskList $task

@@ -20,7 +20,7 @@ Function Write-ASCPrivilegeJSONData
     }
 
     $Accounts = @()
-    switch (($PrivilegeData.ExpectedValue -split ", "))
+    switch (($PrivilegeData.ExpectedValue -split ",\s*"))
     {
         "No One" { $Accounts = ""; break }
         "SERVICE" { $Accounts += "NT AUTHORITY\SERVICE" } 

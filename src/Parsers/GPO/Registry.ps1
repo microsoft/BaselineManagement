@@ -16,8 +16,21 @@ Function Resolve-RegistrySpecialCases
     {
         "HKLM:\\System\\CurrentControlSet\\Control\\SecurePipeServers\\Winreg\\(AllowedExactPaths|AllowedPaths)\\Machine"
         {
-            $regHash.ValueData = $regHash.ValueData -split ","
+            # $regHash.ValueData = $regHash.ValueData -split ","
         }
+
+        "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\LegalNoticeText"
+        {
+            #Special case LegalNoticeText, written as a REG_MULTI_SZ by Group Policy Editor but written to registry as REG_SZ
+            #Replacing comma with LF (line feed) and CR (Carriage Return)
+            $values = $regHash.ValueData -split ","
+            $regHash.ValueData = ""
+            $values[0..($values.count-2)] | ForEach-Object{$regHash.ValueData += $_ +"`r`n"}
+            $regHash.ValueData += $values[($values.count-1)]
+            #Change the type to REG_SZ
+            $regHash.ValueType = "String"
+        } 
+
     }
 }
 
@@ -176,7 +189,7 @@ Function Update-RegistryHashtable
         {
             "String"
             {
-                [string]$regHash.ValueData = "'$($regHash.ValueData)'" -replace "[^\u0020-\u007E]", ""
+                [string]$regHash.ValueData = "'$($regHash.ValueData)'"# -replace "[^\u0020-\u007E]", ""
             }
             
             "None" 
@@ -187,7 +200,7 @@ Function Update-RegistryHashtable
             "ExpandString" 
             { 
                 # Contains unexpanded Environment Paths. Should I expand them?
-                [string]$regHash.ValueData = "'$($regHash.ValueData)'" -replace "[^\u0020-\u007E]", ""
+                [string]$regHash.ValueData = "'$($regHash.ValueData)'"# -replace "[^\u0020-\u007E]", ""
             }
             
             "Dword" 
@@ -257,11 +270,15 @@ Function Update-RegistryHashtable
 
             "MultiString" 
             { 
-                # Does this have to be done in the Calling Function instead?
-                $regHash.ValueData = @"
+                if ($regHash.ValueData -isnot [System.Array])
+                {
+                     # Does this have to be done in the Calling Function instead?
+                    $regHash.ValueData = @"
 $($regHash.ValueData)
-"@ -replace "[^\u0020-\u007E]", ""
-                
+"@# -replace "[^\u0020-\u007E]", ""
+               
+                }
+
                 $reghash.ValueType = "MultiString" 
             }
 
@@ -404,7 +421,31 @@ Function Write-GPORegistryINFData
 
     $CommentOUT = $false
 
-    $values = $ValueData -split ","
+    Try
+    {
+        if ($ValueData -match "^(\d),")
+        {
+            $valueType = $Matches.1
+            $values = ($ValueData -split "^\d,")[1]
+            $values = $values -replace '","', '&,'
+            $values = $values -split '(?=[^&]),'
+            for ($i = 0; $i -lt $values.count;$i++)
+            {
+                $values[$i] = $values[$i] -replace '&,', ","
+            }
+
+            $regHash.ValueData = $values
+        }
+        else
+        {
+            throw "Malformed data"
+        }
+    }
+    catch
+    {
+        $regHash.ValueData = $null
+        continue    
+    }
             
     $KeyPath = $Key
             
@@ -418,20 +459,10 @@ Function Write-GPORegistryINFData
         $CommentOUT = $true
     }
 
-    Try
-    {
-        $regHash.ValueData = $values[1..$values.count]
-    }
-    Catch 
-    {
-        $regHash.ValueData = $null
-        continue    
-    }
-    
     $typeHash = @{"1" = "REG_SZ"; "7" = "REG_MULTI_SZ"; "4" = "REG_DWORD"; "3" = "REG_BINARY"}
-    if ($typeHash.ContainsKey($values[0]))
+    if ($typeHash.ContainsKey($valueType))
     {
-        $regHash.ValueType = $typeHash[$values[0]]
+        $regHash.ValueType = $typeHash[$valueType]
     }
     else
     {
