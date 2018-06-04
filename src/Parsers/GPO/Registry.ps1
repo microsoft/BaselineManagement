@@ -220,12 +220,7 @@ Function Update-RegistryHashtable
                     # If it doesn't parse as an integer, try parsing as hexadecimal.
                     Try 
                     {
-                        if ($regHash.ValueData.StartsWith("0x"))
-                        {
-                            $regHash.ValueData = "0x$($regHash.ValueData)"
-                        }
-
-                        [int]$regHash.ValueData = [Convert]::($regHash.ValueData, 10)
+                        [int]$regHash.ValueData = [Convert]::ToInt32($regHash.ValueData, 16)
                     }
                     Catch
                     {
