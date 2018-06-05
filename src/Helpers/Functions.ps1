@@ -183,7 +183,7 @@ Function Write-DSCStringKeyPair
                 Try
                 {
                     Invoke-Expression $("`$variable = '" + $_.TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"') + "'") | Out-Null
-                    $DSCString += "'$([string]::new($_.TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim()))'" 
+                    $DSCString += "'$([string]::new($_.TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim(' ')))'" 
                 }
                 Catch
                 {
