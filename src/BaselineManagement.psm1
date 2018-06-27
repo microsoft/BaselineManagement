@@ -1597,16 +1597,16 @@ function Merge-GPOs
  .PARAMETER SkipGPUpdate
  Do not execute gpupdate on computer.
 .EXAMPLE
- Merge-AllGPOsToMOF
+ Merge-GPOs
  Locally collect applied group policy links and merge the into one MOF-file.
 .EXAMPLE
- Merge-AllGPOsToMOF -Computer Server1
+ Merge-GPOs -Computer Server1
  Remotely collect applied group policy links and merge the into one MOF-file.
 .EXAMPLE
- Merge-AllGPOsToMOF -Computer Server1 -Path C:\Temp
+ Merge-GPOs -Computer Server1 -Path C:\Temp
  Remotely collect applied group policy links and merge the into one MOF-file in the folder C:\Temp
 .EXAMPLE
- Merge-AllGPOsToMOF -Computer Server1 -Table
+ Merge-GPOs -Computer Server1 -Table
  Remotely collect applied group policy links and merge the into one MOF-file and present the applied GPOs on screen.
 .INPUTS
 .OUTPUTS
