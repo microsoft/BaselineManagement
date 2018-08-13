@@ -1584,10 +1584,12 @@ function Merge-GPOs
 {
 <#
 .Synopsis
- Merge all applied GPOs for a computer into a MOF-file using the PowerShell module Baselinemanagement
+ Merge all applied GPOs for a computer into a MOF-file using the ConvertFrom-GPO function.
 .DESCRIPTION
  This function will allow you to create a MOF-file of one computers all applied Group Policy Objects.
- The PowerShell module Baselinemanagement is required.
+ The computer can be the local machine or a remote machine.
+ For remote connections Windows Remote Management needs to be configured and port 5985 open in the firewall.
+ The PowerShell function ConvertFrom-GPO is required.
 .PARAMETER Computer
  The name of the computer to use as an template for the MOF-file
  .PARAMETER Path
@@ -1606,8 +1608,12 @@ function Merge-GPOs
  Merge-GPOs -Computer Server1 -Path C:\Temp
  Remotely collect applied group policy links and merge the into one MOF-file in the folder C:\Temp
 .EXAMPLE
- Merge-GPOs -Computer Server1 -Table
- Remotely collect applied group policy links and merge the into one MOF-file and present the applied GPOs on screen.
+ Merge-GPOs -Computer Server1 -SkipTable
+ Remotely collect applied group policy links and merge the into one MOF-file but do not present the applied GPOs on screen.
+ .EXAMPLE
+ Merge-GPOs -Computer Server1 -SkipGPUpdate
+ Will not perform a gpupdate before collecting applied group policy links and merge the into one MOF-file.
+ If recent group policy changes have been made these could then be missing in the MOF-file.
 .INPUTS
 .OUTPUTS
 .COMPONENT
@@ -1648,7 +1654,7 @@ function Merge-GPOs
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
         [switch] 
-        $Table,
+        $SkipTable,
         # Do not perform GPUpdate on host
         [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$false,
@@ -1871,116 +1877,138 @@ if($(PingHost $Computer))
         #Add job to array
         $MyjobIds += $job.Id
         #Wait for job and retrive results
-        $AppliedGPLink = Wait-MyJob $MyjobIds
+        $AppliedGPLink = @(Wait-MyJob $MyjobIds)
         $bolConnectionEstablished = $true
     }
     else
     {
         Write-Error -Category ConnectionError  -Message "$Computer has port 5985 closed!"
+        #exit function
+        Break
     }
 }
 else
 {
     Write-Error -Category ConnectionError  -Message "$Computer not available!"
+    #exit function
+    Break
 }
-if($bolConnectionEstablished)
+if($AppliedGPLink.count -gt 0)
 {
-    $strBackupFolder = $Path + "\MergedGPOs"
-    $tmpGUId = (New-Guid).GUID.tostring()
-    $script:bolDeleteSuccess = $true
-    if(Test-Path -Path $strBackupFolder){try{Remove-Item -Path $strBackupFolder -Recurse -Force -Confirm:$false -ErrorAction stop ;$script:bolDeleteSuccess = $true }catch{$script:bolDeleteSuccess = $false}}
-    if($script:bolDeleteSuccess)
+    if($bolConnectionEstablished)
     {
-        $objBackupFolder = New-Item -ItemType Directory -Path $strBackupFolder
-    }
-    else
-    {
+        $strBackupFolder = $Path + "\MergedGPOs"
+        $tmpGUId = (New-Guid).GUID.tostring()
+        $script:bolDeleteSuccess = $true
+        if(Test-Path -Path $strBackupFolder){try{Remove-Item -Path $strBackupFolder -Recurse -Force -Confirm:$false -ErrorAction stop ;$script:bolDeleteSuccess = $true }catch{$script:bolDeleteSuccess = $false}}
+        if($script:bolDeleteSuccess)
+        {
+            $objBackupFolder = New-Item -ItemType Directory -Path $strBackupFolder
+        }
+        else
+        {
 
-        $strBackupFolder = $strBackupFolder + $tmpGUId
-       Write-Verbose  "Failed to delete old folder, creating new folder with trailing GUID. $strBackupFolder"  
-        $objBackupFolder = New-Item -ItemType Directory -Path $strBackupFolder
-    }
-    #Counter for GPlinks will be used as prefix on the folde name
-    $i = 1
-    #Enumerate GPO links
-    $arrPresentGPOsApplied = new-object System.Collections.ArrayList
-    Foreach ($GPLink in $AppliedGPLink)
-    {
+            $strBackupFolder = $strBackupFolder + $tmpGUId
+            Write-Verbose  "Failed to delete old folder, creating new folder with trailing GUID. $strBackupFolder"  
+            $objBackupFolder = New-Item -ItemType Directory -Path $strBackupFolder
+        }
+        #Counter for GPlinks will be used as prefix on the folde name
+        $i = 1
+        #Enumerate GPO links
+        $arrPresentGPOsApplied = new-object System.Collections.ArrayList
+        Foreach ($GPLink in $AppliedGPLink)
+        {
 
-        #Remove first part
-        $GUID = $GPLink.GPO.toString().split("{")[1]
+            #Remove first part
+            $GUID = $GPLink.GPO.toString().split("{")[1]
 
-        #Remove last part
-        $GUID = $GUID.toString().split("}")[0]
-        $GPOName =  $((Get-GPO -Guid $GUID).DisplayName.toString() ) 
+            #Remove last part
+            $GUID = $GUID.toString().split("}")[0]
+            $GPOName =  $((Get-GPO -Guid $GUID).DisplayName.toString() ) 
 
-        #Remove non-allowed folder characters
-        $strFolderName = $GPOName -replace '[\x2B\x2F\x22\x3A\x3C\x3E\x3F\x5C\x7C]', ''
+            #Remove non-allowed folder characters
+            $strFolderName = $GPOName -replace '[\x2B\x2F\x22\x3A\x3C\x3E\x3F\x5C\x7C]', ''
 
-        #Naming the folder with reversed numbering from the applied order to get merged the mof correctly
-        $strFolderFullName = $strBackupFolder+"\"+$i+"_"+$strFolderName
-        Write-Verbose "Exporting GPO: $GPOName"
+            #Naming the folder with reversed numbering from the applied order to get merged the mof correctly
+            $strFolderFullName = $strBackupFolder+"\"+$i+"_"+$strFolderName
+            Write-Verbose "Exporting GPO: $GPOName"
 
-        #Delete  GPO backup destination folder if already exist
-        if(Test-Path -Path $strFolderFullName){Remove-Item -Path $strFolderFullName -Recurse -Force -Confirm:$false}
+            #Delete  GPO backup destination folder if already exist
+            if(Test-Path -Path $strFolderFullName){Remove-Item -Path $strFolderFullName -Recurse -Force -Confirm:$false}
 
-        #Create  GPO backup destination folder 
-        $BackupDestination = New-Item -ItemType Directory -Path $strFolderFullName
+            #Create  GPO backup destination folder 
+            $BackupDestination = New-Item -ItemType Directory -Path $strFolderFullName
 
-        #Backup GPO in folder created
-        $nul=Backup-GPO -Guid $GUID -Path $BackupDestination.FullName
-        #Incrementing counter of GPlinks for folder names
+            #Backup GPO in folder created
+            $nul=Backup-GPO -Guid $GUID -Path $BackupDestination.FullName
 
-        #Trim GPLink SOM value
-        $strSOM = $GPLink.SOM.tostring()
-        #Get the value between the double qoutes.
-        $strSOM = $strSOM.split('"')[1]
-        #New object for presenting each GPO
-        $objGPO = New-Object PSObject
-        Add-Member -inputObject $objGPO -memberType NoteProperty -name "Name" -value $GPOName 
-        Add-Member -inputObject $objGPO -memberType NoteProperty -name "Applied Order" -value $GPLink.appliedOrder
-        Add-Member -inputObject $objGPO -memberType NoteProperty -name "Merged Order" -value $i
-        Add-Member -inputObject $objGPO -memberType NoteProperty -name "SOM" -value $strSOM
-        #Add GPO object to array
-        [VOID]$arrPresentGPOsApplied.add($objGPO)
+            #Trim GPLink SOM value
+            $strSOM = $GPLink.SOM.tostring()
+            #Get the value between the double qoutes.
+            $strSOM = $strSOM.split('"')[1]
+            #New object for presenting each GPO
+            $objGPO = New-Object PSObject
+            Add-Member -inputObject $objGPO -memberType NoteProperty -name "Name" -value $GPOName 
+            Add-Member -inputObject $objGPO -memberType NoteProperty -name "Applied Order" -value $GPLink.appliedOrder
+            Add-Member -inputObject $objGPO -memberType NoteProperty -name "Merged Order" -value $i
+            Add-Member -inputObject $objGPO -memberType NoteProperty -name "SOM" -value $strSOM
+            #Add GPO object to array
+            [VOID]$arrPresentGPOsApplied.add($objGPO)
 
-        $i++
+            #Incrementing counter of GPlinks for folder names
+            $i++
 
-    }
-    #Clean up
-    $AppliedGPLink = ""
-    $BackupDestination = ""
-    $strFolderFullName = ""
-    $GPOName = ""  
-    $GUID = ""
-    $GPLink = ""
-    $tmpGUId = ""
-    Remove-Variable AppliedGPLink
-    Remove-Variable BackupDestination
-    Remove-Variable strFolderFullName
-    Remove-Variable GPOName
-    Remove-Variable GUID
-    Remove-Variable GPLink
-    Remove-Variable tmpGUId
+        }
+        #Clean up
+        $AppliedGPLink = ""
+        $BackupDestination = ""
+        $strFolderFullName = ""
+        $GPOName = ""  
+        $GUID = ""
+        $GPLink = ""
+        $tmpGUId = ""
+        Remove-Variable AppliedGPLink
+        Remove-Variable BackupDestination
+        Remove-Variable strFolderFullName
+        Remove-Variable GPOName
+        Remove-Variable GUID
+        Remove-Variable GPLink
+        Remove-Variable tmpGUId
 
-    Write-Verbose ("Converting GPOs to MOF-file")
+        Write-Verbose ("Converting GPOs to MOF-file")
 
-    $rslt = Get-ChildItem -Path $strBackupFolder -Directory -Filter "{*" -Recurse | ConvertFrom-GPO -ComputerName ($Computer+"_Merged") -OutputPath $Path
+        $rslt = Get-ChildItem -Path $strBackupFolder -Directory -Filter "{*" -Recurse | ConvertFrom-GPO -ComputerName ($Computer+"_Merged") -OutputPath $Path
 
-}#end if connectionestablised
+    }#end if connectionestablised
+}
+else
+{
+    Write-Output "No applied GPLink found!"
+}
+    
 }
 End
 {
-    #Delete exported files
-    remove-item $objBackupFolder -Recurse -Force -Confirm:$false
-
-    #User selects if the table of merged GPOs should be presented
-    if($Table)
+    #Check if objBackupFolder exist
+    if($objBackupFolder)
+    {
+        #Check if objBackupFolder path exist
+        if(Test-Path $objBackupFolder)
+        {
+            #Delete exported files
+            remove-item $objBackupFolder -Recurse -Force -Confirm:$false
+        }
+    }
+    #User selects if the table of merged GPOs should not be presented
+    if(!($SkipTable))
     {
         $arrPresentGPOsApplied | Format-Table -Property Name,'Applied Order','Merged Order',SOM -AutoSize
     }
-    Write-Output "Output file: $($rslt.Fullname)"
-
+    #Verify that ConvertFrom-GPO has yielded an output 
+    if($rslt)
+    {
+        Write-Output "Output file: $($rslt.Fullname)"
+    }
     #Clean up
     $objBackupFolder = ""
     $rslt = ""
