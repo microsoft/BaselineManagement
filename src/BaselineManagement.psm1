@@ -144,7 +144,7 @@ function ConvertFrom-GPO
     (
         # This is the Path of the GPO Backup Directory.
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
-        [ValidateScript( {Test-Path $_ -Container})]
+        [ValidateScript( {Test-Path $_ -PathType Container})]
         [System.IO.DirectoryInfo[]]$Path,
         
         # This is the GPO Object returned from Backup-GPO.
