@@ -63,11 +63,26 @@ Function Write-GPOAuditCSVData
             Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $duplicate
         }
 
-        "^(Success|Failure)$"
+        "^Success$"
         {
             $retHash.Ensure = "Present"
-            $retHash.AuditFlag = $Entry."Inclusion Setting"
-            Write-DSCString -Resource -Name "$Name - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $retHash.AuditFlag = "Success"
+            Write-DSCString -Resource -Name "$Name (Success) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $duplicate = $retHash.Clone()
+            $duplicate.AuditFlag = "Failure"
+            $duplicate.Ensure = "Absent"
+            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $duplicate
+        }
+
+        "^Failure$"
+        {
+            $retHash.Ensure = "Present"
+            $retHash.AuditFlag = "Failure"
+            Write-DSCString -Resource -Name "$Name (Failure) - Inclusion" -Type AuditPolicySubcategory -Parameters $retHash
+            $duplicate = $retHash.Clone()
+            $duplicate.AuditFlag = "Success"
+            $duplicate.Ensure = "Absent"
+            Write-DSCString -Resource -Name "$Name (Success) - Inclusion" -Type AuditPolicySubcategory -Parameters $duplicate
         }
     }
     
@@ -90,7 +105,14 @@ Function Write-GPOAuditCSVData
             # I am not sure how to make sure that "No Auditing" is Excluded or ABSENT. What should it be set to then?
         }
 
-        "^(Success|Failure)$"
+        "^Failure$"
+        {
+            $exclusionHash.Ensure = "Absent"
+            $exclusionHash.AuditFlag = $Entry."Exclusion Setting"
+            Write-DSCString -Resource -Name "$Name - Exclusion" -Type AuditPolicySubcategory -Parameters $exclusionHash
+        }
+
+        "^Success$"
         {
             $exclusionHash.Ensure = "Absent"
             $exclusionHash.AuditFlag = $Entry."Exclusion Setting"
@@ -138,16 +160,30 @@ Function Write-GPOAuditINFData
                 return
             } 
             
-            "(1|3)"
+            "1"
             {
                 $paramHash.AuditFlag = "Success"
                 Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Success" -Type AuditPolicySubcategory -Parameters $paramHash 
+                $paramHash.AuditFlag = "Failure"
+                $paramHash.Ensure = "Absent"
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Failure" -Type AuditPolicySubcategory -Parameters $paramHash 
             }
 
-            "(2|3)"
+            "2"
             {
                 $paramHash.AuditFlag = "Failure"
                 Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Failure" -Type AuditPolicySubcategory -Parameters $paramHash 
+                $paramHash.AuditFlag = "Success"
+                $paramHash.Ensure = "Absent"
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Success" -Type AuditPolicySubcategory -Parameters $paramHash 
+            }
+
+            "3"
+            {
+                $paramHash.AuditFlag = "Failure"
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Failure" -Type AuditPolicySubcategory -Parameters $paramHash 
+                $paramHash.AuditFlag = "Success"
+                Write-DSCString -Resource -Name "EventAuditing(INF): $($subCategory): Success" -Type AuditPolicySubcategory -Parameters $paramHash 
             }
 
             Default 

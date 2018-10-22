@@ -174,9 +174,9 @@ Function Update-RegistryHashtable
     }
     $typeHash = @{"REG_SZ" = "String"; "REG_NONE" = "None"; "REG_DWORD" = "Dword"; "REG_EXPAND_SZ" = "ExpandString"; "REG_QWORD" = "Qword"; "REG_BINARY" = "Binary"; "REG_MULTI_SZ" = "MultiString"}
 
-    if ($typeHash.ContainsKey($regHash.ValueType))
+    if ($regHash.ValueType -in $typeHash.Keys)
     {
-        $regHash.ValueType = $typeHash[$regHash.ValueType]
+        $regHash.ValueType = $typeHash[$regHash.ValueType.ToString()]
     }
     else
     {

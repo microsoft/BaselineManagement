@@ -1,6 +1,6 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>TEST_642018_1024 AM.xml</title>
+<head><title>TEST_6262018_748 AM.xml</title>
 <style type="text/css">
  .TOC { font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 1.33em; font-size: 1.33em; text-align: left; font-weight: normal; color: #0072af; }
  .TableDefaultHeading { font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: bold; color: #fff; background-color: #4472c4; }
@@ -30,9 +30,9 @@
 <tr><td><a href="#SUCCESSDETAILS" style="text-decoration: none;">Success details</a></td></tr>
 </table>
 <a name="RESULTSSUMMARY"><h1 class="Heading2">Results summary</h1></a><div><table class="tabledefault" style="width:100%;"><thead><tr><th>Total Tests</th><th>Passed Tests</th><th>Failed Tests</th><th>Skipped Tests</th><th>Pending Tests</th></tr></thead><tbody>
-<tr><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #0000ff;">2319</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #008000;">2319</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #ff0000;">0</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #808080;">0</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #808080;">0</td></tr>
+<tr><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #0000ff;">2333</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #008000;">2333</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #ff0000;">0</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #808080;">0</td><td style="font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92em; font-size: 0.92em; text-align: left; font-weight: normal; color: #ffffff; background-color: #808080;">0</td></tr>
 </tbody></table></div>
-<a name="SUCCESSDETAILS"><h1 class="Heading2">Success details</h1></a><div>2319 test(s) passed:</div><div><table class="tabledefault"><thead><tr><th>Describe</th><th>Context</th><th>Name</th></tr></thead><tbody>
+<a name="SUCCESSDETAILS"><h1 class="Heading2">Success details</h1></a><div>2333 test(s) passed:</div><div><table class="tabledefault"><thead><tr><th>Describe</th><th>Context</th><th>Name</th></tr></thead><tbody>
 <tr><td>DSC String Helper Tests</td><td>Write-DSCString</td><td>Creates a Configuration Open Block</td></tr>
 <tr><td>DSC String Helper Tests</td><td>Write-DSCString</td><td>Comments a Configuration Open Block</td></tr>
 <tr><td>DSC String Helper Tests</td><td>Write-DSCString</td><td>Creates Module Import Strings</td></tr>
@@ -948,25 +948,39 @@
 <tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Parses SuccessAndFailure separately</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit User Account Management (Success) - Inclusion</td><td>Separates out the SuccessBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit User Account Management (Failure) - Inclusion</td><td>Separates out the FailureBlock</td></tr>
-<tr><td>Write-GPOAuditCSVData</td><td>Audit Process Creation - Inclusion</td><td>Parses Audit Data</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Creates an opposite Failure Entry for Succes</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Process Creation (Success) - Inclusion</td><td>Creates the SuccessBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Process Creation (Failure) - Inclusion</td><td>Creates the FailureBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Parses SuccessAndFailure separately</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Directory Service Access (Success) - Inclusion</td><td>Separates out the SuccessBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Directory Service Access (Failure) - Inclusion</td><td>Separates out the FailureBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Parses SuccessAndFailure separately</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Directory Service Changes (Success) - Inclusion</td><td>Separates out the SuccessBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Directory Service Changes (Failure) - Inclusion</td><td>Separates out the FailureBlock</td></tr>
-<tr><td>Write-GPOAuditCSVData</td><td>Audit Logoff - Inclusion</td><td>Parses Audit Data</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Creates an opposite Failure Entry for Succes</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Logoff (Success) - Inclusion</td><td>Creates the SuccessBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Logoff (Failure) - Inclusion</td><td>Creates the FailureBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Parses SuccessAndFailure separately</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Logon (Success) - Inclusion</td><td>Separates out the SuccessBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Logon (Failure) - Inclusion</td><td>Separates out the FailureBlock</td></tr>
-<tr><td>Write-GPOAuditCSVData</td><td>Audit Special Logon - Inclusion</td><td>Parses Audit Data</td></tr>
-<tr><td>Write-GPOAuditCSVData</td><td>Audit File System - Inclusion</td><td>Parses Audit Data</td></tr>
-<tr><td>Write-GPOAuditCSVData</td><td>Audit Handle Manipulation - Inclusion</td><td>Parses Audit Data</td></tr>
-<tr><td>Write-GPOAuditCSVData</td><td>Audit Registry - Inclusion</td><td>Parses Audit Data</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Creates an opposite Failure Entry for Succes</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Special Logon (Success) - Inclusion</td><td>Creates the SuccessBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Special Logon (Failure) - Inclusion</td><td>Creates the FailureBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Creates an opposite Success Entry for Failure</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit File System (Success) - Inclusion</td><td>Creates the SuccessBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit File System (Failure) - Inclusion</td><td>Creates the FailureBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Creates an opposite Success Entry for Failure</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Handle Manipulation (Success) - Inclusion</td><td>Creates the SuccessBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Handle Manipulation (Failure) - Inclusion</td><td>Creates the FailureBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Creates an opposite Success Entry for Failure</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Registry (Success) - Inclusion</td><td>Creates the SuccessBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Registry (Failure) - Inclusion</td><td>Creates the FailureBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Parses SuccessAndFailure separately</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Audit Policy Change (Success) - Inclusion</td><td>Separates out the SuccessBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Audit Policy Change (Failure) - Inclusion</td><td>Separates out the FailureBlock</td></tr>
-<tr><td>Write-GPOAuditCSVData</td><td>Audit Authentication Policy Change - Inclusion</td><td>Parses Audit Data</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Creates an opposite Failure Entry for Succes</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Authentication Policy Change (Success) - Inclusion</td><td>Creates the SuccessBlock</td></tr>
+<tr><td>Write-GPOAuditCSVData</td><td>Audit Authentication Policy Change (Failure) - Inclusion</td><td>Creates the FailureBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>&nbsp</td><td>Parses SuccessAndFailure separately</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Sensitive Privilege Use (Success) - Inclusion</td><td>Separates out the SuccessBlock</td></tr>
 <tr><td>Write-GPOAuditCSVData</td><td>Audit Sensitive Privilege Use (Failure) - Inclusion</td><td>Separates out the FailureBlock</td></tr>
