@@ -144,15 +144,13 @@ function ConvertFrom-GPO
     (
         # This is the Path of the GPO Backup Directory.
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
-        [ValidateScript( {Test-Path $_ -PathType Container})]
-        [System.IO.DirectoryInfo[]]$Path,
-        
-        # This is the GPO Object returned from Backup-GPO.
-        [Parameter(Mandatory = $true, ParameterSetName = "GPO")]
-        [Psobject[]]$GPO,
+        [String]$Path,
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "LiteralPath")]
+        [Alias('PSPath')]
+        [String]$LiteralPath,
 
         # Output Path that will default to an Output directory under the current Path.
-        [ValidateScript( {Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
         # ComputerName for Node processing.
@@ -166,26 +164,6 @@ function ConvertFrom-GPO
     
     Begin
     {
-        # Create an array to store the GPO paths.
-        $GPOPaths = @()
-
-        # If we are passed a GPO object, we can get the path to the files from that object.
-        if ($PSCmdlet.ParameterSetName -eq "GPO" -and $GPO.Count -gt 1)
-        {
-            foreach ($tmpGPO in $GPO)
-            {
-                Write-Verbose "Gathering GPO data from $($tmpGPO.BackupDirectory)"
-                $Path = $(Join-Path $tmpGPO.BackupDirectory "{$($tmpGPO.Id)}")
-            }
-            
-            $GPOPaths += $Path
-        }
-        elseif ($Paths.Count -gt 1)
-        {
-            # Make the foreach loop easier by reusing variable.
-            $GPOPaths = $Path.FullName
-        }
-
         # These are the DSC Resources needed for NON-preference based GPOS.
         $NeededModules = 'PSDesiredStateConfiguration', 'AuditPolicyDSC', 'SecurityPolicyDSC', 'PowerShellAccessControl'
 
@@ -203,513 +181,511 @@ function ConvertFrom-GPO
 
     Process
     {
-        # This is hacked Pipelining.
-        # Reusing the GPOPaths array loop.  We basically inject each pipeline input into the array so that the code can be re-used.
-        # At the end of the process block, we empty out the array, just in case something else comes in frome the pipeline.
-        if ($GPOPaths.Count -eq 0)
+        $resolvedPath = $null
+        if ($PSCmdlet.ParameterSetName -eq 'Path')
         {
-            # If we are passed a GPO object, we can get the path to the files from that object.
-            if ($PSCmdlet.ParameterSetName -eq "GPO" -and $GPO.Count -eq 1)
+            Try
             {
-                foreach ($tmpGPO in $GPO)
-                {
-                    Write-Verbose "Gathering GPO data from $($tmpGPO.BackupDirectory)"
-                    $Path = $(Join-Path $tmpGPO.BackupDirectory "{$($tmpGPO.Id)}")
-                }
-                
-                $GPOPaths += $Path
+                $resolvedPath = $Path | Get-Item
             }
-            elseif ($Path.Count -eq 1)
+            Catch
             {
-                # Make the foreach loop easier by reusing variable.
-                $GPOPaths = $Path.FullName
-            }   
+                Write-Error $_
+                return
+            }
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'LiteralPath')
+        {
+            Try
+            {
+                $resolvedPath = $LiteralPath | Get-Item
+            }
+            Catch
+            {
+                Write-Error $_
+                return
+            }
         }
 
-        foreach ($Path in $GPOPaths)
-        {
-            Write-Verbose "Gathering GPO Data from $Path"
-            $polFiles = Get-ChildItem -Path $Path -Filter registry.pol -Recurse
+        Write-Host "Gathering GPO Data from $resolvedPath"
+        $polFiles = Get-ChildItem -Path $Path -Filter registry.pol -Recurse
 
-            $AuditCSVs = Get-ChildItem -Path $Path -Filter Audit.csv -Recurse
+        $AuditCSVs = Get-ChildItem -Path $Path -Filter Audit.csv -Recurse
 
-            $GPTemplateINFs = Get-ChildItem -Path $Path -Filter GptTmpl.inf -Recurse
-                
-            $PreferencesDirectory = Get-ChildItem -Path $Path -Directory -Filter "Preferences" -Recurse
-
-            $AddingModules = @()
-            if ($PreferencesDirectory -ne $null)
-            {
-                $PreferencesXMLs = Get-ChildItem -Path $PreferencesDirectory.FullName -Filter *.xml -Recurse
-
-                if ($PreferencesXMLs -ne $null)
-                {
-                    # These are the Preference Based DSC Resources.
-                    $AddingModules = 'xSMBShare', 'DSCR_PowerPlan', 'xScheduledTask', 'Carbon', 'PrinterManagement', 'rsInternationalSettings'
-                }
-            }
+        $GPTemplateINFs = Get-ChildItem -Path $Path -Filter GptTmpl.inf -Recurse
             
-            if ($AddingModules.Count -gt 0 -and $AddedModules -eq $false)
+        $PreferencesDirectory = Get-ChildItem -Path $Path -Directory -Filter "Preferences" -Recurse
+
+        $AddingModules = @()
+        if ($PreferencesDirectory -ne $null)
+        {
+            $PreferencesXMLs = Get-ChildItem -Path $PreferencesDirectory.FullName -Filter *.xml -Recurse
+
+            if ($PreferencesXMLs -ne $null)
             {
-                $AddingModulesString = Write-DSCString -ModuleImport -ModuleName $AddingModules -AddingModules
-                $ConfigString = $ConfigString.Insert($ConfigString.IndexOf("Node") - 2, "`n`t" + $AddingModulesString)
-                $AddedModules = $true
+                # These are the Preference Based DSC Resources.
+                $AddingModules = 'xSMBShare', 'DSCR_PowerPlan', 'xScheduledTask', 'Carbon', 'PrinterManagement', 'rsInternationalSettings'
             }
+        }
+        
+        if ($AddingModules.Count -gt 0 -and $AddedModules -eq $false)
+        {
+            $AddingModulesString = Write-DSCString -ModuleImport -ModuleName $AddingModules -AddingModules
+            $ConfigString = $ConfigString.Insert($ConfigString.IndexOf("Node") - 2, "`n`t" + $AddingModulesString)
+            $AddedModules = $true
+        }
 
-            # Loop through each Pol file.
-            foreach ($polFile in $polFiles)
+        # Loop through each Pol file.
+        foreach ($polFile in $polFiles)
+        {
+            if ((Get-Command "Read-PolFile" -ErrorAction SilentlyContinue) -ne $null)
             {
-                if ((Get-Command "Read-PolFile" -ErrorAction SilentlyContinue) -ne $null)
+                # Reaad each POL file found.
+                Write-Verbose "Reading Pol File ($($polFile.FullName))"
+                Try
                 {
-                    # Reaad each POL file found.
-                    Write-Verbose "Reading Pol File ($($polFile.FullName))"
-                    Try
-                    {
-                        $registryPolicies = Read-PolFile -Path $polFile.FullName
-                    }
-                    Catch
-                    {
-                        Write-Error $_
-                    }
+                    $registryPolicies = Read-PolFile -Path $polFile.FullName
                 }
-                elseif ((Get-Command "Parse-PolFile" -ErrorAction SilentlyContinue) -ne $null)
+                Catch
                 {
-                    # Reaad each POL file found.
-                    Write-Verbose "Reading Pol File ($($polFile.FullName))"
-                    Try
-                    {
-                        $registryPolicies = Parse-PolFile -Path $polFile.FullName
-                    }
-                    catch
-                    {
-                        Write-Error $_ 
-                    }
-                }
-                else
-                {
-                    Write-Error "Cannot Parse Pol files! Please download and install GPRegistryPolicyParser from github here: https://github.com/PowerShell/GPRegistryPolicyParser"
-                    break
-                }
-
-                # Loop through every policy in the Pol File.
-                Foreach ($Policy in $registryPolicies)
-                {
-                    $Hive = @{User = "HKCU"; Machine = "HKLM"}
-                    
-                    # Convert each Policy Registry object into a Resource Block and add it to our Configuration string.
-                    $ConfigString += Write-GPORegistryPOLData -Data $Policy -Hive $Hive[$polFile.Directory.BaseName]
+                    Write-Error $_
                 }
             }
+            elseif ((Get-Command "Parse-PolFile" -ErrorAction SilentlyContinue) -ne $null)
+            {
+                # Reaad each POL file found.
+                Write-Verbose "Reading Pol File ($($polFile.FullName))"
+                Try
+                {
+                    $registryPolicies = Parse-PolFile -Path $polFile.FullName
+                }
+                catch
+                {
+                    Write-Error $_ 
+                }
+            }
+            else
+            {
+                Write-Error "Cannot Parse Pol files! Please download and install GPRegistryPolicyParser from github here: https://github.com/PowerShell/GPRegistryPolicyParser"
+                break
+            }
+
+            # Loop through every policy in the Pol File.
+            Foreach ($Policy in $registryPolicies)
+            {
+                $Hive = @{User = "HKCU"; Machine = "HKLM"}
                 
-            # Loop through each Audit CSV in the GPO Directory.
-            foreach ($AuditCSV in $AuditCSVs)
+                # Convert each Policy Registry object into a Resource Block and add it to our Configuration string.
+                $ConfigString += Write-GPORegistryPOLData -Data $Policy -Hive $Hive[$polFile.Directory.BaseName]
+            }
+        }
+            
+        # Loop through each Audit CSV in the GPO Directory.
+        foreach ($AuditCSV in $AuditCSVs)
+        {
+            $otherSettingsCSV = @()
+            foreach ($CSV in (Import-CSV -Path $AuditCSV.FullName))
             {
-                $otherSettingsCSV = @()
-                foreach ($CSV in (Import-CSV -Path $AuditCSV.FullName))
+                switch ($CSV)
                 {
-                    switch ($CSV)
+                    {$_.Subcategory -match "GlobalSacl"}
                     {
-                        {$_.Subcategory -match "GlobalSacl"}
-                        {
-                            $otherSettingsCSV += $CSV
-                            break
-                        }
-                            
-                        {!([string]::IsNullOrEmpty($_.'Subcategory GUID'))}
-                        {
-                            $ConfigString += Write-GPOAuditCSVData -Entry $CSV
-                            break
-                        }    
-
-                        {$_.Subcategory -match "^Option"}
-                        {
-                            $ConfigString += Write-GPOAuditOptionCSVData -Entry $CSV
-                            break
-                        }
-                        Default 
-                        {
-                            Write-Warning  "ConvertFrom-GPO: $($CSV.SubCategory) is not currently supported"
-                        }
-                    }   
-                }
-
-                <# Still trying to figure out how to handle Resource SACLS
-                if ($othersettingsCSV.count -gt 0)
-                {
-                    $contents = ""
-                    for ($i = 0; $i -lt $othersettingsCSV.Count; $i++)
-                    {
-                        $setting = $othersettingsCSV[$i]
-                        $contents += "$($setting.'Machine Name'),$($setting.'Policy Target'),$($setting.Subcategory),$($setting.'Subcategory GUID'),$($setting.'Inclusion Setting'),$($setting.'Exclusion Setting'),$($setting.'Setting Value')"
-                        if (($i + 1) -lt $othersettingsCSV.Count)
-                        {
-                            $contents += ","
-                        }
-                        $contents += "`n"
+                        $otherSettingsCSV += $CSV
+                        break
                     }
-                    
-                    $tempCSVPath = "C:\windows\temp\polaudit.csv"
-                    $ConfigString += Write-DscString -Resource -Name "OtherAuditSettingsCSV" -Type File -Parameters @{DestinationPath=$tempCSVPath;Force=$true;Contents=$contents} 
-                    $ConfigString += Write-DscString -Resource -Name "AuditPolicyDSC: Other Audit Settings" -Type AuditPolicyCSV -Parameters @{IsSingleInstance = "Yes"; CsvPath = $tempCSVPath; DependsOn = "[File]OtherAuditSettingsCSV"} 
-                } 
-                #>
+                        
+                    {!([string]::IsNullOrEmpty($_.'Subcategory GUID'))}
+                    {
+                        $ConfigString += Write-GPOAuditCSVData -Entry $CSV
+                        break
+                    }    
+
+                    {$_.Subcategory -match "^Option"}
+                    {
+                        $ConfigString += Write-GPOAuditOptionCSVData -Entry $CSV
+                        break
+                    }
+                    Default 
+                    {
+                        Write-Warning  "ConvertFrom-GPO: $($CSV.SubCategory) is not currently supported"
+                    }
+                }   
             }
 
-            # Loop through all the GPTemplate files.
-            foreach ($GPTemplateINF in $GPTemplateINFs)
+            <# Still trying to figure out how to handle Resource SACLS
+            if ($othersettingsCSV.count -gt 0)
             {
-                Write-Verbose "Reading GPTmp.inf ($($GPTemplateINF.FullName))" 
-                # GPTemp files are in INI format so this function converts it to a hashtable.
-                $ini = Get-IniContent $GPTemplateINF.fullname
-
-                # Loop through every heading.
-                foreach ($key in $ini.Keys)
+                $contents = ""
+                for ($i = 0; $i -lt $othersettingsCSV.Count; $i++)
                 {
-                    # Loop through every setting in the heading.
-                    foreach ($subKey in $ini[$key].Keys)
+                    $setting = $othersettingsCSV[$i]
+                    $contents += "$($setting.'Machine Name'),$($setting.'Policy Target'),$($setting.Subcategory),$($setting.'Subcategory GUID'),$($setting.'Inclusion Setting'),$($setting.'Exclusion Setting'),$($setting.'Setting Value')"
+                    if (($i + 1) -lt $othersettingsCSV.Count)
                     {
-                        switch -regex ($key)
+                        $contents += ","
+                    }
+                    $contents += "`n"
+                }
+                
+                $tempCSVPath = "C:\windows\temp\polaudit.csv"
+                $ConfigString += Write-DscString -Resource -Name "OtherAuditSettingsCSV" -Type File -Parameters @{DestinationPath=$tempCSVPath;Force=$true;Contents=$contents} 
+                $ConfigString += Write-DscString -Resource -Name "AuditPolicyDSC: Other Audit Settings" -Type AuditPolicyCSV -Parameters @{IsSingleInstance = "Yes"; CsvPath = $tempCSVPath; DependsOn = "[File]OtherAuditSettingsCSV"} 
+            } 
+            #>
+        }
+
+        # Loop through all the GPTemplate files.
+        foreach ($GPTemplateINF in $GPTemplateINFs)
+        {
+            Write-Verbose "Reading GPTmp.inf ($($GPTemplateINF.FullName))" 
+            # GPTemp files are in INI format so this function converts it to a hashtable.
+            $ini = Get-IniContent $GPTemplateINF.fullname
+
+            # Loop through every heading.
+            foreach ($key in $ini.Keys)
+            {
+                # Loop through every setting in the heading.
+                foreach ($subKey in $ini[$key].Keys)
+                {
+                    switch -regex ($key)
+                    {
+                        "Service General Setting"
                         {
-                            "Service General Setting"
-                            {
-                                $ConfigString += Write-GPOServiceINFData -Service $subkey -ServiceData $ini[$key][$subKey]
-                            }
+                            $ConfigString += Write-GPOServiceINFData -Service $subkey -ServiceData $ini[$key][$subKey]
+                        }
 
-                            "Registry Values"
-                            {
-                                $ConfigString += Write-GPORegistryINFData -Key $subkey -ValueData $ini[$key][$subKey]
-                            }
+                        "Registry Values"
+                        {
+                            $ConfigString += Write-GPORegistryINFData -Key $subkey -ValueData $ini[$key][$subKey]
+                        }
 
-                            "File Security"
+                        "File Security"
+                        {
+                            $ConfigString += Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
+                        }
+                    
+                        "Privilege Rights"
+                        {
+                            $ConfigString += Write-GPOPrivilegeINFData -Privilege $subkey -PrivilegeData $ini[$key][$subKey]
+                        }
+                    
+                        "Kerberos Policy"
+                        {
+                            if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
                             {
-                                $ConfigString += Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
+                                $ConfigString += Write-GPONewSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
                             }
+                            else
+                            {
+                                $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                            }
+                        }
+                    
+                        "Registry Keys"
+                        {
+                            $ConfigString += Write-GPORegistryACLINFData -Path $subkey -ACLData $ini[$key][$subKey]
+                        }
+                    
+                        "System Access"
+                        {
+                            if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
+                            {
+                                $ConfigString += Write-GPONewSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                            }
+                            else
+                            {
+                                $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
+                            }
+                        }
+
+                        "Event Audit"
+                        {
+                            $ConfigString += Write-GPOAuditINFData -Key $subKey -AuditData $ini[$key][$subkey]
+                        }
+
+                        "(Version|signature|Unicode|Group Membership)"
+                        {
+
+                        }
                         
-                            "Privilege Rights"
-                            {
-                                $ConfigString += Write-GPOPrivilegeINFData -Privilege $subkey -PrivilegeData $ini[$key][$subKey]
-                            }
-                        
-                            "Kerberos Policy"
-                            {
-                                if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
-                                {
-                                    $ConfigString += Write-GPONewSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
-                                }
-                                else
-                                {
-                                    $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
-                                }
-                            }
-                        
-                            "Registry Keys"
-                            {
-                                $ConfigString += Write-GPORegistryACLINFData -Path $subkey -ACLData $ini[$key][$subKey]
-                            }
-                        
-                            "System Access"
-                            {
-                                if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
-                                {
-                                    $ConfigString += Write-GPONewSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
-                                }
-                                else
-                                {
-                                    $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
-                                }
-                            }
-
-                            "Event Audit"
-                            {
-                                $ConfigString += Write-GPOAuditINFData -Key $subKey -AuditData $ini[$key][$subkey]
-                            }
-
-                            "(Version|signature|Unicode|Group Membership)"
-                            {
-
-                            }
-                            
-                            Default
-                            {
-                                Write-Warning "ConvertFrom-GPO:GPTemp.inf $key AND $subkey heading not yet supported"
-                            }
+                        Default
+                        {
+                            Write-Warning "ConvertFrom-GPO:GPTemp.inf $key AND $subkey heading not yet supported"
                         }
                     }
                 }
+            }
 
-                # This has to be done separately because it can cause resource conflicts.
-                if ($ini.ContainsKey("Group MemberShip"))
+            # This has to be done separately because it can cause resource conflicts.
+            if ($ini.ContainsKey("Group MemberShip"))
+            {
+                $groupMembership = @{}
+                foreach ($KeyPair in $ini["Group Membership"].GetEnumerator())
                 {
-                    $groupMembership = @{}
-                    foreach ($KeyPair in $ini["Group Membership"].GetEnumerator())
+                    $groupName, $Property = $KeyPair.Name -split "__"
+                    $GroupData = @()
+                    if (![String]::IsNullOrEmpty($KeyPair.Value))
                     {
-                        $groupName, $Property = $KeyPair.Name -split "__"
-                        $GroupData = @()
-                        if (![String]::IsNullOrEmpty($KeyPair.Value))
+                        $GroupData = @(($KeyPair.Value -split "," | ForEach-Object { "$_" }) -join ",")
+                    }
+
+                    switch ($Property)
+                    {
+                        "Members"
                         {
-                            $GroupData = @(($KeyPair.Value -split "," | ForEach-Object { "$_" }) -join ",")
+                            if ($groupMembership.ContainsKey($groupName))
+                            {
+                                $groupMembership[$groupName].Members += $GroupData
+                            }
+                            else
+                            {
+                                $groupMembership[$groupName] = @{}
+                                $groupMembership[$groupName].GroupName = $groupName
+                                $groupMembership[$groupName].Members = $GroupData
+                            }
                         }
 
-                        switch ($Property)
+                        "MemberOf"
                         {
-                            "Members"
+                            if ($GroupData.Count -gt 0)
                             {
-                                if ($groupMembership.ContainsKey($groupName))
+                                foreach ($Group in $GroupData)
                                 {
-                                    $groupMembership[$groupName].Members += $GroupData
-                                }
-                                else
-                                {
-                                    $groupMembership[$groupName] = @{}
-                                    $groupMembership[$groupName].GroupName = $groupName
-                                    $groupMembership[$groupName].Members = $GroupData
-                                }
-                            }
-
-                            "MemberOf"
-                            {
-                                if ($GroupData.Count -gt 0)
-                                {
-                                    foreach ($Group in $GroupData)
+                                    if ($groupMembership.ContainsKey($Group))
                                     {
-                                        if ($groupMembership.ContainsKey($Group))
-                                        {
-                                            $groupMembership[$group].MembersToInclude += $GroupData
-                                        }
-                                        else
-                                        {
-                                            $groupMembership[$group] = @{}
-                                            $groupMembership[$group].GroupName = $Group
-                                            $groupMembership[$group].MembersToInclude = $GroupData
-                                        }       
+                                        $groupMembership[$group].MembersToInclude += $GroupData
                                     }
+                                    else
+                                    {
+                                        $groupMembership[$group] = @{}
+                                        $groupMembership[$group].GroupName = $Group
+                                        $groupMembership[$group].MembersToInclude = $GroupData
+                                    }       
                                 }
-                            }   
-
-                            Default
-                            {
-                                Write-Warning "Group Membership: $Property is not a valid Property"
-                                continue
                             }
+                        }   
+
+                        Default
+                        {
+                            Write-Warning "Group Membership: $Property is not a valid Property"
+                            continue
                         }
                     }
+                }
 
-                    foreach ($Key in $GroupMembership.Keys)
-                    {
-                        $CommentOut = $false
-                        $configString += Write-DSCString -Resource -Name $Key -Parameters $GroupMemberShip[$key] -Type Group -CommentOut:$CommentOut
-                    }
-                } 
-            }
-
-            # There is also SOMETIMES a RegistryXML file that contains some additional registry information.
-            foreach ($XML in $PreferencesXMLs)
-            {
-                Write-Verbose "Reading $($XML.BaseName)XML ($($XML.FullName))"
-                
-                # Grab the XML info.
-                [xml]$XMLContent = Get-Content $XML.FullName
-                
-                switch ($XML.BaseName)
+                foreach ($Key in $GroupMembership.Keys)
                 {
-                    "Files"
+                    $CommentOut = $false
+                    $configString += Write-DSCString -Resource -Name $Key -Parameters $GroupMemberShip[$key] -Type Group -CommentOut:$CommentOut
+                }
+            } 
+        }
+
+        # There is also SOMETIMES a RegistryXML file that contains some additional registry information.
+        foreach ($XML in $PreferencesXMLs)
+        {
+            Write-Verbose "Reading $($XML.BaseName)XML ($($XML.FullName))"
+            
+            # Grab the XML info.
+            [xml]$XMLContent = Get-Content $XML.FullName
+            
+            switch ($XML.BaseName)
+            {
+                "Files"
+                {
+                    $Settings = (Select-Xml -XPath "//$_/File" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//$_/File" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOFilesXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPOFilesXMLData -XML $Setting
                     }
+                }
 
-                    "Folders"
+                "Folders"
+                {
+                    $Settings = (Select-Xml -XPath "//$_/Folder" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//$_/Folder" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOFoldersXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPOFoldersXMLData -XML $Setting
                     }
+                }
 
-                    "EnvironmentVariables"
+                "EnvironmentVariables"
+                {
+                    $Settings = (Select-Xml -XPath "//$_/EnvironmentVariable" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//$_/EnvironmentVariable" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOEnvironmentVariablesXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPOEnvironmentVariablesXMLData -XML $Setting
                     }
+                }
 
-                    "Groups"
+                "Groups"
+                {
+                    $Settings = (Select-Xml -XPath "//Group" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//Group" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOGroupsXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPOGroupsXMLData -XML $Setting
                     }
+                }
+                
+                "IniFiles"
+                {
+                    $Settings = (Select-Xml -XPath "//$_" -Xml $XMLContent).Node
+                    foreach ($setting in $settings)
+                    {
+                        $ConfigString += Write-GPOIniFileXMLData -XML $Setting
+                    }
+                }
+                
+                "InternetSettings"
+                {
+                    $Settings = (Select-Xml -XPath "//Reg" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
+                    {
+                        $ConfigString += Write-GPOInternetSettingsXMLData -XML $Setting
+                    }
+                }
+
+                "NetworkOptions"
+                {
+                    <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
+                    {
+                        $ConfigString += Write-GPONetworkOptionsXMLData -XML $Setting
+                    }#>
+                    Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
+
+                "NetworkShareSettings"
+                {
+                    $Settings = (Select-Xml -XPath "//$_/NetShare" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
+                    {
+                        $ConfigString += Write-GPONetworkSharesXMLData -XML $Setting
+                    }
+                }
+
+                "PowerOptions"
+                {
+                    $GlobalPowerOptions = (Select-Xml -XPath "//$_/GlobalPowerOptions" -xml $XMLContent).Node
+                    $PowerPlans = (Select-Xml -XPath "//$_/GlobalPowerOptionsV2" -xml $XMLContent).Node                    
+                    $PowerSchemes = (Select-Xml -XPath "//$_/PowerScheme" -xml $XMLContent).Node                    
                     
-                    "IniFiles"
+                    foreach ($PowerOption in $GlobalPowerOptions)
                     {
-                        $Settings = (Select-Xml -XPath "//$_" -Xml $XMLContent).Node
-                        foreach ($setting in $settings)
-                        {
-                            $ConfigString += Write-GPOIniFileXMLData -XML $Setting
-                        }
-                    }
-                    
-                    "InternetSettings"
-                    {
-                        $Settings = (Select-Xml -XPath "//Reg" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOInternetSettingsXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPOGlobalPowerOptionsXMLData -XML $PowerOption
                     }
 
-                    "NetworkOptions"
+                    foreach ($PowerPlan in $PowerPlans)
                     {
-                        <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPONetworkOptionsXMLData -XML $Setting
-                        }#>
-                        Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                        $ConfigString += Write-GPOPowerPlanXMLData -XML $PowerPlan
                     }
 
-                    "NetworkShareSettings"
+                    foreach ($PowerScheme in $PowerSchemes)
                     {
-                        $Settings = (Select-Xml -XPath "//$_/NetShare" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPONetworkSharesXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPOPowerSchemeXMLData -XML $PowerScheme
                     }
 
-                    "PowerOptions"
+                    Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
+
+                "Printers"
+                {
+                    $Settings = (Select-Xml -XPath "//Printers" -xml $XMLContent).Node
+
+                    foreach ($Setting in $Settings)
                     {
-                        $GlobalPowerOptions = (Select-Xml -XPath "//$_/GlobalPowerOptions" -xml $XMLContent).Node
-                        $PowerPlans = (Select-Xml -XPath "//$_/GlobalPowerOptionsV2" -xml $XMLContent).Node                    
-                        $PowerSchemes = (Select-Xml -XPath "//$_/PowerScheme" -xml $XMLContent).Node                    
-                        
-                        foreach ($PowerOption in $GlobalPowerOptions)
-                        {
-                            $ConfigString += Write-GPOGlobalPowerOptionsXMLData -XML $PowerOption
-                        }
-
-                        foreach ($PowerPlan in $PowerPlans)
-                        {
-                            $ConfigString += Write-GPOPowerPlanXMLData -XML $PowerPlan
-                        }
-
-                        foreach ($PowerScheme in $PowerSchemes)
-                        {
-                            $ConfigString += Write-GPOPowerSchemeXMLData -XML $PowerScheme
-                        }
-
-                        Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                        $ConfigString += Write-GPOPrintersXMLData -XML $Setting
                     }
+                }
 
-                    "Printers"
+                "RegionalOptions"
+                {
+                    $Settings = (Select-Xml -XPath "//Regional" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//Printers" -xml $XMLContent).Node
-
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOPrintersXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPORegionalOptionsXMLData -XML $Setting
                     }
+                }
+                
+                "Registry"
+                {
+                    $Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
 
-                    "RegionalOptions"
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//Regional" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPORegionalOptionsXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPORegistryXMLData -XML $Setting
                     }
-                    
-                    "Registry"
+                }
+
+                "Services"
+                {
+                    $Settings = (Select-Xml -XPath "//NTService" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPORegistryXMLData -XML $Setting
-                        }
+                        $ConfigString += Write-GPONTServicesXMLData -XML $Setting
                     }
+                }
 
-                    "Services"
+                "Shortcuts"
+                {
+                    <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
+
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        $Settings = (Select-Xml -XPath "//NTService" -xml $XMLContent).Node
+                        $ConfigString += Write-GPOShortcutsXMLData -XML $Setting
+                    }#>
+                    Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
 
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPONTServicesXMLData -XML $Setting
-                        }
-                    }
+                "StartMenu"
+                {
+                    <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
 
-                    "Shortcuts"
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
+                        $ConfigString += Write-GPOStartMenuXMLData -XML $Setting
+                    }#>
+                    Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                }
 
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOShortcutsXMLData -XML $Setting
-                        }#>
-                        Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
-                    }
+                "ScheduledTasks"
+                {
+                    $Settings = (Select-Xml -XPath "//ScheduledTasks/*" -xml $XMLContent).Node
 
-                    "StartMenu"
+                    # Loop through every registry setting.
+                    foreach ($Setting in $Settings)
                     {
-                        <#$Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOStartMenuXMLData -XML $Setting
-                        }#>
-                        Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
+                        $ConfigString += Write-GPOScheduledTasksXMLData -XML $Setting
                     }
+                }
 
-                    "ScheduledTasks"
-                    {
-                        $Settings = (Select-Xml -XPath "//ScheduledTasks/*" -xml $XMLContent).Node
-
-                        # Loop through every registry setting.
-                        foreach ($Setting in $Settings)
-                        {
-                            $ConfigString += Write-GPOScheduledTasksXMLData -XML $Setting
-                        }
-                    }
-
-                    Default
-                    {
-                        Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
-                    }
+                Default
+                {
+                    Write-Warning "ConvertFrom-GPO:$($XML.BaseName) XML file is not implemented yet."
                 }
             }
         }
-
-        $GPOPaths = @()
     }
 
     end
@@ -718,15 +694,15 @@ function ConvertFrom-GPO
         $ConfigString += Write-DSCString -CloseNodeBlock 
         $ConfigString += Write-DSCString -CloseConfigurationBlock
         $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromGPO -OutputPath $OutputPath
-            
+
+        if (!(Test-Path $OutputPath))
+        {
+            mkdir $OutputPath
+        }
+
         # If the switch was specified, output a Configuration PS1 regardless of success or failure.
         if ($OutputConfigurationScript)
         {
-            if (!(Test-Path $OutputPath))
-            {
-                mkdir $OutputPath
-            }
-                    
             $Scriptpath = Join-Path $OutputPath "DSCFromGPO.ps1"
             Write-Verbose "Outputting Configuration SCript to $Scriptpath"
             $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
@@ -1665,7 +1641,27 @@ function Merge-GPOs
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
         [switch] 
-        $SkipGPUpdate
+        $SkipGPUpdate,
+        [Parameter(Mandatory=$false, 
+        ValueFromPipeline=$false,
+        ValueFromPipelineByPropertyName=$false, 
+        ValueFromRemainingArguments=$false, 
+        Position=3,
+        ParameterSetName='Computer')]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [switch] 
+        $ShowPesterOutput,
+        [Parameter(Mandatory=$false, 
+        ValueFromPipeline=$false,
+        ValueFromPipelineByPropertyName=$false, 
+        ValueFromRemainingArguments=$false, 
+        Position=3,
+        ParameterSetName='Computer')]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [switch] 
+        $OutputConfigurationScript
     )
 Begin
 {
@@ -1977,7 +1973,7 @@ if($AppliedGPLink.count -gt 0)
 
         Write-Verbose ("Converting GPOs to MOF-file")
 
-        $rslt = Get-ChildItem -Path $strBackupFolder -Directory -Filter "{*" -Recurse | ConvertFrom-GPO -ComputerName ($Computer+"_Merged") -OutputPath $Path
+        $rslt = Get-ChildItem -Path $strBackupFolder -Directory -Filter "{*" -Recurse | ConvertFrom-GPO -ComputerName ($Computer+"_Merged") -OutputPath $Path -OutputConfigurationScript:$OutputConfigurationScript -ShowPesterOutput:$ShowPesterOutput
 
     }#end if connectionestablised
 }
