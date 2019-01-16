@@ -48,7 +48,7 @@ function ConvertTo-DSC
         [Parameter()]
         [ValidateSet("ADMX", "GPO", "SCMxml", "ASCjson")]
         [string]$Type,
-        
+
         # Output Path that will default to an Output directory under the current Path.
         [ValidateScript({Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
@@ -59,7 +59,7 @@ function ConvertTo-DSC
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript
     )
-        
+
     Process
     {
         $Parameter = $null
@@ -86,8 +86,8 @@ function ConvertTo-DSC
                                 ".json" { $Type = "ASCjson" }
                                 ".xml" { $Type = "SCMxml" }
                             }
-                        }    
-                        
+                        }
+
                         $parameter = $item
                     }
 
@@ -96,7 +96,7 @@ function ConvertTo-DSC
                         switch ($Object)
                         {
                             {$_ -is [XML]} { $Type = "SCMxml" }
-                            {$_ -is [Microsoft.GroupPolicy.GpoBackup]} { $Type = "GPO" } 
+                            {$_ -is [Microsoft.GroupPolicy.GpoBackup]} { $Type = "GPO" }
                             {$_ -is [PSCustomObject]} { Write-Verbose "Assuming JSON if object is a custom Object"; $Type = "SCMjson"}
                         }
 
@@ -116,9 +116,9 @@ function ConvertTo-DSC
 
 <#
 .Synopsis
-   This cmdlet converts Backed Up GPOs into DSC Configuration Scripts. 
+   This cmdlet converts Backed Up GPOs into DSC Configuration Scripts.
 .DESCRIPTION
-   This cmdlet will take the exported GPO and convert all internal settings into DSC Configurations.  
+   This cmdlet will take the exported GPO and convert all internal settings into DSC Configurations.
 .EXAMPLE
    Backup-GPO <GPO Name> | ConvertFrom-GPO
 .EXAMPLE
@@ -161,7 +161,7 @@ function ConvertFrom-GPO
 
         [switch]$ShowPesterOutput
     )
-    
+
     Begin
     {
         # These are the DSC Resources needed for NON-preference based GPOS.
@@ -169,7 +169,7 @@ function ConvertFrom-GPO
 
         # Start tracking Processing History.
         Clear-ProcessingHistory
-        
+
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name "DSCFromGPO"
         # Add any resources
@@ -213,7 +213,7 @@ function ConvertFrom-GPO
         $AuditCSVs = Get-ChildItem -Path $Path -Filter Audit.csv -Recurse
 
         $GPTemplateINFs = Get-ChildItem -Path $Path -Filter GptTmpl.inf -Recurse
-            
+
         $PreferencesDirectory = Get-ChildItem -Path $Path -Directory -Filter "Preferences" -Recurse
 
         $AddingModules = @()
@@ -227,7 +227,7 @@ function ConvertFrom-GPO
                 $AddingModules = 'xSMBShare', 'DSCR_PowerPlan', 'xScheduledTask', 'Carbon', 'PrinterManagement', 'rsInternationalSettings'
             }
         }
-        
+
         if ($AddingModules.Count -gt 0 -and $AddedModules -eq $false)
         {
             $AddingModulesString = Write-DSCString -ModuleImport -ModuleName $AddingModules -AddingModules
@@ -261,7 +261,7 @@ function ConvertFrom-GPO
                 }
                 catch
                 {
-                    Write-Error $_ 
+                    Write-Error $_
                 }
             }
             else
@@ -274,12 +274,12 @@ function ConvertFrom-GPO
             Foreach ($Policy in $registryPolicies)
             {
                 $Hive = @{User = "HKCU"; Machine = "HKLM"}
-                
+
                 # Convert each Policy Registry object into a Resource Block and add it to our Configuration string.
                 $ConfigString += Write-GPORegistryPOLData -Data $Policy -Hive $Hive[$polFile.Directory.BaseName]
             }
         }
-            
+
         # Loop through each Audit CSV in the GPO Directory.
         foreach ($AuditCSV in $AuditCSVs)
         {
@@ -293,23 +293,23 @@ function ConvertFrom-GPO
                         $otherSettingsCSV += $CSV
                         break
                     }
-                        
+
                     {!([string]::IsNullOrEmpty($_.'Subcategory GUID'))}
                     {
                         $ConfigString += Write-GPOAuditCSVData -Entry $CSV
                         break
-                    }    
+                    }
 
                     {$_.Subcategory -match "^Option"}
                     {
                         $ConfigString += Write-GPOAuditOptionCSVData -Entry $CSV
                         break
                     }
-                    Default 
+                    Default
                     {
                         Write-Warning  "ConvertFrom-GPO: $($CSV.SubCategory) is not currently supported"
                     }
-                }   
+                }
             }
 
             <# Still trying to figure out how to handle Resource SACLS
@@ -326,18 +326,18 @@ function ConvertFrom-GPO
                     }
                     $contents += "`n"
                 }
-                
+
                 $tempCSVPath = "C:\windows\temp\polaudit.csv"
-                $ConfigString += Write-DscString -Resource -Name "OtherAuditSettingsCSV" -Type File -Parameters @{DestinationPath=$tempCSVPath;Force=$true;Contents=$contents} 
-                $ConfigString += Write-DscString -Resource -Name "AuditPolicyDSC: Other Audit Settings" -Type AuditPolicyCSV -Parameters @{IsSingleInstance = "Yes"; CsvPath = $tempCSVPath; DependsOn = "[File]OtherAuditSettingsCSV"} 
-            } 
+                $ConfigString += Write-DscString -Resource -Name "OtherAuditSettingsCSV" -Type File -Parameters @{DestinationPath=$tempCSVPath;Force=$true;Contents=$contents}
+                $ConfigString += Write-DscString -Resource -Name "AuditPolicyDSC: Other Audit Settings" -Type AuditPolicyCSV -Parameters @{IsSingleInstance = "Yes"; CsvPath = $tempCSVPath; DependsOn = "[File]OtherAuditSettingsCSV"}
+            }
             #>
         }
 
         # Loop through all the GPTemplate files.
         foreach ($GPTemplateINF in $GPTemplateINFs)
         {
-            Write-Verbose "Reading GPTmp.inf ($($GPTemplateINF.FullName))" 
+            Write-Verbose "Reading GPTmp.inf ($($GPTemplateINF.FullName))"
             # GPTemp files are in INI format so this function converts it to a hashtable.
             $ini = Get-IniContent $GPTemplateINF.fullname
 
@@ -363,12 +363,12 @@ function ConvertFrom-GPO
                         {
                             $ConfigString += Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
                         }
-                    
+
                         "Privilege Rights"
                         {
                             $ConfigString += Write-GPOPrivilegeINFData -Privilege $subkey -PrivilegeData $ini[$key][$subKey]
                         }
-                    
+
                         "Kerberos Policy"
                         {
                             if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
@@ -380,12 +380,12 @@ function ConvertFrom-GPO
                                 $ConfigString += Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
                             }
                         }
-                    
+
                         "Registry Keys"
                         {
                             $ConfigString += Write-GPORegistryACLINFData -Path $subkey -ACLData $ini[$key][$subKey]
                         }
-                    
+
                         "System Access"
                         {
                             if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
@@ -407,7 +407,7 @@ function ConvertFrom-GPO
                         {
 
                         }
-                        
+
                         Default
                         {
                             Write-Warning "ConvertFrom-GPO:GPTemp.inf $key AND $subkey heading not yet supported"
@@ -460,10 +460,10 @@ function ConvertFrom-GPO
                                         $groupMembership[$group] = @{}
                                         $groupMembership[$group].GroupName = $Group
                                         $groupMembership[$group].MembersToInclude = $GroupData
-                                    }       
+                                    }
                                 }
                             }
-                        }   
+                        }
 
                         Default
                         {
@@ -478,17 +478,17 @@ function ConvertFrom-GPO
                     $CommentOut = $false
                     $configString += Write-DSCString -Resource -Name $Key -Parameters $GroupMemberShip[$key] -Type Group -CommentOut:$CommentOut
                 }
-            } 
+            }
         }
 
         # There is also SOMETIMES a RegistryXML file that contains some additional registry information.
         foreach ($XML in $PreferencesXMLs)
         {
             Write-Verbose "Reading $($XML.BaseName)XML ($($XML.FullName))"
-            
+
             # Grab the XML info.
             [xml]$XMLContent = Get-Content $XML.FullName
-            
+
             switch ($XML.BaseName)
             {
                 "Files"
@@ -534,7 +534,7 @@ function ConvertFrom-GPO
                         $ConfigString += Write-GPOGroupsXMLData -XML $Setting
                     }
                 }
-                
+
                 "IniFiles"
                 {
                     $Settings = (Select-Xml -XPath "//$_" -Xml $XMLContent).Node
@@ -543,7 +543,7 @@ function ConvertFrom-GPO
                         $ConfigString += Write-GPOIniFileXMLData -XML $Setting
                     }
                 }
-                
+
                 "InternetSettings"
                 {
                     $Settings = (Select-Xml -XPath "//Reg" -xml $XMLContent).Node
@@ -581,9 +581,9 @@ function ConvertFrom-GPO
                 "PowerOptions"
                 {
                     $GlobalPowerOptions = (Select-Xml -XPath "//$_/GlobalPowerOptions" -xml $XMLContent).Node
-                    $PowerPlans = (Select-Xml -XPath "//$_/GlobalPowerOptionsV2" -xml $XMLContent).Node                    
-                    $PowerSchemes = (Select-Xml -XPath "//$_/PowerScheme" -xml $XMLContent).Node                    
-                    
+                    $PowerPlans = (Select-Xml -XPath "//$_/GlobalPowerOptionsV2" -xml $XMLContent).Node
+                    $PowerSchemes = (Select-Xml -XPath "//$_/PowerScheme" -xml $XMLContent).Node
+
                     foreach ($PowerOption in $GlobalPowerOptions)
                     {
                         $ConfigString += Write-GPOGlobalPowerOptionsXMLData -XML $PowerOption
@@ -622,7 +622,7 @@ function ConvertFrom-GPO
                         $ConfigString += Write-GPORegionalOptionsXMLData -XML $Setting
                     }
                 }
-                
+
                 "Registry"
                 {
                     $Settings = (Select-Xml -XPath "//$_" -xml $XMLContent).Node
@@ -691,7 +691,7 @@ function ConvertFrom-GPO
     end
     {
         # Close out the Node Block and the configuration.
-        $ConfigString += Write-DSCString -CloseNodeBlock 
+        $ConfigString += Write-DSCString -CloseNodeBlock
         $ConfigString += Write-DSCString -CloseConfigurationBlock
         $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromGPO -OutputPath $OutputPath
 
@@ -710,7 +710,7 @@ function ConvertFrom-GPO
 
         # Create the MOF File if possible.
         $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
-        
+
         if ($ShowPesterOutput)
         {
             # Write out a Summary of our parsing activities.
@@ -766,7 +766,7 @@ Function ConvertFrom-SCM
         # This is the XML object itself.
         [Parameter(Mandatory=$true, ParameterSetName="XML", ValueFromPipeLine=$true)]
         [XML]$XML,
-        
+
         # This is the Path to the XML file.
         [Parameter(Mandatory=$true, ParameterSetName="Path", ValueFromPipeLine=$true)]
         [ValidateScript({Test-Path $_})]
@@ -796,17 +796,17 @@ Function ConvertFrom-SCM
 
     # Start tracking Processing History.
     Clear-ProcessingHistory
-    
+
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name DSCFromSCM -Comment $BaselineComment
     # Add any resources
     $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
     # Add Node Data
     $ConfigString += Write-DSCString -Node -Name $ComputerName
-    
+
     # We need to setup a namespace to properly search the XML.
     $namespace = @{e="http://schemas.microsoft.com/SolutionAccelerator/SecurityCompliance"}
-    
+
     # Grab all the DiscoveryInfo objects in the XML. They determine how to find the setting in question.
     $results = (Select-XML -XPath "//e:SettingDiscoveryInfo" -Xml $xml -Namespace $namespace).Node
 
@@ -817,37 +817,37 @@ Function ConvertFrom-SCM
         {
             $Setting = "../.."
             $SettingDiscoveryInfo = ".."
-            
+
             # Set up some variables for easy manipulation of values.
-            
+
             # This is how to find it (.Wmidiscoveryinfo -> class, name etc.) It's only one level back in GeneratedScript
             $settingDiscoveryInfo = $node.SelectNodes($SettingDiscoveryInfo)
-                
+
             # Grab the ID/Name from the Setting value.
             $ID = $node.SelectNodes($Setting).id.Trim("{").TrimEnd("}")
-            
+
             # Find the ValueData using the ID.
             $valueNodeData = (Select-XML -XPath "//e:SettingRef[@setting_ref='{$($id)}']" -Xml $xml -Namespace $namespace).Node
-                        
+
             if ($valueNodeData -eq $null)
             {
-                Write-Error "Could not find ValueNodeData of $id" 
+                Write-Error "Could not find ValueNodeData of $id"
                 continue
             }
-            
-            # Determine the DiscoveryInfo Type.                       
+
+            # Determine the DiscoveryInfo Type.
             switch ($node.DiscoveryType)
             {
-                "Registry" 
+                "Registry"
                 {
                     $ConfigString += Write-SCMRegistryXMLData -DiscoveryData $node -ValueData $valueNodeData
                 }
-                
+
                 "Script"
                 {
                     $ConfigString += Write-SCMScriptXMLData -DiscoveryData $node -ValueData $valueNodeData
                 }
-                
+
                 "WMI"
                 {
                     if ($GlobalConflictEngine.ContainsKey("SecurityOption"))
@@ -864,7 +864,7 @@ Function ConvertFrom-SCM
                 {
                     $ConfigString += Write-SCMAuditXMLData -DiscoveryData $node -ValueData $valueNodeData
                 }
-                
+
                 "GeneratedScript (User Rights Assignment)"
                 {
                     $ConfigString += Write-SCMPrivilegeXMLData -DiscoveryData $node -ValueData $valueNodeData
@@ -877,7 +877,7 @@ Function ConvertFrom-SCM
     $ConfigString += Write-DSCString -CloseNodeBlock
     $ConfigString += Write-DSCString -CloseConfigurationBlock
     $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromSCM -OutputPath $OutputPath
-    
+
     # If the switch was specified.  Output a Configuration PS1 regardless of success/failure.
     if ($OutputConfigurationScript)
     {
@@ -892,7 +892,7 @@ Function ConvertFrom-SCM
 
     # Try to compile the MOF file.
     $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
-    
+
     # Write Summary Data on processing activities.
     Write-ProcessingHistory -Pass $Pass
 
@@ -943,8 +943,8 @@ function ConvertFrom-ASC
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
         [ValidateScript( {Test-Path $_})]
         [string]$Path,
-        
-        # Output Path that will default to an Output directory under the current Path.        
+
+        # Output Path that will default to an Output directory under the current Path.
         [ValidateScript( {Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
@@ -952,7 +952,7 @@ function ConvertFrom-ASC
         [string]$ComputerName = "localhost",
 
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript, 
+        [switch]$OutputConfigurationScript,
 
         [string]$BaselineName,
 
@@ -968,14 +968,14 @@ function ConvertFrom-ASC
             $JSONBaselines = @()
             $JSONBaselines = $JSON.baselinerulesets.baselineName
             $JSONBaselines = $null
-                                    
+
             $attributes = new-object System.Management.Automation.ParameterAttribute
             $attributes.ParameterSetName = "__AllParameterSets"
             $attributes.Mandatory = $false
 
             $attributeCollection = new-object -Type System.Collections.ObjectModel.Collection[System.Attribute]
             $attributeCollection.Add($attributes)
-            
+
             if ($JSONBaselines -eq $null)
             {
                 return
@@ -990,7 +990,7 @@ function ConvertFrom-ASC
             $paramDictionary = new-object -Type System.Management.Automation.RuntimeDefinedParameterDictionary
             $paramDictionary.Add("BaselineName", $dynParam1)
 
-            return $paramDictionary 
+            return $paramDictionary
         }
     }
     #>
@@ -1004,9 +1004,9 @@ function ConvertFrom-ASC
         }
     }
 
-    Process 
+    Process
     {
-        # JSON can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.   
+        # JSON can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.
         Try
         {
             $JSON = Get-Content -Path $Path | ConvertFrom-Json
@@ -1018,19 +1018,19 @@ function ConvertFrom-ASC
             continue
             return
         }
-  
+
         $RULES = $JSON.baselineRulesets.Where( {$_.BaselineName -eq $BaselineName}).RULES
 
         # Start tracking Processing History.
         Clear-ProcessingHistory
-    
+
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name DSCFromASC
         # Add any resources
         $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
         # Add Node Data
         $ConfigString += Write-DSCString -Node -Name $computername
-    
+
         # JSON is pretty straightforward where it keeps the individual settings.
         # These are the registry settings.
         $registryPolicies = $RULES.BaselineRegistryRules
@@ -1043,7 +1043,7 @@ function ConvertFrom-ASC
 
         # Grab the Audit policies.
         $AuditPolicies = $RULES.BaselineAuditPolicyRules
-    
+
         # Loop through the Audit Policies.
         foreach ($Policy in $AuditPolicies)
         {
@@ -1052,7 +1052,7 @@ function ConvertFrom-ASC
 
         # Grab all the Security Policy Settings.
         $securityPolicies = $RULES.BaselineSecurityPolicyRules
-    
+
         # Loop through the Security Policies.
         foreach ($Policy in $securityPolicies)
         {
@@ -1074,34 +1074,34 @@ function ConvertFrom-ASC
                 {
 
                 }
-                
+
                 "Privilege Rights"
-                {            
+                {
                     $ConfigString += Write-ASCPrivilegeJSONData -PrivilegeData $Policy
                 }
-                
+
                 "Kerberos Policy"
                 {
-                
+
                 }
-                
+
                 "Registry Keys"
                 {
 
                 }
-                
+
                 "System Access"
                 {
-
+                    $ConfigString += Write-ASCSystemAccessJSONData -SystemAccessData $Policy
                 }
             }
         }
-    
+
         # Close out the Configuration block.
         $ConfigString += Write-DSCString -CloseNodeBlock
         $ConfigString += Write-DSCString -CloseConfigurationBlock
         $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromASC -OutputPath $OutputPath
-    
+
         # If the switch was specified, output a Configuration Script regardless of success/failure.
         if ($OutputConfigurationScript)
         {
@@ -1109,14 +1109,14 @@ function ConvertFrom-ASC
             {
                 mkdir $OutputPath
             }
-        
+
             $Scriptpath = Join-Path $OutputPath "DSCFromASC.ps1"
             $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
         }
 
         # Try to compile configuration.
         $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
-    
+
         if ($ShowPesterOutput)
         {
             # Write out Summary data of parsing history.
@@ -1150,7 +1150,7 @@ Function Read-ASCBaselineName
 
         [Parameter(Mandatory = $true)]
         [string]$Path,
-        
+
         [Parameter()]
         [string]$BaselineName
     )
@@ -1168,7 +1168,7 @@ Function Read-ASCBaselineName
         {
             Throw "Could not get Baselines From ($($Path)) based on Pattern ($Pattern)"
         }
-                
+
         if ($BaselineName -notin $Values)
         {
             Throw "$($BaselineName) is NOT a valid BaselineName"
@@ -1182,8 +1182,8 @@ Function Read-ASCBaselineName
     else
     {
         $tmpValues = (Get-Item $Path | Select-String -Pattern $Pattern).Matches.Groups.Where({$_.Name -eq 1}).Value
-                
-        # Baseline was either not provided or invalid. 
+
+        # Baseline was either not provided or invalid.
         # Use ISE/Shell to prompt for appropriate Baseline.
         if ($Host.Name -match "ISE")
         {
@@ -1193,7 +1193,7 @@ Function Read-ASCBaselineName
             $menuinputpath = $(Join-Path $PSScriptRoot "Menus\menu_input.txt")
             $tmpValues | ForEach-Object { "=$_" } | Out-File -FilePath $menuinputpath
             Remove-Item -ErrorAction SilentlyContinue $menuoutputpath
-            Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments 
+            Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments
             Remove-Item -ErrorAction SilentlyContinue $menuinputpath
             if (Test-Path $menuoutputpath)
             {
@@ -1217,7 +1217,7 @@ Function Read-ASCBaselineName
             {
                 $Values["$Value"] = $value
             }
-            
+
             # Display our menu.
             $BaselineName = Show-Menu -sMenuTitle "Select a Valid Baseline" -hMenuEntries ([Ref]$Values)
 
@@ -1240,7 +1240,7 @@ Function Read-CSVBaselineName
     (
         [Parameter(Mandatory = $true)]
         [string]$Path,
-        
+
         [Parameter()]
         [string]$OS,
 
@@ -1252,9 +1252,9 @@ Function Read-CSVBaselineName
     {
         Throw "$Path is not Valid!"
     }
-    
-    Try { $CSV = Import-CSV -Path $Path } Catch { Throw $_ } 
-    
+
+    Try { $CSV = Import-CSV -Path $Path } Catch { Throw $_ }
+
     if ($Host.Name -match "ISE")
     {
         $MenuPath = Join-Path $PSScriptRoot "Menus\menu_input.txt"
@@ -1266,7 +1266,7 @@ Function Read-CSVBaselineName
             foreach ($o in (($CSV.Where({$_.ServerType -match "$ServerType"})) | group).Name)
             {
                 "=$o" | Add-Content $MenuPath
-            }        
+            }
         }
         elseif (!([string]::IsNullOrEmpty($OS)) -and ([string]::IsNullOrEmpty($ServerType)))
         {
@@ -1280,8 +1280,8 @@ Function Read-CSVBaselineName
         {
             # Prompt for Both
             $ServerTypes = ($CSV.'Server Type'.ForEach({$_ -replace "(\[|\])", ""}) -split ", " | Group).Name
-            foreach ($type in $ServerTypes) 
-            { 
+            foreach ($type in $ServerTypes)
+            {
                 $type | Add-Content $MenuPath
                 $Entries = $CSV.Where({$_.'Server Type' -match $type})
                 $Filters = $Entries.Filter.Where({![string]::IsNullOrEmpty($_)})
@@ -1294,7 +1294,7 @@ Function Read-CSVBaselineName
         $arguments = "-NoProfile -File " + $argPath
         $menuoutputpath = $(Join-Path $PSScriptRoot "Menus\menu_output.txt")
         Remove-Item -ErrorAction SilentlyContinue $menuoutputpath
-        Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments 
+        Start-Process  -Wait -FilePath powershell.exe -ArgumentList $arguments
         if (Test-Path $menuoutputpath)
         {
             $result = (Get-Content $menuoutputpath)
@@ -1310,8 +1310,8 @@ Function Read-CSVBaselineName
         # Prompt for Both
         $OSHash = [ordered]@{}
         $ServerTypes = ($CSV.'Server Type'.ForEach({$_ -replace "(\[|\])", ""}) -split ", " | Group).Name
-        foreach ($type in $ServerTypes) 
-        { 
+        foreach ($type in $ServerTypes)
+        {
             $OSHash[$Type] = [ordered]@{};
             $OSHash[$Type].Title = $Type
             $Entries = $CSV.Where({$_.'Server Type' -match $type})
@@ -1336,7 +1336,7 @@ Function Read-CSVBaselineName
         }
         else
         {
-            if ([string]::IsNullOrEmpty($OS)) 
+            if ([string]::IsNullOrEmpty($OS))
             {
                 $ServerType = $result
             }
@@ -1387,8 +1387,8 @@ function ConvertFrom-Excel
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateScript( {Test-Path $_})]
         [string]$Path,
-        
-        # Output Path that will default to an Output directory under the current Path.        
+
+        # Output Path that will default to an Output directory under the current Path.
         [ValidateScript( {Test-Path $_})]
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
@@ -1396,7 +1396,7 @@ function ConvertFrom-Excel
         [string]$ComputerName = "localhost",
 
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript, 
+        [switch]$OutputConfigurationScript,
 
         [switch]$ShowPesterOutput,
 
@@ -1406,7 +1406,7 @@ function ConvertFrom-Excel
         [ValidateSet('Domain Controller', 'Domain Member', 'Workgroup Member', 'Exclude', 'Inventory Setting')]
         [string]$ServerType
     )
-    
+
     Begin
     {
         if (([string]::IsNullOrEmpty($OS)) -or ([string]::IsNullOrEmpty($ServerType)))
@@ -1426,12 +1426,12 @@ function ConvertFrom-Excel
         }
     }
 
-    Process 
+    Process
     {
-        # CSV can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.   
+        # CSV can be tricky to parse, so we have to put it in a Try Block in case it's not properly formatted.
         Try
         {
-            $CSV = Import-CSV -Path $Path 
+            $CSV = Import-CSV -Path $Path
         }
         Catch
         {
@@ -1440,19 +1440,19 @@ function ConvertFrom-Excel
             continue
             return
         }
-  
+
         $Rules = $CSV.Where({$_.Filter -match $OS -and $_.'Server Type' -match $ServerType})
-        
+
         # Start tracking Processing History.
         Clear-ProcessingHistory
-    
+
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name DSCFromCSV
         # Add any resources
         $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
         # Add Node Data
         $ConfigString += Write-DSCString -Node -Name $computername
-    
+
         # Find all of our required settings.
         $registryPolicies = $RULES.Where({$_.DataSourceType -eq "Registry"})
         $securityPolicies = $RULES.Where({$_.DataSourceType -eq "Policy"})
@@ -1491,34 +1491,34 @@ function ConvertFrom-Excel
                 {
 
                 }
-                
+
                 "Privilege Rights"
-                {            
+                {
                     $ConfigString += Write-PrivilegeCSVData -PrivilegeData $Policy
                 }
-                
+
                 "Kerberos Policy"
                 {
-                
+
                 }
-                
+
                 "Registry Keys"
                 {
 
                 }
-                
+
                 "System Access"
                 {
 
                 }
             }
         }
-    
+
         # Close out the Configuration block.
         $ConfigString += Write-DSCString -CloseNodeBlock
         $ConfigString += Write-DSCString -CloseConfigurationBlock
         $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromCSV -OutputPath $OutputPath
-    
+
         # If the switch was specified, output a Configuration Script regardless of success/failure.
         if ($OutputConfigurationScript)
         {
@@ -1526,14 +1526,14 @@ function ConvertFrom-Excel
             {
                 mkdir $OutputPath
             }
-        
+
             $Scriptpath = Join-Path $OutputPath "DSCFromCSV.ps1"
             $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
         }
 
         # Try to compile configuration.
         $pass = Complete-Configuration -ConfigString $ConfigString -OutputPath $OutputPath
-    
+
         if ($ShowPesterOutput)
         {
             # Write out Summary data of parsing history.
@@ -1597,8 +1597,8 @@ function Merge-GPOs
 #>
 
 
-    [CmdletBinding(DefaultParameterSetName='Filters', 
-                  SupportsShouldProcess=$true, 
+    [CmdletBinding(DefaultParameterSetName='Filters',
+                  SupportsShouldProcess=$true,
                   PositionalBinding=$false,
                   HelpUri = 'http://www.microsoft.com/',
                   ConfirmImpact='Medium')]
@@ -1607,60 +1607,60 @@ function Merge-GPOs
     Param
     (
         # Computer to scan
-        [Parameter(Mandatory=$false, 
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
-                   ValueFromPipelineByPropertyName=$true, 
-                   ValueFromRemainingArguments=$false, 
+                   ValueFromPipelineByPropertyName=$true,
+                   ValueFromRemainingArguments=$false,
                    Position=0,
                    ParameterSetName='Computer')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        [String] 
+        [String]
         $Computer=$env:COMPUTERNAME,
         # Output Path that will default to an Output directory under the current Path.
         [ValidateScript( {Test-Path $_ -PathType Container})]
         [string]$Path = $(Join-Path $pwd.Path "Output"),
         # Display all merged GPOs
-        [Parameter(Mandatory=$false, 
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$false,
-                   ValueFromPipelineByPropertyName=$false, 
-                   ValueFromRemainingArguments=$false, 
+                   ValueFromPipelineByPropertyName=$false,
+                   ValueFromRemainingArguments=$false,
                    Position=2,
                    ParameterSetName='Computer')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        [switch] 
+        [switch]
         $SkipTable,
         # Do not perform GPUpdate on host
-        [Parameter(Mandatory=$false, 
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$false,
-                   ValueFromPipelineByPropertyName=$false, 
-                   ValueFromRemainingArguments=$false, 
+                   ValueFromPipelineByPropertyName=$false,
+                   ValueFromRemainingArguments=$false,
                    Position=3,
                    ParameterSetName='Computer')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        [switch] 
+        [switch]
         $SkipGPUpdate,
-        [Parameter(Mandatory=$false, 
+        [Parameter(Mandatory=$false,
         ValueFromPipeline=$false,
-        ValueFromPipelineByPropertyName=$false, 
-        ValueFromRemainingArguments=$false, 
+        ValueFromPipelineByPropertyName=$false,
+        ValueFromRemainingArguments=$false,
         Position=3,
         ParameterSetName='Computer')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        [switch] 
+        [switch]
         $ShowPesterOutput,
-        [Parameter(Mandatory=$false, 
+        [Parameter(Mandatory=$false,
         ValueFromPipeline=$false,
-        ValueFromPipelineByPropertyName=$false, 
-        ValueFromRemainingArguments=$false, 
+        ValueFromPipelineByPropertyName=$false,
+        ValueFromRemainingArguments=$false,
         Position=3,
         ParameterSetName='Computer')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        [switch] 
+        [switch]
         $OutputConfigurationScript
     )
 Begin
@@ -1669,11 +1669,11 @@ Begin
 
 $AppliedGPLink = New-Object System.Collections.ArrayList
 #==========================================================================
-# Function		: PingHost 
+# Function		: PingHost
 # Arguments     : host, timeout
 # Returns   	: boolean
 # Description   : Ping a host and returns results in form of boolean
-# 
+#
 #==========================================================================
 Function PingHost {
     param([Array]$hostlist,[Array]$ports,[Int]$timeout = "1")
@@ -1695,11 +1695,11 @@ Function PingHost {
 }
 
 #==========================================================================
-# Function		: PortPing 
+# Function		: PortPing
 # Arguments     : host, port timeout
 # Returns   	: boolean
 # Description   : Ping a port number and returns results in form of boolean
-# 
+#
 #==========================================================================
 Function PortPing
 {
@@ -1740,11 +1740,11 @@ else
 if($failed){return $false}else{return $true}
 }
 #==========================================================================
-# Function		: Wait-MyJob 
+# Function		: Wait-MyJob
 # Arguments     : job Ids
-# Returns   	: Array of objects returned by command 
+# Returns   	: Array of objects returned by command
 # Description   : Wait for jobs and return output
-# 
+#
 #==========================================================================
 Function Wait-MyJob
 {
@@ -1772,7 +1772,7 @@ while ($running -and $timeElapsed -le $Timeout)
     $colrunningjobs = get-job | where{$jobIds.Contains($_.Id)} | where State -eq 'Running' | Select-Object -Property Name
     Foreach($runningjob in $colrunningjobs)
     {
-        Write-Verbose "Waiting for job to complete on: $($runningjob.name)" 
+        Write-Verbose "Waiting for job to complete on: $($runningjob.name)"
     }
     $colcompletedjobs = get-job | where{$jobIds.Contains($_.Id)} | where State -eq 'Completed' | Select-Object -Property Name
     Foreach($completedjob in $colcompletedjobs)
@@ -1784,7 +1784,7 @@ while ($running -and $timeElapsed -le $Timeout)
             Write-Verbose "Job completed on $($runningjob.name)"
         }
     }
-            
+
 
     Foreach($job in $jobs)
     {
@@ -1842,7 +1842,7 @@ if($(PingHost $Computer))
             Write-Verbose "Perform GPUPDATE [/target:computer] on $Computer"
 
             #Execute command remotely
-            $job = Invoke-Command -Session $PSSession -ScriptBlock $Script -AsJob -JobName "$Computer" 
+            $job = Invoke-Command -Session $PSSession -ScriptBlock $Script -AsJob -JobName "$Computer"
 
             #Add job to array
             $MyjobIds += $job.Id
@@ -1850,7 +1850,7 @@ if($(PingHost $Computer))
             if($VerbosePreference -eq "Continue")
             {
                 #Wait for jobb and return output
-                Wait-MyJob $MyjobIds 
+                Wait-MyJob $MyjobIds
             }
             else
             {
@@ -1869,7 +1869,7 @@ if($(PingHost $Computer))
         }
         Write-Verbose "Collect applied GPOs from $Computer"
         #Execute command remotely
-        $job = Invoke-Command -Session $PSSession -ScriptBlock $Script -AsJob -JobName "$Computer" 
+        $job = Invoke-Command -Session $PSSession -ScriptBlock $Script -AsJob -JobName "$Computer"
         #Add job to array
         $MyjobIds += $job.Id
         #Wait for job and retrive results
@@ -1905,7 +1905,7 @@ if($AppliedGPLink.count -gt 0)
         {
 
             $strBackupFolder = $strBackupFolder + $tmpGUId
-            Write-Verbose  "Failed to delete old folder, creating new folder with trailing GUID. $strBackupFolder"  
+            Write-Verbose  "Failed to delete old folder, creating new folder with trailing GUID. $strBackupFolder"
             $objBackupFolder = New-Item -ItemType Directory -Path $strBackupFolder
         }
         #Counter for GPlinks will be used as prefix on the folde name
@@ -1920,7 +1920,7 @@ if($AppliedGPLink.count -gt 0)
 
             #Remove last part
             $GUID = $GUID.toString().split("}")[0]
-            $GPOName =  $((Get-GPO -Guid $GUID).DisplayName.toString() ) 
+            $GPOName =  $((Get-GPO -Guid $GUID).DisplayName.toString() )
 
             #Remove non-allowed folder characters
             $strFolderName = $GPOName -replace '[\x2B\x2F\x22\x3A\x3C\x3E\x3F\x5C\x7C]', ''
@@ -1932,7 +1932,7 @@ if($AppliedGPLink.count -gt 0)
             #Delete  GPO backup destination folder if already exist
             if(Test-Path -Path $strFolderFullName){Remove-Item -Path $strFolderFullName -Recurse -Force -Confirm:$false}
 
-            #Create  GPO backup destination folder 
+            #Create  GPO backup destination folder
             $BackupDestination = New-Item -ItemType Directory -Path $strFolderFullName
 
             #Backup GPO in folder created
@@ -1944,7 +1944,7 @@ if($AppliedGPLink.count -gt 0)
             $strSOM = $strSOM.split('"')[1]
             #New object for presenting each GPO
             $objGPO = New-Object PSObject
-            Add-Member -inputObject $objGPO -memberType NoteProperty -name "Name" -value $GPOName 
+            Add-Member -inputObject $objGPO -memberType NoteProperty -name "Name" -value $GPOName
             Add-Member -inputObject $objGPO -memberType NoteProperty -name "Applied Order" -value $GPLink.appliedOrder
             Add-Member -inputObject $objGPO -memberType NoteProperty -name "Merged Order" -value $i
             Add-Member -inputObject $objGPO -memberType NoteProperty -name "SOM" -value $strSOM
@@ -1959,7 +1959,7 @@ if($AppliedGPLink.count -gt 0)
         $AppliedGPLink = ""
         $BackupDestination = ""
         $strFolderFullName = ""
-        $GPOName = ""  
+        $GPOName = ""
         $GUID = ""
         $GPLink = ""
         $tmpGUId = ""
@@ -1981,7 +1981,7 @@ else
 {
     Write-Output "No applied GPLink found!"
 }
-    
+
 }
 End
 {
@@ -2000,7 +2000,7 @@ End
     {
         $arrPresentGPOsApplied | Format-Table -Property Name,'Applied Order','Merged Order',SOM -AutoSize
     }
-    #Verify that ConvertFrom-GPO has yielded an output 
+    #Verify that ConvertFrom-GPO has yielded an output
     if($rslt)
     {
         Write-Output "Output file: $($rslt.Fullname)"
