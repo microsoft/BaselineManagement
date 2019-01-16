@@ -11,11 +11,20 @@ Function Write-ASCRegistryJSONData
     $ValueData = -1
     switch ($RegistryData.RegValueType)
     {
-        "Int" 
+        "Int"
         {
-            if (!([int]::TryParse($RegistryData.ExpectedValue, [ref]$ValueData)))
+            If ($RegistryData.analyzeOperation -eq "RANGE")
             {
-                Write-Warning "Could not parse Policy ($($RegistryData.Name)) with ExpectedValue ($($RegistryData.ExpectedValue)) as ($($RegistryData.RegValueType))"
+                $ExpectedValue = $RegistryData.ExpectedValue.Split(',')[-1]
+            }
+            else
+            {
+                $ExpectedValue = $RegistryData.ExpectedValue
+            }
+
+            if (!([int]::TryParse($ExpectedValue, [ref]$ValueData)))
+            {
+                Write-Warning "Could not parse Policy ($($RegistryData.Name)) with ExpectedValue ($($ExpectedValue)) as ($($RegistryData.RegValueType))"
                 continue
             }
             else
@@ -41,7 +50,7 @@ Function Write-ASCRegistryJSONData
     {
         "LocalMachine" { $RegistryData.Hive = "HKLM:" }
     }
-    
+
     if ($ValueType -eq "DWORD" -and ($ValueData -match "(Disabled|Enabled|Not Defined|True|False)" -or $ValueData -eq "''"))
     {
         # This is supposed to be an INT and it's a String
@@ -53,7 +62,7 @@ Function Write-ASCRegistryJSONData
     $policyHash.ValueName = $RegistryData.ValueName
     $policyHash.ValueType = $ValueType
     $policyHash.ValueData = $ValueData
-    
+
     if ($policyHash.ValueType -eq "None")
     {
         # The REG_NONE is not allowed by the Registry resource.
@@ -65,12 +74,12 @@ Function Write-ASCRegistryJSONData
         $policyHash.Remove("ValueData")
     }
 
-    $commentOUT = $false                
+    $commentOUT = $false
     If ([string]::IsNullOrEmpty($RegistryData.KeyPath))
     {
         $CommentOUT = $true
     }
-    
+
     if ($policyHash.ValueType -eq "MultiString")
     {
         $policyHash.ValueData = $policyHash.valuedata -replace "\|#", '"\,\"'
