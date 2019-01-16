@@ -30,7 +30,7 @@ Function Write-ASCSystemAccessJSONData
         $ValueData = $SystemAccessData.ExpectedValue
         if ($internalSettingName -in $SecuritySettingsWEnabledDisabled -and ($ValueData -notmatch "enabled|disabled"))
         {
-            [string]$ValueData = $EnabledDisabled[([bool]$ValueData)]
+            [string]$ValueData = $EnabledDisabled[([int]$ValueData)]
         }
 
         $policyHash.$($internalSettingName) = $ValueData
