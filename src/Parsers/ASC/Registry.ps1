@@ -82,7 +82,8 @@ Function Write-ASCRegistryJSONData
 
     if ($policyHash.ValueType -eq "MultiString")
     {
-        $policyHash.ValueData = $policyHash.valuedata -replace "\|#", '"\,\"'
+        #$policyHash.ValueData = $policyHash.valuedata -replace "\|#", '"\,\"'
+        $policyHash.ValueData = $policyHash.ValueData.Replace('|#|', '|').Split('|')
     }
 
     return Write-DSCString -Resource -Type Registry -Name "$($RegistryData.CCEID): $($RegistryData.ruleName)" -Parameters $policyHash -CommentOUT:($RegistryData.State -ne 'Enabled') -DoubleQuoted
