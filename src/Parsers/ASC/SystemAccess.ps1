@@ -33,6 +33,11 @@ Function Write-ASCSystemAccessJSONData
             [string]$ValueData = $EnabledDisabled[([int]$ValueData)]
         }
 
+        If ($SystemAccessData.analyzeOperation -eq "RANGE")
+        {
+            $ValueData = $SystemAccessData.ExpectedValue.Split(',')[-1]
+        }
+
         $policyHash.$($internalSettingName) = $ValueData
     }
     else
