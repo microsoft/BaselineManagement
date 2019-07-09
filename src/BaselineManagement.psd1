@@ -51,8 +51,8 @@ PowerShellVersion = '5.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0.0'; }, 
-               @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '2.8.0.0'; }, 
+RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0.0'; },
+               @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '2.8.0.0'; },
                @{ModuleName = 'GPRegistryPolicyParser'; ModuleVersion = '0.2'; })
 
 # Assemblies that must be loaded prior to importing this module
@@ -68,11 +68,11 @@ RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0.0'; 
 # FormatsToProcess = @()
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-# NestedModules = @()
+NestedModules = @("./Menus/Menu.psm1")
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'ConvertFrom-SCM', 'ConvertFrom-ASC', 'ConvertFrom-GPO', 
-               'ConvertTo-DSC', 'ConvertFrom-Excel', 'Merge-GPOs'
+FunctionsToExport = 'ConvertFrom-SCM', 'ConvertFrom-ASC', 'ConvertFrom-GPO',
+               'ConvertTo-DSC', 'ConvertFrom-Excel', 'Merge-GPOs', 'Show-Menu', 'Show-Dialog'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

@@ -46,7 +46,7 @@ function ConvertTo-DSC
 
         # This is the hard coded stage that you can just force it into the type of input.
         [Parameter()]
-        [ValidateSet("ADMX", "GPO", "SCMxml", "ASCjson")]
+        [ValidateSet("ADMX", "GPO", "SCM", "ASC")]
         [string]$Type,
 
         # Output Path that will default to an Output directory under the current Path.
@@ -87,8 +87,8 @@ function ConvertTo-DSC
                         {
                             switch ($item.Extension)
                             {
-                                ".json" { $Type = "ASCjson" }
-                                ".xml" { $Type = "SCMxml" }
+                                ".json" { $Type = "ASC" }
+                                ".xml" { $Type = "SCM" }
                             }
                         }
 
@@ -99,9 +99,9 @@ function ConvertTo-DSC
                     {
                         switch ($Object)
                         {
-                            {$_ -is [XML]} { $Type = "SCMxml" }
+                            {$_ -is [XML]} { $Type = "SCM" }
                             {$_ -is [Microsoft.GroupPolicy.GpoBackup]} { $Type = "GPO" }
-                            {$_ -is [PSCustomObject]} { Write-Verbose "Assuming JSON if object is a custom Object"; $Type = "SCMjson"}
+                            {$_ -is [PSCustomObject]} { Write-Verbose "Assuming JSON if object is a custom Object"; $Type = "SCM"}
                         }
 
                         $Parameter = $object
@@ -166,7 +166,7 @@ function ConvertFrom-GPO
         [switch]$ShowPesterOutput,
 
         # Specifies the name of the Configuration to create
-        [string]$ConfigName = 'DSCFromGPO' 
+        [string]$ConfigName = 'DSCFromGPO'
     )
 
     Begin
@@ -792,7 +792,7 @@ Function ConvertFrom-SCM
         [switch]$ShowPesterOutput,
 
         # Specifies the name of the Configuration to create
-        [string]$ConfigName = 'DSCFromSCM' 
+        [string]$ConfigName = 'DSCFromSCM'
     )
 
     # If they passed in a path we have to grab the XML object from it.
@@ -888,7 +888,7 @@ Function ConvertFrom-SCM
     $ConfigString += Write-DSCString -CloseConfigurationBlock
 
     $ConfigString += Write-DSCString -InvokeConfiguration -Name $ConfigName -OutputPath $OutputPath
-    
+
 
     # If the switch was specified.  Output a Configuration PS1 regardless of success/failure.
     if ($OutputConfigurationScript)
@@ -971,7 +971,7 @@ function ConvertFrom-ASC
         [switch]$ShowPesterOutput,
 
         # Specifies the name of the Configuration to create
-        [string]$ConfigName = 'DSCFromASC' 
+        [string]$ConfigName = 'DSCFromASC'
     )
 
     <# Removing temporarily for presentation
@@ -1116,7 +1116,7 @@ function ConvertFrom-ASC
         $ConfigString += Write-DSCString -CloseNodeBlock
         $ConfigString += Write-DSCString -CloseConfigurationBlock
         $ConfigString += Write-DSCString -InvokeConfiguration -Name $ConfigName -OutputPath $OutputPath
-    
+
         # If the switch was specified, output a Configuration Script regardless of success/failure.
         if ($OutputConfigurationScript)
         {
@@ -1124,7 +1124,7 @@ function ConvertFrom-ASC
             {
                 mkdir $OutputPath
             }
-            
+
             $Scriptpath = Join-Path $OutputPath "$ConfigName.ps1"
             $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
         }

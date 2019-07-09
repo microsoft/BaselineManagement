@@ -21,7 +21,7 @@ Function Add-ProcessingHistory
 
         [Parameter(Mandatory = $true)]
         [string]$Type,
-        
+
         [switch]$Conflict,
         [switch]$Disabled,
         [switch]$ParsingError,
@@ -36,10 +36,10 @@ Function Add-ProcessingHistory
     }
 
     # Add this resource to the processing history.
-    $ProcessingHistory[$Type] += @{Name = $Name; Conflict = $Conflict; Disabled = $Disabled; ResourceNotFound = $ResourceNotFound;ParsingError = $ParsingError}        
+    $ProcessingHistory[$Type] += @{Name = $Name; Conflict = $Conflict; Disabled = $Disabled; ResourceNotFound = $ResourceNotFound;ParsingError = $ParsingError}
 }
 
-Function Test-Conflicts 
+Function Test-Conflicts
 {
     [OutputType([bool])]
     [CmdletBinding()]
@@ -53,7 +53,7 @@ Function Test-Conflicts
 
         [Parameter(Mandatory = $true)]
         [switch]$CommentOut,
-        
+
         [Parameter(Mandatory = $true)]
         [System.Collections.Hashtable]$Resource
     )
@@ -61,7 +61,7 @@ Function Test-Conflicts
     # Set our conflict variables up.
     $GlobalConflict = $false
     $ResourceNotFound = $false
-    
+
     $Conflict = @()
     $ResourceKeys = @()
     # Determine if we have already processed a Resource Block of this type.
@@ -71,11 +71,11 @@ Function Test-Conflicts
         {
             $ResourceNotFound = $false
         }
-        else 
+        else
         {
             $ResourceNotFound = $true
-        }#>   
-        
+        }#>
+
         # Loop through every Resource definition of this type.
         foreach ($hashtable in $Script:GlobalConflictEngine[$Type])
         {
@@ -86,11 +86,11 @@ Function Test-Conflicts
             foreach ($KeyPair in $hashtable.GetEnumerator())
             {
                 # Add the test result to our Conflict Array.
-                $Conflict += $KeyPair.Value -eq $Resource[$KeyPair.Name]    
+                $Conflict += $KeyPair.Value -eq $Resource[$KeyPair.Name]
                 # Need to store which Key/Value Pairs we checked.
                 $ResourceKeys += $KeyPair.Name
             }
-                    
+
             # If we found a conflict.
             if ($ResourceKeys.Count -gt 0 -and $Conflict -notcontains $false)
             {
@@ -117,7 +117,7 @@ Function Test-Conflicts
 
         $Script:GlobalConflictEngine[$Type] += $tmpHash
     }
-    
+
     # Add this resource to the processing history.
     Add-ProcessingHistory -Type $Type -Name $Name -Conflict:$GlobalConflict -Disabled:$CommentOut -ResourceNotFound:$ResourceNotFound
 
@@ -132,7 +132,7 @@ Function Get-Tabs
         [Parameter(Mandatory = $true)]
         [int]$Tabs
     )
-    (1..$Tabs) | ForEach-Object {"`t"}
+    (1..$Tabs) | ForEach-Object {"    "}
 }
 
 Function Write-DSCStringKeyPair
@@ -150,9 +150,9 @@ Function Write-DSCStringKeyPair
         [AllowNull()]
         $Value
     )
-    
+
     $DSCString = ""
-    
+
     if ($Value -eq $null)
     {
         <# Allowing Null values for now
@@ -160,13 +160,13 @@ Function Write-DSCStringKeyPair
         #>
         return "`n$(Get-Tabs $Tabs)$($key) = `$null"
     }
-    
+
 
     # Start the Resource Key/Value Pair.
     $DSCString += "`n$(Get-Tabs $Tabs)$($key) = "
     $Separator = ", "
     # If the Value is an array, increase the tab stops and add the array operators.
-    if ($Value -is [Array]) 
+    if ($Value -is [Array])
     {
         $DSCString += "@("
         $Tabs++
@@ -178,26 +178,26 @@ Function Write-DSCStringKeyPair
         $tmpValue = @($Value)[$i]
         switch ($tmpValue)
         {
-            {$_ -is [System.String]} 
+            {$_ -is [System.String]}
             {
                 Try
                 {
                     Invoke-Expression $("`$variable = '" + $_.TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"') + "'") | Out-Null
-                    $DSCString += "'$([string]::new($_.TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim(' ')))'" 
+                    $DSCString += "'$([string]::new($_.TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"').Trim(' ')))'"
                 }
                 Catch
                 {
                     # Parsing Error
-                    $DSCString += "@'`n$($_.Trim("'").TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"'))`n'@" 
+                    $DSCString += "@'`n$($_.Trim("'").TrimStart("'").TrimEnd("'").TrimStart('"').TrimEnd('"'))`n'@"
                 }
             }
-            
-            {$_ -is [System.Boolean]} 
+
+            {$_ -is [System.Boolean]}
             {
-                $DSCString += "`$$([string]([bool]$_))" 
+                $DSCString += "`$$([string]([bool]$_))"
             }
 
-            {$_ -is [System.Collections.Hashtable]} 
+            {$_ -is [System.Collections.Hashtable]}
             {
                 $identifier = "@"
                 if ($_.ContainsKey("EmbeddedInstance"))
@@ -206,7 +206,7 @@ Function Write-DSCStringKeyPair
                     $Separator = ";"
                     $_.Remove("EmbeddedInstance") | Out-Null
                 }
-                
+
                 if ($Value -is [Array])
                 {
                     $DSCString += "`n$(Get-Tabs $Tabs)"
@@ -227,7 +227,7 @@ Function Write-DSCStringKeyPair
 
             Default
             {
-                $DSCString += "$($_)" 
+                $DSCString += "$($_)"
             }
         }
 
@@ -236,12 +236,12 @@ Function Write-DSCStringKeyPair
             $DSCString += $Separator
         }
     }
-        
+
     # If the value was an array, close up the array and decrement the tab stops.
-    if ($Value -is [Array]) 
+    if ($Value -is [Array])
     {
         $Tabs--
-        $DSCString += "`n$(Get-Tabs $Tabs))"
+        $DSCString += ")"
     }
 
     return $DSCString
@@ -250,10 +250,10 @@ Function Write-DSCStringKeyPair
 
 
 # This is the function that makes it all go. It has a variety of parameter sets which can be tricky to use.
-# Each of the Switches tell the function what type of Code block it is creating.  
+# Each of the Switches tell the function what type of Code block it is creating.
 # The additional parameters to the set are what determine the contents of the block.
 # This Function takes the input and properly formats it with Tabs and Newlines so it looks properly formatted.
-# It also has a built in Conflict detection engine. 
+# It also has a built in Conflict detection engine.
 # If it detects that a Resource with the Same REQUIRED values was already processed it will COMMENT OUT subsequent resource blocks with the same values.
 # The Function also has logic to arbitrarily comment out a resource block if necessary (like disabled resources).
 # The function also provides functionality to comment Code Blocks if comments are available.
@@ -309,10 +309,10 @@ Function Write-DSCString
         # This is a hashtable of Keys/Values for a Resource Block.
         [Parameter(Mandatory = $true, ParameterSetName = "Resource")]
         [hashtable]$Parameters,
-        
+
         # This determines whether or not to comment out a resource block.
         [switch]$CommentOUT = $false,
-        
+
         # This allows comments to be added to various code blocks.
         [string]$Comment,
 
@@ -329,12 +329,12 @@ Function Write-DSCString
         [Parameter(ParameterSetName = "InvokeConfiguration")]
         [string]$OutputPath = $(Join-Path -Path $PSScriptRoot -ChildPath "Output")
     )
-    
+
     $DSCString = ""
     switch ($PSCmdlet.ParameterSetName)
     {
-        "Configuration" 
-        { 
+        "Configuration"
+        {
             # Add comments if there are comments.
             if ($PSBoundParameters.ContainsKey("Comment"))
             {
@@ -344,15 +344,15 @@ Function Write-DSCString
             {
                 $Comment = ""
             }
-            
+
             # Output the DSC String.
             $DSCString = @"
-$Comment       
+$Comment
 Configuration $Name`n{`n`n`t
-"@ 
+"@
         }
         "ModuleImport"
-        { 
+        {
             # Use this block to reset our Conflict Engine.
             $Script:GlobalConflictEngine = @{}
             $ModuleNotFound = @()
@@ -389,24 +389,24 @@ Configuration $Name`n{`n`n`t
                     $ModuleNotFound += $m
                 }
             }
-            
+
             $ModuleName = $ModuleName | Where-Object {$_ -notin $ModuleNotFound}
 
             # Output our Import-Module string.
             foreach ($m in $ModuleName)
             {
-                $DSCString += "Import-DSCResource -ModuleName '$m'`n`t" 
+                $DSCString += "Import-DSCResource -ModuleName '$m'`n`t"
             }
 
             foreach ($m in $ModuleNotFound)
             {
-                $DSCString += "# Module Not Found: Import-DSCResource -ModuleName '$m'`n`t" 
+                $DSCString += "# Module Not Found: Import-DSCResource -ModuleName '$m'`n`t"
             }
         }
         "Node" { $DSCString = "Node $Name`n`t{`n" }
         "InvokeConfiguration" { $DSCString = "$Name -OutputPath '$($OutputPath)'" }
         "CloseNodeBlock" { $DSCString = "`t}" }
-        "CloseConfigurationBlock" { $DSCString = "`n}`n" }          
+        "CloseConfigurationBlock" { $DSCString = "`n}`n" }
         "Resource"
         {
             $Tabs = 2
@@ -421,10 +421,10 @@ Configuration $Name`n{`n`n`t
             # Variables to be used for commeting out resource if necessary.
             $CommentStart = ""
             $CommentEnd = ""
-                   
+
             $CommentOUT = Test-Conflicts -Type $Type -Name $Name -Resource $Parameters -CommentOut:$CommentOUT
-            
-            # If we are commenting this block out, then set up our comment characters.                        
+
+            # If we are commenting this block out, then set up our comment characters.
             if ($CommentOut)
             {
                 $CommentStart = "<#"
@@ -448,16 +448,16 @@ Configuration $Name`n{`n`n`t
             # Start the Resource Block with Comment and CommentOut characters if necessary.
             if ($DoubleQuoted)
             {
-                $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type `"$($Name)`"`n$(Get-Tabs $Tabs){" 
+                $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type `"$($Name)`"`n$(Get-Tabs $Tabs){"
             }
-            else 
+            else
             {
-                $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type '$($Name)'`n$(Get-Tabs $Tabs){"    
+                $DSCString += "$(Get-Tabs $Tabs)$Comment$($CommentStart)$Type '$($Name)'`n$(Get-Tabs $Tabs){"
             }
             $Tabs++
             foreach ($key in $Parameters.Keys)
             {
-                if ($Parameters[$key] -eq $null) 
+                if ($Parameters[$key] -eq $null)
                 {
                     "WTF"  |out-null
                 }
@@ -477,7 +477,7 @@ Configuration $Name`n{`n`n`t
             {
                 $DSCString += "`n`n$(Get-Tabs $Tabs)}"
             }
-            
+
             $DSCString += "`n`n"
         }
     }
@@ -514,7 +514,7 @@ function Get-IniContent
             $name = "Comment" + $CommentCount
             $ini[$section][$name] = $value.Trim()
             continue
-        } 
+        }
         "(.+)\s*=(.*)"  # Key
         {
             $name,$value = $matches[1..2]
@@ -522,8 +522,8 @@ function Get-IniContent
             # Need to replace double quotes with `"
             continue
         }
-        "\`"(.*)`",(.*)$" 
-        { 
+        "\`"(.*)`",(.*)$"
+        {
             $name, $value = $matches[1..2]
             $ini[$section][$name.Trim()] = $value.Trim()
             continue
@@ -546,7 +546,7 @@ Function Complete-Configuration
         [Parameter()]
         [string]$OutputPath = $(Join-Path -Path $pwd.path -ChildPath "Output")
     )
-    
+
     if ($ConfigString -match "(?m)Configuration (?<Name>.*)$")
     {
         $CallingFunction = $Matches.Name
@@ -560,26 +560,26 @@ Function Complete-Configuration
     {
         mkdir $OutputPath
     }
-    
+
     $scriptblock = [scriptblock]::Create($ConfigString)
-    
+
     if (!$?)
     {
         # Somehow CallingFunction, defined above, is not useable right here.  Not sure why
         $Path = $(Join-Path -Path $OutputPath -ChildPath "$($CallingFunction).ps1.error")
         $ConfigString > $Path
-        
+
         Write-Error "Could not CREATE ScriptBlock from configuration. Creating PS1 Error File: $Path. Please rename error file to PS1 and open for further inspection. Errors are listed below"
         return $false
     }
-    
+
     $output = Invoke-Command -ScriptBlock $scriptblock
-    
+
     if (!$?)
     {
         $Path = $(Join-Path -Path $OutputPath -ChildPath "$($CallingFunction).ps1.error")
         $scriptblock.ToString() > $Path
-        
+
         Write-Error "Could not COMPILE cofiguration. Storing ScriptBlock: $Path.  Please rename error file to PS1 and open for further inspection. Errors are listed below"
         foreach ($e in $output)
         {
@@ -587,7 +587,7 @@ Function Complete-Configuration
         }
         return $false
     }
-        
+
     return $true
 }
 
@@ -610,7 +610,7 @@ Function Write-ProcessingHistory
         [Parameter()]
         [string]$OutputPath = $(Join-Path -Path $pwd.path -ChildPath "Output")
     )
-    
+
     if (!(Test-Path $OutputPath))
     {
         mkdir $OutputPath | Out-Null
@@ -622,11 +622,11 @@ Function Write-ProcessingHistory
     }
     elseif (!((Get-Module).name -contains "Pester"))
     {
-        Write-ProcessingHistory_NonPester -Pass $Pass 
+        Write-ProcessingHistory_NonPester -Pass $Pass
         Write-ProcessingHistory_NonPester -Pass $Pass *> $(Join-Path -Path $OutputPath -ChildPath "Summary.log")
         return
     }
-        
+
     New-Variable -Name successes -Option AllScope -Force
     New-Variable -Name disabled -Option AllScope -Force
     New-Variable -Name conflict -Option AllScope -Force
@@ -639,25 +639,25 @@ Function Write-ProcessingHistory
         $old_success = $successes
         $old_disabled = $disabled
         $old_conflict = $conflict
-        $old_resourcenotfound = $resourcenotfound        
+        $old_resourcenotfound = $resourcenotfound
         $old_parsingerror = $parsingerror
 
-        $Describe = "Parsing Summary: $((Get-PsCallStack)[1].Command) - $(@("FAILED", "SUCCEEDED")[[int]$Pass])`n`t$($KeyPair.Key.ToUpper()) Resources"        
+        $Describe = "Parsing Summary: $((Get-PsCallStack)[1].Command) - $(@("FAILED", "SUCCEEDED")[[int]$Pass])`n`t$($KeyPair.Key.ToUpper()) Resources"
         Describe $Describe {
 
             foreach ($Resource in $KeyPair.Value.Where({($_.Disabled -eq $false) -and ($_.Conflict -eq $false) -and ($_.ResourceNotFound -eq $false) -and ($_.ParsingError -eq $false)}))
             {
                 It "Parsed: $($Resource.Name)" {
                     $Resource.Disabled | Should Be $false
-                } 
-                $successes++                         
+                }
+                $successes++
             }
 
             foreach ($Resource in $KeyPair.Value.Where({$_.Disabled}))
             {
                 It "Disabled: $($Resource.Name)" {
                     $Resource.Disabled | Should Be $true
-                }          
+                }
                 $disabled++
             }
 
@@ -665,7 +665,7 @@ Function Write-ProcessingHistory
             {
                 It "Found Conflicts: $($Resource.Name)" {
                     $Resource.Conflict | Should Be $true
-                } -Pending    
+                } -Pending
                 $conflict++
             }
 
@@ -675,13 +675,13 @@ Function Write-ProcessingHistory
                     $Resource.ResourceNotFound | Should Be $true
                 } -Skip
                 $resourcenotfound++
-            } 
+            }
 
             foreach ($Resource in $KeyPair.Value.Where({$_.ParsingError}))
             {
                 It "Had No Parsing Errors: $($Resource.Name)" {
                     $Resource.ParsingError | Should Be $false
-                }          
+                }
                 $parsingerror++
             }
         } *>> $(Join-Path -Path $OutputPath -ChildPath "Summary.log")
@@ -698,15 +698,15 @@ Function Write-ProcessingHistory
             {
                 It "Parsed: $($Resource.Name)" {
                     $Resource.Disabled | Should Be $false
-                } 
-                $successes++                         
+                }
+                $successes++
             }
 
             foreach ($Resource in $KeyPair.Value.Where({$_.Disabled}))
             {
                 It "Disabled: $($Resource.Name)" {
                     $Resource.Disabled | Should Be $true
-                } -Skip          
+                } -Skip
                 $disabled++
             }
 
@@ -714,7 +714,7 @@ Function Write-ProcessingHistory
             {
                 It "Found Conflicts: $($Resource.Name)" {
                     $Resource.Conflict | Should Be $true
-                } -Pending    
+                } -Pending
                 $conflict++
             }
 
@@ -730,19 +730,19 @@ Function Write-ProcessingHistory
             {
                 It "Had No Parsing Errors: $($Resource.Name)" {
                     $Resource.ParsingError | Should Be $false
-                }          
+                }
                 $parsingerror++
             }
-        } 
-    } 
-    
-    $tmpBlock = { 
-        Write-Host "TOTALS" -ForegroundColor White 
+        }
+    }
+
+    $tmpBlock = {
+        Write-Host "TOTALS" -ForegroundColor White
         Write-Host "------" -ForegroundColor White
         Write-Host "SUCCESSES: $successes" -ForegroundColor Green
         Write-Host "DISABLED: $disabled" -ForegroundColor Gray
         Write-Host "MISSING RESOURCES: $resourcenotfound" -ForegroundColor Yellow
-        Write-Host "CONFLICTS: $conflict" -ForegroundColor Cyan 
+        Write-Host "CONFLICTS: $conflict" -ForegroundColor Cyan
         Write-Host "PARSING ERROR: $resourcenotfound" -ForegroundColor Red
         Write-Host "______________________" -ForegroundColor White
         Write-Host "TOTAL: $($successes + $disabled + $conflict + $resourcenotfound + $parsingerror)" -ForegroundColor White
@@ -761,7 +761,7 @@ Function Write-ProcessingHistory_NonPester
         [Parameter(Mandatory = $true)]
         [bool]$Pass
     )
-        
+
     Write-Host "Parsing Summary: $((Get-PsCallStack)[1].Command) - $(@("FAILED", "SUCCEEDED")[[int]$Pass])" -ForegroundColor @("RED", "GREEN")[[int]$Pass]
     Write-Host "---------------" -ForegroundColor White
     $History = Get-Variable ProcessingHistory
@@ -777,25 +777,25 @@ Function Write-ProcessingHistory_NonPester
         foreach ($Resource in $KeyPair.Value.Where( {$_.Disabled}))
         {
             Write-Host "Disabled: $($Resource.Name)" -ForegroundColor Gray
-            $disabled++          
+            $disabled++
         }
 
         foreach ($Resource in $KeyPair.Value.Where( {$_.Conflict}))
         {
             Write-Host "Found Conflicts: $($Resource.Name)" -ForegroundColor Cyan
-            $conflict++      
+            $conflict++
         }
 
         foreach ($Resource in $KeyPair.Value.Where( {$_.ResourceNotFound}))
         {
             Write-Host "Missing Resources: $($Resource.Name)" -ForegroundColor Yellow
-            $resourcenotfound++      
+            $resourcenotfound++
         }
 
         foreach ($Resource in $KeyPair.Value.Where( {$_.ParsingError}))
         {
             Write-Host "Parsing Error: $($Resource.Name)" -ForegroundColor Red
-            $parsingerror++      
+            $parsingerror++
         }
     }
 
@@ -804,7 +804,7 @@ Function Write-ProcessingHistory_NonPester
     Write-Host "SUCCESSES: $successes" -ForegroundColor Green
     Write-Host "DISABLED: $disabled" -ForegroundColor Gray
     Write-Host "MISSING RESOURCES: $resourcenotfound" -ForegroundColor Yellow
-    Write-Host "CONFLICTS: $conflict" -ForegroundColor Cyan 
+    Write-Host "CONFLICTS: $conflict" -ForegroundColor Cyan
     Write-Host "PARSING ERROR: $resourcenotfound" -ForegroundColor Red
     Write-Host "______________________" -ForegroundColor White
     Write-Host "TOTAL: $($successes + $disabled + $conflict + $resourcenotfound + $parsingerror)" -ForegroundColor White
@@ -846,7 +846,7 @@ Function Get-NodeDataFromComments
         [String]$Comments
     )
 
-    Try 
+    Try
     {
         $comments = $comments -replace "[^\u0000-\u007F]", ""
         $comments = ((((($Comments -replace "(?m)^([^ ]*)\s*:\s?", "`$1 = '") -replace "(?m)^[^A-Z]*`$`n", "") -replace "(?m)`$(`n)([A-Z])", ("'`$1" + '$2')) + '"')) -replace "\\", "\\"

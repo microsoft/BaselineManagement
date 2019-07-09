@@ -6,7 +6,7 @@ Function Write-GPOInternetSettingsXMLData
     param
     (
         [Parameter(Mandatory = $true)]
-        [System.Xml.XmlElement]$XML    
+        [System.Xml.XmlElement]$XML
     )
 
     # DSC does not allow for Internet Explorer version filtering, so we have to comment all of these out.
@@ -23,15 +23,15 @@ Function Write-GPOInternetSettingsXMLData
     }
     else
     {
-        $Condition = [scriptblock]"`$InternetExplorerVersion -eq $($XML.ParentNode.ParentNode.Name)"
+        $Condition = $executionContext.invokeCommand.NewScriptBlock("$InternetExplorerVersion -eq '$($XML.ParentNode.ParentNode.Name)'")
     }
 
     $regHash.ValueName = $XML.name
     switch ($XML.hive)
     {
         "HKEY_LOCAL_MACHINE" { $regHash.Key = Join-Path -Path "HKLM:" -ChildPath $XML.Key}
-        "HKEY_CURRENT_USER" 
-        { 
+        "HKEY_CURRENT_USER"
+        {
             $regHash.Key = Join-Path -Path "HKCU:" -ChildPath $XML.Key
             Write-Warning "Write-GPOInternetSettingsXMLData: CurrentUser settings are not currently supported"
             $CommentOut = $true
@@ -46,7 +46,7 @@ Function Write-GPOInternetSettingsXMLData
 
     $regHash.ValueData = $ValueData
     $regHash.ValueType = $XML.type
-    
+
     Update-RegistryHashtable -Hashtable $regHash
     Write-DSCString -Resource -Type Registry -Name $Name -CommentOut:$CommentOut -Parameters $regHash -Condition $Condition
 }

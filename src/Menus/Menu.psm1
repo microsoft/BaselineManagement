@@ -20,7 +20,7 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 	[System.Int16]$iSavedBackgroundColor=[System.Console]::BackgroundColor
 	[System.Int16]$iSavedForegroundColor=[System.Console]::ForegroundColor
 	# Menu Colors
-	# inverse fore- and backgroundcolor 
+	# inverse fore- and backgroundcolor
 	[System.Int16]$iMenuForeGroundColor=[System.ConsoleColor]::White
 	[System.Int16]$iMenuBackGroundColor=[System.ConsoleColor]::DarkMagenta
 	[System.Int16]$iMenuBackGroundColorSelectedLine=[System.ConsoleColor]::White
@@ -55,7 +55,7 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
                 $hMenuEntries.Value.Item($sKey).Expanded = $false
             }
         }
-        
+
         # Hotkey zuordnung zum Menueintrag
 		<#$hMenuHotKeyList.Add([System.Int16]$iMenuLoopCount,[System.Convert]::ToChar($iMenuHotKeyChar))
 		$hMenuHotKeyListReverse.Add([System.Convert]::ToChar($iMenuHotKeyChar),[System.Int16]$iMenuLoopCount)
@@ -82,26 +82,26 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
         $iMenuLoopCount=1
         ####### Calculate Menu #######
 	    foreach ($sKey in $hMenuEntries.Value.Keys){
-            
+
             if ($hMenuEntries.Value.Item($sKey) -is [System.Collections.Specialized.OrderedDictionary] -or $hMenuEntries.Value.Item($sKey) -is [System.Collections.Hashtable])
             {
-                $hMenu.Add([System.Int16]$iMenuLoopCount, [ref]$hMenuEntries.Value.Item($skey))		
-                            
+                $hMenu.Add([System.Int16]$iMenuLoopCount, [ref]$hMenuEntries.Value.Item($skey))
+
                 if ($hMenuEntries.Value.Item($skey).Expanded)
                 {
                     foreach ($subkey in $hMenuEntries.Value.Item($skey).Keys | ?{$_ -notin "Expanded", "Title"})
                     {
                         $iMenuLoopCount++
                         $hMenu.Add([System.Int16]$iMenuLoopCount, [ref]$hMenuEntries.Value.Item($skey).Item($subkey))
-                    }            
+                    }
                 }
             }
             else
             {
-                $hMenu.Add([System.Int16]$iMenuLoopCount, $skey)		
+                $hMenu.Add([System.Int16]$iMenuLoopCount, $skey)
             }
             $iMenuLoopCount++
-        }        
+        }
         [System.Int16]$iMenuEntries=$hMenu.Keys.Count
         ####### Draw Menu  #######
 		[System.Console]::CursorTop=($iMenuStartLineAbsolute-$iBufferFullOffset)
@@ -117,12 +117,12 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 			}
 			$line = ""
             if ($hMenu.Item($iMenuLoopCount) -is [ref])
-            { 
+            {
                 if ($hMenu.Item($iMenuLoopCount).Value.Contains("Expanded"))
                 {
                     if ($hMenu.Item($iMenuLoopCount).Value.Expanded -eq $True)
                     {
-                        $sPreMenuline += "[-] "    
+                        $sPreMenuline += "[-] "
                     }
                     else
                     {
@@ -138,7 +138,7 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
                 [System.Console]::Write($sPreMenuline+$hMenu.Item($iMenuLoopCount))
                 $line = $sPreMenuline+$hMenu.Item($iMenuLoopCount)
             }
-            
+
 			[System.Console]::BackgroundColor=$iMenuBackGroundColor
 			[System.Console]::ForegroundColor=$iMenuForeGroundColor
 			$string = new-object System.String -ArgumentList " ", ([System.Console]::WindowWidth - $line.length)
@@ -156,7 +156,7 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 		if (($iMenuStartLineAbsolute+$iMenuLoopCount) -gt [System.Console]::BufferHeight){
 			$iBufferFullOffset=($iMenuStartLineAbsolute+$iMenuLoopCount)-[System.Console]::BufferHeight
 		}
-		
+
         $int = ([System.Console]::WindowTop + [System.Console]::WindowHeight) - [System.Console]::CursorTop
 
         $string = new-object System.String -ArgumentList " ", ([System.Console]::WindowWidth)
@@ -175,10 +175,10 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
         }
         [System.Console]::SetCursorPosition(0, $old)
         ####### End Menu #######
-		####### Read Kex from Console 
+		####### Read Kex from Console
         [System.Console]::CursorVisible = $true
 		$oInputChar=[System.Console]::ReadKey($true)
-		
+
         Switch ($oInputChar)
         {
             {[System.Int16]$_.Key -eq [System.ConsoleKey]::DownArrow}
@@ -188,7 +188,7 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 			    }
                 continue
 		    }
-		    
+
 		    {[System.Int16]$_.Key -eq [System.ConsoleKey]::UpArrow}
             {
 			    if ($iMenuSelectLine -gt 1){
@@ -196,7 +196,7 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 			    }
                 continue
 		    }
-             
+
             {[System.Int16]$_.Key -eq [System.ConsoleKey]::LeftArrow}
             {
 			    if ($hMenu.Item($iMenuSelectLine) -is [ref])
@@ -254,8 +254,8 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
                         }
                     }
                 }
-		    } 
-            
+		    }
+
             {[System.Int16]$_.Key -eq [System.ConsoleKey]::Escape}
             {
 			    return
@@ -263,7 +263,7 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 
 		    {[System.Char]::IsLetterOrDigit($_.KeyChar)}
             {
-			    [System.Console]::Write($oInputChar.KeyChar.ToString())	
+			    [System.Console]::Write($oInputChar.KeyChar.ToString())
                 continue
 		    }
         }
@@ -272,12 +272,12 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 		[System.Console]::ForegroundColor=$iMenuForeGroundColor
 
 	} while(([System.Int16]$oInputChar.Key -ne [System.ConsoleKey]::Enter) -and ($sValidChars.IndexOf($oInputChar.KeyChar) -eq -1))
-	
+
 	# reset colors
 	[System.Console]::ForegroundColor=$iSavedForegroundColor
 	[System.Console]::BackgroundColor=$iSavedBackgroundColor
 	if($oInputChar.Key -eq [System.ConsoleKey]::Enter){
-		
+
         if ($hMenu.Item($iMenuSelectLine) -is [ref])
         {
                 return([System.String]$hMenu.Item($iMenuSelectLine).Value.Key.Trim())
@@ -294,61 +294,61 @@ function Show-Menu([System.String]$sMenuTitle,[Ref]$hMenuEntries)
 }
 
 
-<# Old Dialog box method for prompting lessons.  
+<# Old Dialog box method for prompting lessons.
     Has not been updated for tiered module approach.
 #>
 Function Show-Dialog
 {
-    Add-Type -AssemblyName System.Windows.Forms 
-         Add-Type -AssemblyName System.Drawing 
-  
-         $form = New-Object System.Windows.Forms.Form  
-         $form.Text = "Please Select a Lab" 
-         $form.Size = New-Object System.Drawing.Size(300,200)  
-         $form.StartPosition = "CenterScreen" 
-  
-         $OKButton = New-Object System.Windows.Forms.Button 
-         $OKButton.Location = New-Object System.Drawing.Point(75,120) 
-         $OKButton.Size = New-Object System.Drawing.Size(75,23) 
-         $OKButton.Text = "OK" 
-         $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK 
-         $form.AcceptButton = $OKButton 
-         $form.Controls.Add($OKButton) 
-  
-         $CancelButton = New-Object System.Windows.Forms.Button 
-         $CancelButton.Location = New-Object System.Drawing.Point(150,120) 
-         $CancelButton.Size = New-Object System.Drawing.Size(75,23) 
-         $CancelButton.Text = "Cancel" 
-         $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel 
-         $form.CancelButton = $CancelButton 
-         $form.Controls.Add($CancelButton) 
-  
-         $label = New-Object System.Windows.Forms.Label 
-         $label.Location = New-Object System.Drawing.Point(10,20)  
-         $label.Size = New-Object System.Drawing.Size(280,20)  
-         $label.Text = "Please make a selection from the list below:" 
-         $form.Controls.Add($label)  
-  
-         $listBox = New-Object System.Windows.Forms.Listbox  
-         $listBox.Location = New-Object System.Drawing.Point(10,40)  
-         $listBox.Size = New-Object System.Drawing.Size(260,20)  
-     
+    Add-Type -AssemblyName System.Windows.Forms
+         Add-Type -AssemblyName System.Drawing
+
+         $form = New-Object System.Windows.Forms.Form
+         $form.Text = "Please Select a Lab"
+         $form.Size = New-Object System.Drawing.Size(300,200)
+         $form.StartPosition = "CenterScreen"
+
+         $OKButton = New-Object System.Windows.Forms.Button
+         $OKButton.Location = New-Object System.Drawing.Point(75,120)
+         $OKButton.Size = New-Object System.Drawing.Size(75,23)
+         $OKButton.Text = "OK"
+         $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+         $form.AcceptButton = $OKButton
+         $form.Controls.Add($OKButton)
+
+         $CancelButton = New-Object System.Windows.Forms.Button
+         $CancelButton.Location = New-Object System.Drawing.Point(150,120)
+         $CancelButton.Size = New-Object System.Drawing.Size(75,23)
+         $CancelButton.Text = "Cancel"
+         $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+         $form.CancelButton = $CancelButton
+         $form.Controls.Add($CancelButton)
+
+         $label = New-Object System.Windows.Forms.Label
+         $label.Location = New-Object System.Drawing.Point(10,20)
+         $label.Size = New-Object System.Drawing.Size(280,20)
+         $label.Text = "Please make a selection from the list below:"
+         $form.Controls.Add($label)
+
+         $listBox = New-Object System.Windows.Forms.Listbox
+         $listBox.Location = New-Object System.Drawing.Point(10,40)
+         $listBox.Size = New-Object System.Drawing.Size(260,20)
+
          $lessonSelection = @()
          # Look through lab files to find Lab Title"
          for ($i=0;$i -lt $labFiles.count; $i++)
          {
-             [void] $listBox.Items.Add($(Get-Content -TotalCount 1 -Path $labFiles[$i].FullName).TrimStart("# ")) 
+             [void] $listBox.Items.Add($(Get-Content -TotalCount 1 -Path $labFiles[$i].FullName).TrimStart("# "))
              $lessonSelection += "lesson$($labFiles[$i].LessonNumber)"
          }
-    
-         $listBox.Height = 70 
-         $form.Controls.Add($listBox)  
-         $form.Topmost = $True 
-  
-         $result = $form.ShowDialog() 
-  
-         if ($result -eq [System.Windows.Forms.DialogResult]::OK) 
-         { 
+
+         $listBox.Height = 70
+         $form.Controls.Add($listBox)
+         $form.Topmost = $True
+
+         $result = $form.ShowDialog()
+
+         if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+         {
             $selection = $lessonSelection[$listBox.SelectedIndex]
             $lesson = $selection
 
@@ -357,6 +357,7 @@ Function Show-Dialog
          else
          {
             return
-         } 
+         }
 }
- 
+
+Export-ModuleMember -Function * -Cmdlet *
