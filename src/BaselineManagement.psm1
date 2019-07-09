@@ -57,7 +57,11 @@ function ConvertTo-DSC
         [string]$ComputerName = "localhost",
 
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript
+        [switch]$OutputConfigurationScript,
+
+        # Specifies the name of the Configuration to create
+        [string]$ConfigName
+
     )
         
     Process
@@ -159,7 +163,10 @@ function ConvertFrom-GPO
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript,
 
-        [switch]$ShowPesterOutput
+        [switch]$ShowPesterOutput,
+
+        # Specifies the name of the Configuration to create
+        [string]$ConfigName = 'DSCFromGPO' 
     )
     
     Begin
@@ -171,7 +178,7 @@ function ConvertFrom-GPO
         Clear-ProcessingHistory
         
         # Create the Configuration String
-        $ConfigString = Write-DSCString -Configuration -Name "DSCFromGPO"
+        $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add any resources
         $AddedResources = $false
         $ConfigString += Write-DSCString -ModuleImport -ModuleName $NeededModules
@@ -693,7 +700,7 @@ function ConvertFrom-GPO
         # Close out the Node Block and the configuration.
         $ConfigString += Write-DSCString -CloseNodeBlock 
         $ConfigString += Write-DSCString -CloseConfigurationBlock
-        $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromGPO -OutputPath $OutputPath
+        $ConfigString += Write-DSCString -InvokeConfiguration -Name $ConfigName -OutputPath $OutputPath
 
         if (!(Test-Path $OutputPath))
         {
@@ -703,8 +710,8 @@ function ConvertFrom-GPO
         # If the switch was specified, output a Configuration PS1 regardless of success or failure.
         if ($OutputConfigurationScript)
         {
-            $Scriptpath = Join-Path $OutputPath "DSCFromGPO.ps1"
-            Write-Verbose "Outputting Configuration SCript to $Scriptpath"
+            $Scriptpath = Join-Path $OutputPath "$ConfigName.ps1"
+            Write-Verbose "Outputting Configuration Script to $Scriptpath"
             $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
         }
 
@@ -728,7 +735,7 @@ function ConvertFrom-GPO
         }
         else
         {
-            Get-Item $(Join-Path -Path $OutputPath -ChildPath "DSCFromGPO.ps1.error")
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ConfigName.ps1.error")
         }
     }
 }
@@ -782,7 +789,10 @@ Function ConvertFrom-SCM
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript,
 
-        [switch]$ShowPesterOutput
+        [switch]$ShowPesterOutput,
+
+        # Specifies the name of the Configuration to create
+        [string]$ConfigName = 'DSCFromSCM' 
     )
 
     # If they passed in a path we have to grab the XML object from it.
@@ -798,7 +808,7 @@ Function ConvertFrom-SCM
     Clear-ProcessingHistory
     
     # Create the Configuration String
-    $ConfigString = Write-DSCString -Configuration -Name DSCFromSCM -Comment $BaselineComment
+    $ConfigString = Write-DSCString -Configuration -Name $ConfigName -Comment $BaselineComment
     # Add any resources
     $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
     # Add Node Data
@@ -876,7 +886,7 @@ Function ConvertFrom-SCM
     # Close out our configuration string.
     $ConfigString += Write-DSCString -CloseNodeBlock
     $ConfigString += Write-DSCString -CloseConfigurationBlock
-    $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromSCM -OutputPath $OutputPath
+    $ConfigString += Write-DSCString -InvokeConfiguration -Name $ConfigName -OutputPath $OutputPath
     
     # If the switch was specified.  Output a Configuration PS1 regardless of success/failure.
     if ($OutputConfigurationScript)
@@ -886,7 +896,7 @@ Function ConvertFrom-SCM
             mkdir $OutputPath
         }
 
-        $Scriptpath = Join-Path $OutputPath "DSCFromSCM.ps1"
+        $Scriptpath = Join-Path $OutputPath "$ConfigName.ps1"
         $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
     }
 
@@ -956,7 +966,10 @@ function ConvertFrom-ASC
 
         [string]$BaselineName,
 
-        [switch]$ShowPesterOutput
+        [switch]$ShowPesterOutput,
+
+        # Specifies the name of the Configuration to create
+        [string]$ConfigName = 'DSCFromASC' 
     )
 
     <# Removing temporarily for presentation
@@ -1025,7 +1038,7 @@ function ConvertFrom-ASC
         Clear-ProcessingHistory
     
         # Create the Configuration String
-        $ConfigString = Write-DSCString -Configuration -Name DSCFromASC
+        $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add any resources
         $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
         # Add Node Data
@@ -1100,7 +1113,7 @@ function ConvertFrom-ASC
         # Close out the Configuration block.
         $ConfigString += Write-DSCString -CloseNodeBlock
         $ConfigString += Write-DSCString -CloseConfigurationBlock
-        $ConfigString += Write-DSCString -InvokeConfiguration -Name DSCFromASC -OutputPath $OutputPath
+        $ConfigString += Write-DSCString -InvokeConfiguration -Name $ConfigName -OutputPath $OutputPath
     
         # If the switch was specified, output a Configuration Script regardless of success/failure.
         if ($OutputConfigurationScript)
@@ -1110,7 +1123,7 @@ function ConvertFrom-ASC
                 mkdir $OutputPath
             }
         
-            $Scriptpath = Join-Path $OutputPath "DSCFromASC.ps1"
+            $Scriptpath = Join-Path $OutputPath "$ConfigName.ps1"
             $ConfigString | Out-File -FilePath $Scriptpath -Force -Encoding Utf8
         }
 
@@ -1134,7 +1147,7 @@ function ConvertFrom-ASC
         }
         else
         {
-            Get-Item $(Join-Path -Path $OutputPath -ChildPath "DSCFromASC.ps1.error")
+            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ConfigName.ps1.error")
         }
     }
 }
