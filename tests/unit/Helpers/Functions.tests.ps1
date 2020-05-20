@@ -10,7 +10,7 @@ $Enumerations = Get-Item -Path (Join-Path -Path $script:SourceRoot -ChildPath "H
 . $Functions.FullName
 . $Enumerations.FullName
 
-Import-Module PSDesiredStateConfiguration -Force
+Import-Module PSDscResoures -Force
 
 Describe "DSC String Helper Tests" {
     Context "Write-DSCString" {
@@ -20,7 +20,7 @@ Describe "DSC String Helper Tests" {
         Mock Get-DSCResource -ParameterFilter { $Module -eq "TestModule_02"} -Verifiable { return [psobject]@{Name="TestResource_02";Properties=@(@{Name="Name";IsMandatory=$true}, @{Name="Value";IsMandatory=$true})}}
 
         $CONFIG_Params = @{Configuration=$true;Name="TestConfig"}
-        $CONFIG_ModuleParams = @{ModuleName = @("PSDesiredStateConfiguration");ModuleImport=$true}
+        $CONFIG_ModuleParams = @{ModuleName = @("PSDscResoures");ModuleImport=$true}
         $CONFIG_Node = @{Node=$true;Name="localhost"}
         $CONFIG_ResourceParams = @{Resource=$true;Type="Registry";Name="Test";Parameters=@{Key="HKLM:\SOFTWARE";ValueName = "TestResource";ValueData="Test";ValueType="DWORD" }}
         $CONFIG_Invoke = @{InvokeConfiguration=$true;Name="TestConfig";OutputPath=$(Join-Path -Path "C:\Temp" -ChildPath Output)}
@@ -98,7 +98,7 @@ Describe "DSC String Helper Tests" {
         $Configuration = @"
 Configuration PesterTest
 {
-    Import-DSCResource -ModuleName PSDesiredStateConfiguration
+    Import-DSCResource -ModuleName PSDscResoures
     Node localhost
     {
         Service Spooler
@@ -114,7 +114,7 @@ PesterTest -OutputPath $($script:TestSourceRoot)
         $Configuration_ERROR = @"
 Configuration PesterTest
 {
-    Import-DSCResource -ModuleName PSDesiredStateConfiguration
+    Import-DSCResource -ModuleName PSDscResoures
     Node localhost
     {
         Service Spooler

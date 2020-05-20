@@ -94,7 +94,7 @@ Configuration Sample_cNtfsPermissionEntry
     )
 
     Import-DscResource -ModuleName cNtfsAccessControl
-    Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName PSDscResoures
 
     File TestDirectory
     {
@@ -186,7 +186,7 @@ Configuration Sample_cNtfsPermissionsInheritance
     )
 
     Import-DscResource -ModuleName cNtfsAccessControl
-    Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName PSDscResoures
 
     File TestDirectory
     {
