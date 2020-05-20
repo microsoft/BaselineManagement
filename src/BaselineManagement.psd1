@@ -12,7 +12,7 @@
 RootModule = 'BaselineManagement.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.9.0'
+ModuleVersion = '2.10.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -51,9 +51,10 @@ PowerShellVersion = '5.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0.0'; },
-               @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '2.8.0.0'; },
-               @{ModuleName = 'GPRegistryPolicyParser'; ModuleVersion = '0.2'; })
+RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0'; },
+               @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '2.10.0'; },
+               @{ModuleName = 'GPRegistryPolicyParser'; ModuleVersion = '0.2'; },
+               @{ModuleName = 'PSDscResoureces'; ModuleVersion = '2.12.0'})
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -98,13 +99,13 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('DesiredStateConfiguration','DSC','GuestConfiguration','GroupPolicy')
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/microsoft/BaselineManagement/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/microsoft/baselinemanagement'
 
         # A URL to an icon representing this module.
         # IconUri = ''
