@@ -372,6 +372,7 @@ Function Write-GPORegistryPOLData
     {
         $regHash.ValueData = $Data.ValueData
     }
+    $regHash.Force = $true
 
     Update-RegistryHashtable $regHash
     
