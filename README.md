@@ -66,6 +66,7 @@ automatically installed:
 - SecurityPolicyDSC
 - AuditPolicyDSC
 - GPRegistrPolicyParser
+- PSDscResoureces
 
 To install the latest stable version, use the following command.
 

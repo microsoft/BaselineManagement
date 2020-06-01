@@ -7,6 +7,10 @@
 *.userosscache
 *.sln.docstates
 
+# Vagrant files for running Windows VMs on MacOS
+.vagrant/
+.vagrantfile
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

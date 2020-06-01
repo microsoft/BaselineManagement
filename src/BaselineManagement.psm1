@@ -172,7 +172,7 @@ function ConvertFrom-GPO
     Begin
     {
         # These are the DSC Resources needed for NON-preference based GPOS.
-        $NeededModules = 'PSDesiredStateConfiguration', 'AuditPolicyDSC', 'SecurityPolicyDSC', 'PowerShellAccessControl'
+        $NeededModules = 'PSDscResoures', 'AuditPolicyDSC', 'SecurityPolicyDSC', 'PowerShellAccessControl'
 
         # Start tracking Processing History.
         Clear-ProcessingHistory
@@ -810,7 +810,7 @@ Function ConvertFrom-SCM
     # Create the Configuration String
     $ConfigString = Write-DSCString -Configuration -Name $ConfigName -Comment $BaselineComment
     # Add any resources
-    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
+    $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDscResoures, AuditPolicyDSC, SecurityPolicyDSC
     # Add Node Data
     $ConfigString += Write-DSCString -Node -Name $ComputerName
 
@@ -1042,7 +1042,7 @@ function ConvertFrom-ASC
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add any resources
-        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
+        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDscResoures, AuditPolicyDSC, SecurityPolicyDSC
         # Add Node Data
         $ConfigString += Write-DSCString -Node -Name $computername
 
@@ -1464,7 +1464,7 @@ function ConvertFrom-Excel
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name DSCFromCSV
         # Add any resources
-        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDesiredStateConfiguration, AuditPolicyDSC, SecurityPolicyDSC
+        $ConfigString += Write-DSCString -ModuleImport -ModuleName PSDscResoures, AuditPolicyDSC, SecurityPolicyDSC
         # Add Node Data
         $ConfigString += Write-DSCString -Node -Name $computername
 
