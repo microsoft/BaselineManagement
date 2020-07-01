@@ -16,7 +16,7 @@ Configuration Sample_cNtfsPermissionEntry
     )
 
     Import-DscResource -ModuleName cNtfsAccessControl
-    Import-DscResource -ModuleName PSDscResoures
+    Import-DscResource -ModuleName PSDscResources
 
     File TestDirectory
     {

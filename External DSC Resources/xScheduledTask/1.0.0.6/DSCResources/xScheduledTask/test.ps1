@@ -1,7 +1,7 @@
 ﻿Configuration Test
 {
 	Import-DscResource -ModuleName xScheduledTask
-    Import-DscResource -ModuleName 'PSDscResoures'
+    Import-DscResource -ModuleName 'PSDscResources'
     Import-DSCResource -ModuleName 'AuditPolicyDSC'
     Import-DSCResource -ModuleName 'SecurityPolicyDSC'
     Import-DSCResource -ModuleName 'BaselineManagement'
