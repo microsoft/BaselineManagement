@@ -45,7 +45,8 @@ Function Write-GPOFileSecurityINFData
         return ""
     }
     
-    Write-DSCString -Resource -Name "ACL(INF): $($ACLhash.Path)" -Type NtfsAccessEntry -Parameters $aclHash
+    # Adding explanation to output, for not supported
+    Write-DSCString -Resource -Name "Access Control policies not yet implemented in Baseline Management v3 - ACL(INF): $($ACLhash.Path)" -Type NtfsAccessEntry -Parameters $aclHash
 }
 
 Function Write-GPORegistryACLINFData
@@ -78,5 +79,5 @@ Function Write-GPORegistryACLINFData
         return ""
     }
     
-    Write-DSCString -Resource -Name "ACL(INF): $($regHash.Path)" -Type RegistryAccessEntry -Parameters $regHash
+    Write-DSCString -Resource -Name "Access Control policies not yet implemented in Baseline Management v3 - ACL(INF): $($regHash.Path)" -Type RegistryAccessEntry -Parameters $regHash
 }

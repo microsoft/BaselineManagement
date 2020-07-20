@@ -119,11 +119,11 @@ Describe "DSC String Helper Tests" {
 
         It "Closes Node Blocks" {
               Write-DSCString -CloseNodeBlock | Should Match @"
-    RefreshRegistryPolicy 'ActivateClientSideExtension'
-    {
-        IsSingleInstance = 'Yes'
-    }
-}
+         RefreshRegistryPolicy 'ActivateClientSideExtension'
+         {
+             IsSingleInstance = 'Yes'
+         }
+     }
 "@
         }
 
