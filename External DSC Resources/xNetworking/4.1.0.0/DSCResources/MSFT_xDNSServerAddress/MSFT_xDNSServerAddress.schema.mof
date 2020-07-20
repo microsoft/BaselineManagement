@@ -1,8 +1,0 @@
-[ClassVersion("1.0.0"), FriendlyName("xDNSServerAddress")]
-class MSFT_xDNSServerAddress : OMI_BaseResource
-{
-    [Key, Description("Alias of the network interface for which the DNS server address is set.")] string InterfaceAlias;
-    [Key, Description("IP address family."), ValueMap{"IPv4", "IPv6"},Values{"IPv4", "IPv6"}] string AddressFamily;
-    [Required, Description("The desired DNS Server address(es).")] string Address[];
-    [Write, Description("Requires that the DNS Server addresses be validated if they are updated. It will cause the resouce to throw a 'A general error occurred that is not covered by a more specific error code.' error if set to True and specified DNS Servers are not accessible.")] boolean Validate;
-};

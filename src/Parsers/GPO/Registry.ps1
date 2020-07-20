@@ -96,7 +96,7 @@ Function Register-RegistryDELVALDependsOn
             $script:GlobalDependsOn += $Name
 
             # This is only a delete so return from here.
-            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+            return Write-DSCString -Resource -Name $Name -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$CommentOUT
         }
 
         "\*\*delvals\."
@@ -108,7 +108,7 @@ Function Register-RegistryDELVALDependsOn
 
             $script:GlobalDependsOn += $Name
             # This is only a delete so return from here.
-            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:(!$ExclusiveFlagAvailable)
+            return Write-DSCString -Resource -Name $Name -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:(!$ExclusiveFlagAvailable)
         }
 
         "\*\*DeleteValues"
@@ -122,7 +122,7 @@ Function Register-RegistryDELVALDependsOn
                 $script:GlobalDependsOn += $Name
 
                 # This is only a delete so return from here.
-                Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+                Write-DSCString -Resource -Name $Name -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$CommentOUT
             }
 
             return
@@ -139,7 +139,7 @@ Function Register-RegistryDELVALDependsOn
                 $script:GlobalDependsOn += $Name
 
                 # This is only a delete so return from here.
-                Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+                Write-DSCString -Resource -Name $Name -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$CommentOUT
             }
 
             return
@@ -150,7 +150,7 @@ Function Register-RegistryDELVALDependsOn
             $Name = "SECUREKEY_$($regHash.Key)"
 
             # This is only a delete so return from here.
-            return Write-DSCString -Resource -Name $Name  -Type Registry -Parameters $regHash -CommentOUT:$true
+            return Write-DSCString -Resource -Name $Name -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$true
         }
     }
 
@@ -251,7 +251,7 @@ Function Update-RegistryHashtable
                         {
                             Write-Error "Error Processing Binary Data for Key ($(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName))"
                             $regHash.CommentOut = $true
-                            Add-ProcessingHistory -Type Registry -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
+                            Add-ProcessingHistory -Type 'RegistryPolicyFile' -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
                         }
                     }
                     else
@@ -295,47 +295,6 @@ $($regHash.ValueData)
     Resolve-RegistrySpecialCases $reghash
 }
 
-Function Write-GPORegistryXMLData
-{
-    [CmdletBinding()]
-    [OutputType([String])]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [System.Xml.XmlElement]$XML    
-    )
-    
-    $regHash = @{}
-    $regHash.ValueType = "None"
-    $regHash.ValueName = ""
-    $regHash.ValueData = ""
-    $regHash.Key = ""
-
-    $Properties = $XML.Properties
-
-    $regHash.ValueData = $Properties.Value 
-    $regHash.ValueName = $Properties.name
-    $regHash.ValueType = $Properties.Type
-
-    $CommentOUT = $false
-    switch ($Properties.hive)
-    {
-        "HKEY_LOCAL_MACHINE" { $regHash.Key = "HKLM:\" }
-        "HKEY_CURRENT_USER" 
-        { 
-            Write-Warning "Write-GPORegistryXMLData: Current User Registry settings are not yet supported."
-            $regHash.Key = "HKCU:\"
-            $CommentOUT = $true
-        }
-    }
-
-    $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Properties.Key
-
-    Update-RegistryHashtable $regHash
-        
-    Write-DSCString -Resource -Name "Registry(XML): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
-}
-
 Function Write-GPORegistryPOLData
 {
     [CmdletBinding()]
@@ -364,6 +323,10 @@ Function Write-GPORegistryPOLData
     $regHash.ValueName = $Data.ValueName
     $regHash.Key = Join-Path -Path $regHash.Key -ChildPath $Data.KeyName
     $regHash.ValueType = $Data.ValueType.ToString()
+    
+    # TODO this likely will need additional types in the future
+    $regHash.TargetType = 'ComputerConfiguration'
+
     if ($Data.ValueData -eq "$([char]0)")
     {
         $regHash.ValueData = $null
@@ -372,7 +335,6 @@ Function Write-GPORegistryPOLData
     {
         $regHash.ValueData = $Data.ValueData
     }
-    $regHash.Force = $true
 
     Update-RegistryHashtable $regHash
     
@@ -391,7 +353,7 @@ Function Write-GPORegistryPOLData
         $Comment = "`tThis MultiString Value has a value of `$null, `n`tSome Security Policies require Registry Values to be `$null`n`tIf you believe ' ' is the correct value for this string, you may change it here."
     }  
     
-    Write-DSCString -Resource -Name "Registry(POL): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT -Comment $Comment
+    Write-DSCString -Resource -Name "Registry(POL): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$CommentOUT -Comment $Comment
 }
 
 Function Write-GPORegistryINFData
@@ -414,6 +376,8 @@ Function Write-GPORegistryINFData
     $regHash.ValueName = ""
     $regHash.ValueData = ""
     $regHash.Key = ""
+    # TODO this likely will need additional types in the future
+    $regHash.TargetType = 'ComputerConfiguration'
 
     $CommentOUT = $false
 
@@ -464,7 +428,7 @@ Function Write-GPORegistryINFData
     {
         Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
         # Add this resource to the processing history.
-        Add-ProcessingHistory -Type Registry -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
+        Add-ProcessingHistory -Type 'RegistryPolicyFile' -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
         $CommentOUT = $true
     }
     
@@ -475,5 +439,5 @@ Function Write-GPORegistryINFData
         $regHash.Remove("CommentOut")
     }
     
-    Write-DSCString -Resource -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type Registry -Parameters $regHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$CommentOUT
 }

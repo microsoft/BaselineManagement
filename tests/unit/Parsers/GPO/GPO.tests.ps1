@@ -1,11 +1,34 @@
-$script:TestSourceRoot = "$PsScriptRoot"
-$script:UnitTestRoot = (Get-ParentItem -Path $script:TestSourceRoot -Filter "unit" -Recurse -Directory).FullName
-$script:SourceRoot = (Get-ParentItem -Path $script:TestSourceRoot -Filter "src" -Recurse -Directory).FullName
+Write-Host "`n"
+Write-Host "Paths" -ForegroundColor Green
+Write-Host "--------------------"
+Write-Host "PSScriptRoot: $PSScriptRoot"
+$script:UnitTestRoot = Get-Item $PSScriptRoot | ForEach-Object Parent | ForEach-Object Parent | ForEach-Object FullName
+Write-Host "UnitTestRoot: $script:UnitTestRoot"
+$script:SourceRoot = Join-Path -Path (get-item $script:UnitTestRoot | ForEach-Object Parent | ForEach-Object Parent | ForEach-Object FullName) -ChildPath 'src'
+Write-Host "SourceRoot: $script:SourceRoot"
 $script:ParsersRoot = "$script:SourceRoot\Parsers" 
+Write-Host "ParsersRoot: $script:ParsersRoot"
 $script:SampleRoot = "$script:UnitTestRoot\..\Samples"
+Write-Host "SampleRoot: $script:SampleRoot"
+Write-Host "`n"
+$SamplePOL = Join-Path $script:SampleRoot "Registry.Pol"
+$SampleGPTemp = Join-Path $script:SampleRoot "gptTmpl.inf"
+$SampleAuditCSV = Join-Path $script:SampleRoot "audit.csv"
 
-$me = Split-Path -Path $script:TestSourceRoot -Leaf
-$Parsers = Get-ChildItem -Filter '*.ps1' -Path (Join-Path -Path $script:ParsersRoot -ChildPath $me)
+$Parsers = Get-ChildItem -Filter '*.ps1' -Path $script:ParsersRoot/GPO
+
+Write-Host "Parsers" -ForegroundColor Green
+Write-Host "--------------------"
+foreach ($p in $Parsers) {Write-Host $p.Name"`t" -NoNewline}
+Write-Host "`n"
+
+Write-Host "Available DSC modules" -ForegroundColor Green
+Write-Host "--------------------"
+foreach ($m in (Get-DSCResource | % ModuleName | Select -Unique)) {
+    $r = Get-DSCResource -Module $m | % Name
+    Write-Host $m"`t("$r")"
+}
+Write-Host "`n"
 
 $Functions = Get-Item -Path (Join-Path -Path $script:SourceRoot -ChildPath "Helpers\Functions.ps1")
 $Enumerations = Get-Item -Path (Join-Path -Path $script:SourceRoot -ChildPath "Helpers\Enumerations.ps1")
@@ -17,51 +40,9 @@ foreach ($Parser in $Parsers)
     . $Parser.FullName
 }
 
-$SamplePOL = Join-Path $script:SampleRoot "Registry.Pol"
-$SampleGPTemp = Join-Path $script:SampleRoot "gptTmpl.inf"
-$SampleAuditCSV = Join-Path $script:SampleRoot "audit.csv"
-$SampleREGXML = Join-Path $script:SampleRoot "Registry.xml"
-
 Import-Module PSDesiredStateConfiguration -Force
 
-Write-Host -ForegroundColor White "GPO Parser Tests" 
-    
-Describe "Write-GPORegistryXMLData" {
-    Mock Write-DSCString -Verifiable { return @{} + $___BoundParameters___ } 
-
-    [xml]$RegistryXML = Get-Content $SampleREGXML
-
-    $Settings = $RegistryXML.RegistrySettings.Registry
-
-    It "Parses Registry XML" {
-        $Settings | Should Not Be $Null
-    }
-    
-    # Loop through every registry setting.
-    foreach ($Setting in $Settings)
-    {
-        $Parameters = Write-GPORegistryXMLData -XML $Setting
-        Context $Parameters.Name {
-            It "Parses Registry XML Data" {
-                If ($Parameters.CommentOut.IsPresent)
-                {
-                    Write-Host -ForegroundColor Green "This Resource was commented OUT for failure to adhere to Standards: Tests are Invalid"
-                }
-                else
-                {
-                    $Parameters.Type | Should Be "Registry"
-                    [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should Be $false
-                    Test-Path -Path $Parameters.Parameters.Key -IsValid | Should Be $true
-                    $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
-                    ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should Be $true
-                    Write-Host $Parameters.Parameter.ValueType
-                    $Parameters.Parameters.ValueData | Should BeOfType $TypeHash[$Parameters.Parameters.ValueType]
-                    [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
-                }
-            }
-        }
-    }
-}
+Write-Host "`nGPO Parser Tests" -ForegroundColor White
 
 Describe "Write-GPOAuditCSVData" {
     Mock Write-DSCString -Verifiable { return @{} + $___BoundParameters___ } 
@@ -82,29 +63,29 @@ Describe "Write-GPOAuditCSVData" {
             "Success and Failure"
             {
                 It "Parses SuccessAndFailure separately" {
-                    $Parameters.Count | Should Be 2
+                    $Parameters.Count | Should -Be 2
                 }
                                     
-                $Success = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Success"})
-                $Failure = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Failure"})
+                $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
+                $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
                 
                 Context $Success.Name {
                     It "Separates out the SuccessBlock" {
-                        $Success.Type | Should Be AuditPolicySubcategory
-                        $Success.Parameters.SubCategory | Should Be $Entry.Name
-                        $Success.Parameters.AuditFlag | Should Be "Success"
-                        $Success.Parameters.Ensure | Should Be "Present"
-                        [string]::IsNullOrEmpty($Success.Name) | Should Be $false
+                        $Success.Type | Should -Be AuditPolicySubcategory
+                        $Success.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Success.Parameters.AuditFlag | Should -Be "Success"
+                        $Success.Parameters.Ensure | Should -Be "Present"
+                        [string]::IsNullOrEmpty($Success.Name) | Should -Be $false
                     }
                 }
 
                 Context $Failure.Name {
                     It "Separates out the FailureBlock" {
-                        $Failure.Type | Should Be AuditPolicySubcategory
-                        $Failure.Parameters.SubCategory | Should Be $Entry.Name
-                        $Failure.Parameters.AuditFlag | Should Be "Failure"
-                        $Failure.Parameters.Ensure | Should Be "Present"
-                        [string]::IsNullOrEmpty($Failure.Name) | Should Be $false
+                        $Failure.Type | Should -Be AuditPolicySubcategory
+                        $Failure.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Failure.Parameters.AuditFlag | Should -Be "Failure"
+                        $Failure.Parameters.Ensure | Should -Be "Present"
+                        [string]::IsNullOrEmpty($Failure.Name) | Should -Be $false
                     }
                 }
             }
@@ -112,29 +93,29 @@ Describe "Write-GPOAuditCSVData" {
             "No Auditing"
             {
                 It "Parses NoAuditing separately" {
-                    $Parameters.Count | Should Be 2
+                    $Parameters.Count | Should -Be 2
                 }
                                     
-                $Success = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Success"})
-                $Failure = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Failure"})
+                $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
+                $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
                 
                 Context $Success.Name {
                     It "Separates out the SuccessBlock" {
-                        $Success.Type | Should Be AuditPolicySubcategory
-                        $Success.Parameters.SubCategory | Should Be $Entry.Name
-                        $Success.Parameters.AuditFlag | Should Be "Success"
-                        $Success.Parameters.Ensure | Should Be "Absent"
-                        [string]::IsNullOrEmpty($Success.Name) | Should Be $false
+                        $Success.Type | Should -Be AuditPolicySubcategory
+                        $Success.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Success.Parameters.AuditFlag | Should -Be "Success"
+                        $Success.Parameters.Ensure | Should -Be "Absent"
+                        [string]::IsNullOrEmpty($Success.Name) | Should -Be $false
                     }
                 }
 
                 Context $Failure.Name {
                     It "Separates out the FailureBlock" {
-                        $Failure.Type | Should Be AuditPolicySubcategory
-                        $Failure.Parameters.SubCategory | Should Be $Entry.Name
-                        $Failure.Parameters.AuditFlag | Should Be "Failure"
-                        $Failure.Parameters.Ensure | Should Be "Absent"
-                        [string]::IsNullOrEmpty($Failure.Name) | Should Be $false
+                        $Failure.Type | Should -Be AuditPolicySubcategory
+                        $Failure.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Failure.Parameters.AuditFlag | Should -Be "Failure"
+                        $Failure.Parameters.Ensure | Should -Be "Absent"
+                        [string]::IsNullOrEmpty($Failure.Name) | Should -Be $false
                     }
                 }
             }
@@ -142,29 +123,29 @@ Describe "Write-GPOAuditCSVData" {
             "^Success$"
             {
                 It "Creates an opposite Failure Entry for Succes" {
-                    $Parameters.Count | Should Be 2
+                    $Parameters.Count | Should -Be 2
                 }
                 
-                $Success = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Success"})
-                $Failure = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Failure"})
+                $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
+                $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
 
                 Context $Success.Name {
                     It "Creates the SuccessBlock" {
-                        $Success.Type | Should Be AuditPolicySubcategory
-                        $Success.Parameters.SubCategory | Should Be $Entry.Name
-                        $Success.Parameters.AuditFlag | Should Be "Success"
-                        $Success.Parameters.Ensure | Should Be "Present"
-                        [string]::IsNullOrEmpty($Success.Name) | Should Be $false
+                        $Success.Type | Should -Be AuditPolicySubcategory
+                        $Success.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Success.Parameters.AuditFlag | Should -Be "Success"
+                        $Success.Parameters.Ensure | Should -Be "Present"
+                        [string]::IsNullOrEmpty($Success.Name) | Should -Be $false
                     }
                 }
 
                 Context $Failure.Name {
                     It "Creates the FailureBlock" {
-                        $Failure.Type | Should Be AuditPolicySubcategory
-                        $Failure.Parameters.SubCategory | Should Be $Entry.Name
-                        $Failure.Parameters.AuditFlag | Should Be "Failure"
-                        $Failure.Parameters.Ensure | Should Be "Absent"
-                        [string]::IsNullOrEmpty($Failure.Name) | Should Be $false
+                        $Failure.Type | Should -Be AuditPolicySubcategory
+                        $Failure.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Failure.Parameters.AuditFlag | Should -Be "Failure"
+                        $Failure.Parameters.Ensure | Should -Be "Absent"
+                        [string]::IsNullOrEmpty($Failure.Name) | Should -Be $false
                     }
                 }
             }
@@ -172,29 +153,29 @@ Describe "Write-GPOAuditCSVData" {
             "^Failure$"
             {
                 It "Creates an opposite Success Entry for Failure" {
-                    $Parameters.Count | Should Be 2
+                    $Parameters.Count | Should -Be 2
                 }
                 
-                $Success = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Success"})
-                $Failure = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Failure"})
+                $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
+                $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
 
                 Context $Success.Name {
                     It "Creates the SuccessBlock" {
-                        $Success.Type | Should Be AuditPolicySubcategory
-                        $Success.Parameters.SubCategory | Should Be $Entry.Name
-                        $Success.Parameters.AuditFlag | Should Be "Success"
-                        $Success.Parameters.Ensure | Should Be "Absent"
-                        [string]::IsNullOrEmpty($Success.Name) | Should Be $false
+                        $Success.Type | Should -Be AuditPolicySubcategory
+                        $Success.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Success.Parameters.AuditFlag | Should -Be "Success"
+                        $Success.Parameters.Ensure | Should -Be "Absent"
+                        [string]::IsNullOrEmpty($Success.Name) | Should -Be $false
                     }
                 }
 
                 Context $Failure.Name {
                     It "Creates the FailureBlock" {
-                        $Failure.Type | Should Be AuditPolicySubcategory
-                        $Failure.Parameters.SubCategory | Should Be $Entry.Name
-                        $Failure.Parameters.AuditFlag | Should Be "Failure"
-                        $Failure.Parameters.Ensure | Should Be "Present"
-                        [string]::IsNullOrEmpty($Failure.Name) | Should Be $false
+                        $Failure.Type | Should -Be AuditPolicySubcategory
+                        $Failure.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Failure.Parameters.AuditFlag | Should -Be "Failure"
+                        $Failure.Parameters.Ensure | Should -Be "Present"
+                        [string]::IsNullOrEmpty($Failure.Name) | Should -Be $false
                     }
                 }
             }
@@ -205,29 +186,29 @@ Describe "Write-GPOAuditCSVData" {
             "Success and Failure"
             {
                 It "Parses SuccessAndFailure separately" {
-                    $Parameters.Count | Should Be 2
+                    $Parameters.Count | Should -Be 2
                 }
                                     
-                $Success = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Success"})
-                $Failure = $Parameters.Where( {$_.Parameters.AuditFlag -eq "Failure"})
+                $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
+                $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
                 
                 Context $Success.Name {
                     It "Separates out the SuccessBlock" {
-                        $Success.Type | Should Be AuditPolicySubcategory
-                        $Success.Parameters.SubCategory | Should Be $Entry.Name
-                        $Success.Parameters.AuditFlag | Should Be "Success"
-                        $Success.Parameters.Ensure | Should Be "Absent"
-                        [string]::IsNullOrEmpty($Success.Name) | Should Be $false
+                        $Success.Type | Should -Be AuditPolicySubcategory
+                        $Success.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Success.Parameters.AuditFlag | Should -Be "Success"
+                        $Success.Parameters.Ensure | Should -Be "Absent"
+                        [string]::IsNullOrEmpty($Success.Name) | Should -Be $false
                     }
                 }
 
                 Context $Failure.Name {
                     It "Separates out the FailureBlock" {
-                        $Failure.Type | Should Be AuditPolicySubcategory
-                        $Failure.Parameters.SubCategory | Should Be $Entry.Name
-                        $Failure.Parameters.AuditFlag | Should Be "Failure"
-                        $Failure.Parameters.Ensure | Should Be "Absent"
-                        [string]::IsNullOrEmpty($Failure.Name) | Should Be $false
+                        $Failure.Type | Should -Be AuditPolicySubcategory
+                        $Failure.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Failure.Parameters.AuditFlag | Should -Be "Failure"
+                        $Failure.Parameters.Ensure | Should -Be "Absent"
+                        [string]::IsNullOrEmpty($Failure.Name) | Should -Be $false
                     }
                 }
             }
@@ -241,11 +222,11 @@ Describe "Write-GPOAuditCSVData" {
             {
                 Context $Parameters.Name {
                     It "Parses Audit Data" {
-                        $Parameters.Type | Should Be AuditPolicySubcategory
-                        $Parameters.Parameters.SubCategory | Should Be $Entry.Name
-                        $Parameters.Parameters.AuditFlag | Should Be $_
-                        $Parameters.Ensure | Should Be "Absent"
-                        [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
+                        $Parameters.Type | Should -Be AuditPolicySubcategory
+                        $Parameters.Parameters.SubCategory | Should -Be $Entry.Name
+                        $Parameters.Parameters.AuditFlag | Should -Be $_
+                        $Parameters.Ensure | Should -Be "Absent"
+                        [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
                     }
                 }
             }
@@ -302,35 +283,35 @@ Describe "Write-GPORegistryPOLData" {
                 }
                 else
                 {
-                    $Parameters.Type | Should Be "Registry"
-                    Test-Path -Path $Parameters.Parameters.Key -IsValid | Should Be $true
-                    $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
+                    $Parameters.Type | Should -Be "RegistryPolicyFile"
+                    Test-Path -Path $Parameters.Parameters.Key -IsValid | Should -Be $true
+                    $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string] }
                     if ($Parameters.Name.StartsWith("DELVAL"))
                     {
                         if ($ExlusiveFlagAvailable)
                         {
-                            $Parameters.Parameters.Ensure | Should Be "Absent"
+                            $Parameters.Parameters.Ensure | Should -Be "Absent"
                         }
                         else
                         {
-                            $Parameters.CommentOUT | Should Be $True
+                            $Parameters.CommentOUT | Should -Be $True
                         }
                     }
                     elseif ($Parameters.Name.StartsWith("DEL"))
                     {
-                        $Parameters.Parameters.Ensure | Should Be "Absent"
+                        $Parameters.Parameters.Ensure | Should -Be "Absent"
                     }
                     elseif ($Parameters.Parameters.ContainsKey("ValueType"))
                     {
-                        ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should Be $true 
+                        ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should -Be $true 
                     }
                     
                     if ($Parameters.Parameters.ContainsKey("ValueData"))
                     {
-                        $Parameters.Parameters.ValueData | Should BeOfType $TypeHash[$Parameters.Parameters.ValueType]
+                        $Parameters.Parameters.ValueData | Should -BeOfType $TypeHash[$Parameters.Parameters.ValueType]
                     }
 
-                    [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
+                    [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
                 }
             }
         }
@@ -359,7 +340,7 @@ Describe "GPtTempl.INF Data" {
                     $Parameters = Write-GPOServiceINFData -Service $subkey -ServiceData $ini[$key][$subKey]
                     Context $Parameters.Name {    
                         It "Parses Service Data" {
-                            $Parameters.Type | Should Be "Service"
+                            $Parameters.Type | Should -Be "Service"
                         }
                     }
                 }
@@ -375,13 +356,13 @@ Describe "GPtTempl.INF Data" {
                             }
                             else
                             {
-                                $Parameters.Type | Should Be "Registry"
-                                [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should Be $false
-                                Test-Path -Path $Parameters.Parameters.Key -IsValid | Should Be $true
-                                $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string]}
-                                ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should Be $true
-                                $Parameters.Parameters.ValueData | Should BeOfType $TypeHash[$Parameters.Parameters.ValueType]
-                                [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
+                                $Parameters.Type | Should -Be "RegistryPolicyFile"
+                                [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should -Be $false
+                                Test-Path -Path $Parameters.Parameters.Key -IsValid | Should -Be $true
+                                $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string] }
+                                ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should -Be $true
+                                $Parameters.Parameters.ValueData | Should -BeOfType $TypeHash[$Parameters.Parameters.ValueType]
+                                [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
                             }
                         }
                     }
@@ -392,10 +373,10 @@ Describe "GPtTempl.INF Data" {
                     $Parameters = Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
                     Context $Parameters.Name {
                         It "Parses File ACL Data" {
-                            $Parameters.Type | Should Be cSecurityDescriptorSddl
-                            [String]::IsNullOrEmpty($Parameters.Parameters.sddl) | Should Be $false
-                            Test-PAth -Path "$($Parameters.Parameters.Path)" -IsValid | Should Be $true
-                            [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
+                            $Parameters.Type | Should -Be NtfsAccessEntry
+                            [String]::IsNullOrEmpty($Parameters.Parameters.sddl) | Should -Be $false
+                            Test-PAth -Path "$($Parameters.Parameters.Path)" -IsValid | Should -Be $true
+                            [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
                         }
                     }
                 }
@@ -405,9 +386,9 @@ Describe "GPtTempl.INF Data" {
                     $Parameters = Write-GPOPrivilegeINFData -Privilege $subkey -PrivilegeData $ini[$key][$subKey]
                     Context $Parameters.Name {
                         It "Parses Privilege Data" {
-                            $Parameters.Type | Should Be "UserRightsAssignment"
-                            [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
-                            $UserRightsHash.Values -contains $Parameters.Parameters.Policy | Should Be $true
+                            $Parameters.Type | Should -Be "UserRightsAssignment"
+                            [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
+                            $UserRightsHash.Values -contains $Parameters.Parameters.Policy | Should -Be $true
                         }
                     }
                 }
@@ -417,10 +398,10 @@ Describe "GPtTempl.INF Data" {
                     $Parameters = Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
                     Context $Parameters.Name {
                         It "Parses Kerberos Data" {
-                            $Parameters.Type | Should Be "SecuritySetting"
-                            [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
-                            $SecuritySettings -contains $Parameters.Parameters.Name | Should Be $true
-                            $Parameters.Parameters.ContainsKey($Parameters.Parameters.Name) | Should Be $true
+                            $Parameters.Type | Should -Be "SecuritySetting"
+                            [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
+                            $SecuritySettings -contains $Parameters.Parameters.Name | Should -Be $true
+                            $Parameters.Parameters.ContainsKey($Parameters.Parameters.Name) | Should -Be $true
                         }
                     }
                 }
@@ -431,10 +412,10 @@ Describe "GPtTempl.INF Data" {
                     
                     Context $Parameters.Name {
                         It "Parses Registry ACL Data" {
-                            [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
-                            Test-Path -Path $Parameters.Parameters.Path -IsValid | Should Be $true
-                            $Parameters.Parameters.ObjectType | Should Be "RegistryKey"
-                            [string]::IsNullOrEmpty($Parameters.Parameters.Sddl) | SHould Be $false
+                            [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
+                            Test-Path -Path $Parameters.Parameters.Path -IsValid | Should -Be $true
+                            $Parameters.Parameters.ObjectType | Should -Be "RegistryKey"
+                            [string]::IsNullOrEmpty($Parameters.Parameters.Sddl) | Should -Be $false
                         }
                     }
                 }
@@ -446,10 +427,10 @@ Describe "GPtTempl.INF Data" {
                     {
                         Context $Parameters.Name {                        
                             It "Parses System Access Settings" {
-                                $Parameters.Type | Should Be "SecuritySetting"
-                                [string]::IsNullOrEmpty($Parameters.Name) | Should Be $false
-                                $SecuritySettings -contains $Parameters.Parameters.Name | Should Be $true
-                                $Parameters.Parameters.ContainsKey($Parameters.Parameters.Name) | Should Be $true
+                                $Parameters.Type | Should -Be "SecuritySetting"
+                                [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
+                                $SecuritySettings -contains $Parameters.Parameters.Name | Should -Be $true
+                                $Parameters.Parameters.ContainsKey($Parameters.Parameters.Name) | Should -Be $true
                             }
                         }
                     }

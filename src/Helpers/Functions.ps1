@@ -7,10 +7,6 @@ $GlobalConflictEngine = @{}
 New-Variable -Name ProcessingHistory -Value @{} -Option AllScope -Scope Script -Force
 $ProcessingHistory = @{}
 
-# Global Flag to determine if correct Registry resource is available.
-New-Variable -Name ExclusiveFlagAvailable -Value $false -Option AllScope -Scope Script -Force
-$ExclusiveFlagAvailable = $false
-
 Function Add-ProcessingHistory
 {
     [CmdletBinding()]
@@ -64,18 +60,11 @@ Function Test-Conflicts
 
     $Conflict = @()
     $ResourceKeys = @()
+
+    # TODO Where does the conflict engine get set?
     # Determine if we have already processed a Resource Block of this type.
     if ($Script:GlobalConflictEngine.ContainsKey($Type))
     {
-        <#if (($Script:GlobalConflictEngine[$Type].Values | Where-Object {![string]::IsNullOrEmpty($_)}).Count -gt 0)
-        {
-            $ResourceNotFound = $false
-        }
-        else
-        {
-            $ResourceNotFound = $true
-        }#>
-
         # Loop through every Resource definition of this type.
         foreach ($hashtable in $Script:GlobalConflictEngine[$Type])
         {
@@ -85,7 +74,7 @@ Function Test-Conflicts
             # Loop through every Key/Value Pair in the Resource definition to see if they match the current one.
             foreach ($KeyPair in $hashtable.GetEnumerator())
             {
-                # Add the test result to our Conflict Array.
+                # Add the result to our Conflict Array.
                 $Conflict += $KeyPair.Value -eq $Resource[$KeyPair.Name]
                 # Need to store which Key/Value Pairs we checked.
                 $ResourceKeys += $KeyPair.Name
@@ -248,15 +237,21 @@ Function Write-DSCStringKeyPair
 }
 
 
+<#
+This is the function that makes it all go. It has a variety of parameter sets
+which can be tricky to use. Each of the Switches tell the function what type of
+Code block it is creating. The additional parameters to the set are what
+determine the contents of the block. This Function takes the input and properly
+formats it with Tabs and Newlines so it looks properly formatted.
 
-# This is the function that makes it all go. It has a variety of parameter sets which can be tricky to use.
-# Each of the Switches tell the function what type of Code block it is creating.
-# The additional parameters to the set are what determine the contents of the block.
-# This Function takes the input and properly formats it with Tabs and Newlines so it looks properly formatted.
-# It also has a built in Conflict detection engine.
-# If it detects that a Resource with the Same REQUIRED values was already processed it will COMMENT OUT subsequent resource blocks with the same values.
-# The Function also has logic to arbitrarily comment out a resource block if necessary (like disabled resources).
-# The function also provides functionality to comment Code Blocks if comments are available.
+It also has a built in Conflict detection engine. If it detects that a Resource
+with the Same REQUIRED values was already processed it will COMMENT OUT
+subsequent resource blocks with the same values.
+
+The function has logic to arbitrarily comment out a resource block if
+necessary (like disabled resources). The function also provides functionality to
+comment Code Blocks if comments are available.
+#>
 Function Write-DSCString
 {
     [CmdletBinding()]
@@ -376,16 +371,11 @@ Configuration $Name`n{`n`n`t
                         $tmpHash = @{}
                         $r.Properties.Where( {$_.IsMandatory}) | ForEach-Object { $tmpHash[$_.Name] = ""}
                         $Script:GlobalConflictEngine[$r.Name] += $tmpHash
-
-                        if ($r.Name -eq "Registry" -and $r.ModuleName -eq "PSDesiredStateConfiguration")
-                        {
-                            $script:ExclusiveFlagAvailable = $r.Properties.Name -contains 'Exclusive'
-                        }
                     }
                 }
                 else
                 {
-                    #Write-Warning "Write-DSCString: Module ($m) not found on System.  Please re-run conversion when module is available."
+                    Write-Warning "Write-DSCString: Module ($m) not found on System.  Please re-run conversion when module is available."
                     $ModuleNotFound += $m
                 }
             }
@@ -405,12 +395,20 @@ Configuration $Name`n{`n`n`t
         }
         "Node" { $DSCString = "Node $Name`n`t{`n" }
         "InvokeConfiguration" { $DSCString = "$Name -OutputPath '$($OutputPath)'" }
-        "CloseNodeBlock" { $DSCString = "`t}" }
+        "CloseNodeBlock" { $DSCString = @"
+         RefreshRegistryPolicy 'ActivateClientSideExtension'
+         {
+             IsSingleInstance = 'Yes'
+         }
+     }
+"@
+        }
         "CloseConfigurationBlock" { $DSCString = "`n}`n" }
         "Resource"
         {
             $Tabs = 2
             $DSCString = ""
+
             # A Condition was specified for this resource block.
             if ($PSBoundParameters.ContainsKey("Condition"))
             {
@@ -418,7 +416,7 @@ Configuration $Name`n{`n`n`t
                 $Tabs++
             }
 
-            # Variables to be used for commeting out resource if necessary.
+            # Variables to be used for commenting out resource if necessary.
             $CommentStart = ""
             $CommentEnd = ""
 
@@ -465,7 +463,7 @@ Configuration $Name`n{`n`n`t
                 $DSCString += Write-DSCStringKeyPair -Key $key -Value $Parameters[$key] -Tabs $Tabs
             }
             $Tabs--
-            $DSCString += "`n`n$(Get-Tabs $Tabs)}$CommentEnd"
+            $DSCString += "`n$(Get-Tabs $Tabs)}$CommentEnd"
 
             if ($PSBoundParameters.ContainsKey("Condition"))
             {
@@ -531,7 +529,6 @@ function Get-IniContent
     }
     return $ini
 }
-
 
 Function Complete-Configuration
 {
@@ -809,56 +806,3 @@ Function Write-ProcessingHistory_NonPester
     Write-Host "______________________" -ForegroundColor White
     Write-Host "TOTAL: $($successes + $disabled + $conflict + $resourcenotfound + $parsingerror)" -ForegroundColor White
 }
-#endregion
-#region XML Helpers
-Function Get-NodeComments
-{
-    [CmdletBinding()]
-    [OutputType([string])]
-    param
-    (
-        [Parameter(Mandatory=$true)]
-        [System.XML.XmlElement]$Node
-    )
-
-    # Grab all of the comments.
-    $Setting = "../.."
-    $ProductInfo = $node.SelectNodes($Setting).Content.ProductInfo
-    $Comments = $ProductInfo | Out-String
-    $Comments = $Comments -replace ": ProductRef", ": $($ProductInfo.ProductRef.product_ref)"
-    $Comments = ($Comments -replace "ManualTestProcedure :", "") -replace "ValueRange          : ValueRange", ""
-    $Comments = $Comments -replace ": CCEID-50", ": $($ProductInfo.'CCEID-50'.ID)"
-    $Comments = $Comments.Trim()
-    <# This is how to get string data into object format.
-        (((($Comments -replace ": ", "= '") -replace "(`n)([A-Z])", ("'`$1" + '$2')) + '"') -replace "`n[^A-Z]", "") -replace "\\", "\\" | ConvertFrom-StringData
-    #>
-
-    return $Comments
-}
-
-# Reverse function to get StringData Object from Comments String output of Get-NodeComments.
-Function Get-NodeDataFromComments
-{
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory=$true)]
-        [String]$Comments
-    )
-
-    Try
-    {
-        $comments = $comments -replace "[^\u0000-\u007F]", ""
-        $comments = ((((($Comments -replace "(?m)^([^ ]*)\s*:\s?", "`$1 = '") -replace "(?m)^[^A-Z]*`$`n", "") -replace "(?m)`$(`n)([A-Z])", ("'`$1" + '$2')) + '"')) -replace "\\", "\\"
-        $tmpComments = $Comments -split "'`n"
-        $Comments = ($tmpComments | ForEach-Object{ (($_ -replace "`n", "") + "'") -replace "'", "" }) -join "`n"
-        $object = $comments | ConvertFrom-StringData
-    }
-    Catch
-    {
-        Write-Error "Cannot convert COMMENT Data"
-    }
-
-    return $object
-}
-#endregion

@@ -9,7 +9,12 @@
 
 # Vagrant files for running Windows VMs on MacOS
 .vagrant/
-.vagrantfile
+vagrantfile
+VagrantRun.ps1
+
+# test files
+policyfiles/
+TestOutput/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
