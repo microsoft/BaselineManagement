@@ -41,11 +41,11 @@ Function Write-GPOFileSecurityINFData
     else
     {
         Write-Error "Cannot Parse $ACLData for $Path"
-        Add-ProcessingHistory -Type cSecurityDescriptorSddl -Name "ACL(INF): $($ACLhash.Path)" -ParsingError
+        Add-ProcessingHistory -Type NtfsAccessEntry -Name "ACL(INF): $($ACLhash.Path)" -ParsingError
         return ""
     }
     
-    Write-DSCString -Resource -Name "ACL(INF): $($ACLhash.Path)" -Type cSecurityDescriptorSddl -Parameters $aclHash
+    Write-DSCString -Resource -Name "ACL(INF): $($ACLhash.Path)" -Type NtfsAccessEntry -Parameters $aclHash
 }
 
 Function Write-GPORegistryACLINFData
@@ -74,9 +74,9 @@ Function Write-GPORegistryACLINFData
     else
     {
         Write-Error "Cannot parse $ACLData for $Key"
-        Add-ProcessingHistory -Type cSecurityDescriptorSddl -Name "ACL(INF): $($regHash.Path)" -ParsingError
+        Add-ProcessingHistory -Type RegistryAccessEntry -Name "ACL(INF): $($regHash.Path)" -ParsingError
         return ""
     }
     
-    Write-DSCString -Resource -Name "ACL(INF): $($regHash.Path)" -Type cSecurityDescriptorSddl -Parameters $regHash
+    Write-DSCString -Resource -Name "ACL(INF): $($regHash.Path)" -Type RegistryAccessEntry -Parameters $regHash
 }

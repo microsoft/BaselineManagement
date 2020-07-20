@@ -53,7 +53,8 @@ PowerShellVersion = '5.0'
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0'; },
                @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '2.10.0'; },
-               @{ModuleName = 'GPRegistryPolicyDSC'; ModuleVersion = '1.2.0'; }
+               @{ModuleName = 'GPRegistryPolicyDSC'; ModuleVersion = '1.2.0'; },
+               @{ModuleName = 'AccessControlDSC'; ModuleVersion = '1.4.0.0'; }
 )
 
 # Assemblies that must be loaded prior to importing this module

@@ -123,7 +123,7 @@ function ConvertFrom-GPO
     Begin
     {
         # These are the DSC Resources needed for NON-preference based GPOS.
-        $NeededModules = 'GPRegistryPolicyDsc', 'AuditPolicyDSC', 'SecurityPolicyDSC', 'PowerShellAccessControl'
+        $NeededModules = 'GPRegistryPolicyDsc', 'AuditPolicyDSC', 'SecurityPolicyDSC', 'AccessControlDSC'
 
         # Start tracking Processing History.
         Clear-ProcessingHistory

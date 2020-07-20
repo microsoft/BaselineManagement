@@ -373,7 +373,7 @@ Describe "GPtTempl.INF Data" {
                     $Parameters = Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
                     Context $Parameters.Name {
                         It "Parses File ACL Data" {
-                            $Parameters.Type | Should -Be cSecurityDescriptorSddl
+                            $Parameters.Type | Should -Be NtfsAccessEntry
                             [String]::IsNullOrEmpty($Parameters.Parameters.sddl) | Should -Be $false
                             Test-PAth -Path "$($Parameters.Parameters.Path)" -IsValid | Should -Be $true
                             [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false

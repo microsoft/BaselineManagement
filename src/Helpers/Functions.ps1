@@ -396,12 +396,11 @@ Configuration $Name`n{`n`n`t
         "Node" { $DSCString = "Node $Name`n`t{`n" }
         "InvokeConfiguration" { $DSCString = "$Name -OutputPath '$($OutputPath)'" }
         "CloseNodeBlock" { $DSCString = @"
-`n
-    RefreshRegistryPolicy 'ActivateClientSideExtension'
-    {
-        IsSingleInstance = 'Yes'
+        RefreshRegistryPolicy 'ActivateClientSideExtension'
+        {
+            IsSingleInstance = 'Yes'
+        }
     }
-}
 "@
         }
         "CloseConfigurationBlock" { $DSCString = "`n}`n" }
