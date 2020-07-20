@@ -12,7 +12,7 @@
 RootModule = 'BaselineManagement.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.10.0'
+ModuleVersion = '3.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -53,8 +53,8 @@ PowerShellVersion = '5.0'
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0'; },
                @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '2.10.0'; },
-               @{ModuleName = 'GPRegistryPolicyParser'; ModuleVersion = '0.2'; },
-               @{ModuleName = 'PSDscResources'; ModuleVersion = '2.12.0'})
+               @{ModuleName = 'GPRegistryPolicyDSC'; ModuleVersion = '1.2.0'; }
+)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -69,20 +69,19 @@ RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0'; },
 # FormatsToProcess = @()
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-NestedModules = @("./Menus/Menu.psm1")
+# NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'ConvertFrom-SCM', 'ConvertFrom-ASC', 'ConvertFrom-GPO',
-               'ConvertTo-DSC', 'ConvertFrom-Excel', 'Merge-GPOs', 'Show-Menu', 'Show-Dialog'
+FunctionsToExport = 'ConvertFrom-GPO', 'ConvertTo-DSC', 'Merge-GPOs'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = @()
+# CmdletsToExport = @()
 
 # Variables to export from this module
-VariablesToExport = '*'
+# VariablesToExport = '*'
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+# AliasesToExport = @()
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -111,7 +110,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'https://github.com/microsoft/BaselineManagement/blob/master/changelog.md'
 
     } # End of PSData hashtable
 

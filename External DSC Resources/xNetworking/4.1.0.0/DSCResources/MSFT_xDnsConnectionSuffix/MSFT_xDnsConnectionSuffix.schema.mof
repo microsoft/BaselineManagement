@@ -1,9 +1,0 @@
-[ClassVersion("1.0.0"), FriendlyName("xDnsConnectionSuffix")]
-class MSFT_xDnsConnectionSuffix : OMI_BaseResource
-{
-    [Key, Description("Alias of the network interface for which the DNS server address is set.")] String InterfaceAlias;
-    [Required, Description("DNS connection-specific suffix to assign to the network interface.")] String ConnectionSpecificSuffix;
-    [Write, Description("Specifies that the IP address for this connection is to be registered.")] Boolean RegisterThisConnectionsAddress;
-    [Write, Description("Specifies that this host name and the connection specific suffix for this connection are to be registered.")] Boolean UseSuffixWhenRegistering;
-    [Write, Description("Ensure that the network interface connection-specific suffix is present or not."), ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] String Ensure;
-};

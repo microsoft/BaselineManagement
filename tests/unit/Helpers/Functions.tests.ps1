@@ -1,8 +1,37 @@
-$script:TestSourceRoot = "$PsScriptRoot"
-$script:UnitTestRoot = (Get-ParentItem -Path $script:TestSourceRoot -Filter "unit" -Recurse -Directory).FullName
-$script:SourceRoot = (Get-ParentItem -Path $script:TestSourceRoot -Filter "src" -Recurse -Directory).FullName
+Write-Host "`n"
+Write-Host "Paths" -ForegroundColor Green
+Write-Host "--------------------"
+Write-Host "PSScriptRoot: $PSScriptRoot"
+$script:UnitTestRoot = Get-Item $PSScriptRoot | ForEach-Object Parent | ForEach-Object FullName
+Write-Host "UnitTestRoot: $script:UnitTestRoot"
+$script:SourceRoot = Join-Path -Path (get-item $script:UnitTestRoot | ForEach-Object Parent | ForEach-Object Parent | ForEach-Object FullName) -ChildPath 'src'
+Write-Host "SourceRoot: $script:SourceRoot"
+$script:TestOutputRoot = Join-Path -Path (get-item $script:UnitTestRoot | ForEach-Object Parent | ForEach-Object FullName) -ChildPath 'output'
+Write-Host "TestOutputRoot: $script:TestOutputRoot"
 $script:ParsersRoot = "$script:SourceRoot\Parsers" 
-$script:SampleRoot = "$script:UnitTestRoot\Samples"
+Write-Host "ParsersRoot: $script:ParsersRoot"
+$script:SampleRoot = "$script:UnitTestRoot\..\Samples"
+Write-Host "SampleRoot: $script:SampleRoot"
+Write-Host "`n"
+
+$SamplePOL = Join-Path $script:SampleRoot "Registry.Pol"
+$SampleGPTemp = Join-Path $script:SampleRoot "gptTmpl.inf"
+$SampleAuditCSV = Join-Path $script:SampleRoot "audit.csv"
+
+$Parsers = Get-ChildItem -Filter '*.ps1' -Path $script:ParsersRoot/GPO
+
+Write-Host "Parsers" -ForegroundColor Green
+Write-Host "--------------------"
+foreach ($p in $Parsers) {Write-Host $p.Name"`t" -NoNewline}
+Write-Host "`n"
+
+Write-Host "Available DSC modules" -ForegroundColor Green
+Write-Host "--------------------"
+foreach ($m in (Get-DSCResource | % ModuleName | Select -Unique)) {
+    $r = Get-DSCResource -Module $m | % Name
+    Write-Host $m"`t("$r")"
+}
+Write-Host "`n"
 
 $Functions = Get-Item -Path (Join-Path -Path $script:SourceRoot -ChildPath "Helpers\Functions.ps1")
 $Enumerations = Get-Item -Path (Join-Path -Path $script:SourceRoot -ChildPath "Helpers\Enumerations.ps1")
@@ -10,7 +39,11 @@ $Enumerations = Get-Item -Path (Join-Path -Path $script:SourceRoot -ChildPath "H
 . $Functions.FullName
 . $Enumerations.FullName
 
-Import-Module PSDscResources -Force
+Import-Module PSDesiredStateConfiguration -Force
+
+if (!(Test-Path $script:TestOutputRoot)) {
+    mkdir $script:TestOutputRoot
+}
 
 Describe "DSC String Helper Tests" {
     Context "Write-DSCString" {
@@ -20,9 +53,9 @@ Describe "DSC String Helper Tests" {
         Mock Get-DSCResource -ParameterFilter { $Module -eq "TestModule_02"} -Verifiable { return [psobject]@{Name="TestResource_02";Properties=@(@{Name="Name";IsMandatory=$true}, @{Name="Value";IsMandatory=$true})}}
 
         $CONFIG_Params = @{Configuration=$true;Name="TestConfig"}
-        $CONFIG_ModuleParams = @{ModuleName = @("PSDscResources");ModuleImport=$true}
+        $CONFIG_ModuleParams = @{ModuleName = @("GPRegistryPolicyDSC");ModuleImport=$true}
         $CONFIG_Node = @{Node=$true;Name="localhost"}
-        $CONFIG_ResourceParams = @{Resource=$true;Type="Registry";Name="Test";Parameters=@{Key="HKLM:\SOFTWARE";ValueName = "TestResource";ValueData="Test";ValueType="DWORD" }}
+        $CONFIG_ResourceParams = @{Resource=$true;Type="RegistryPolicyFile";Name="Test";Parameters=@{Key="HKLM:\SOFTWARE";ValueName = "TestResource";ValueData="Test";ValueType="DWORD" }}
         $CONFIG_Invoke = @{InvokeConfiguration=$true;Name="TestConfig";OutputPath=$(Join-Path -Path "C:\Temp" -ChildPath Output)}
         
         It "Creates a Configuration Open Block" {
@@ -85,7 +118,13 @@ Describe "DSC String Helper Tests" {
         }
 
         It "Closes Node Blocks" {
-            Write-DSCString -CloseNodeBlock | Should Match "`t}"
+              Write-DSCString -CloseNodeBlock | Should Match @"
+    RefreshRegistryPolicy 'ActivateClientSideExtension'
+    {
+        IsSingleInstance = 'Yes'
+    }
+}
+"@
         }
 
         It "Creates Invoke Configuration Strings" {
@@ -98,37 +137,54 @@ Describe "DSC String Helper Tests" {
         $Configuration = @"
 Configuration PesterTest
 {
-    Import-DSCResource -ModuleName PSDscResources
+    Import-DSCResource -ModuleName GPRegistryPolicyDSC
     Node localhost
     {
-        Service Spooler
+        RegistryPolicyFile 'Integration_Test_Disable_SMB1'
         {
-            Name = 'Spooler'
-            State = 'Running'
+            Key        = 'SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters'
+            TargetType = 'ComputerConfiguration'
+            ValueName  = 'SMB1'
+            ValueData  = 1
+            ValueType  = 'DWORD'
+        }
+
+        RefreshRegistryPolicy 'Integration_Test_RefreshAfter_SMB1'
+        {
+            IsSingleInstance = 'Yes'
         }
     }
 }
 
-PesterTest -OutputPath $($script:TestSourceRoot)
+PesterTest -OutputPath $($script:TestOutputRoot)
 "@
         $Configuration_ERROR = @"
 Configuration PesterTest
 {
-    Import-DSCResource -ModuleName PSDscResources
+    Import-DSCResource -ModuleName GPRegistryPolicyDSC
     Node localhost
     {
-        Service Spooler
+        RegistryPolicyFile 'Integration_Test_Disable_SMB1'
         {
-            State = 'Running'
+            Key        = 'SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters'
+            # TargetType
+            ValueName  = 'SMB1'
+            ValueData  = 1
+            ValueType  = 'DWORD'
+        }
+
+        RefreshRegistryPolicy 'Integration_Test_RefreshAfter_SMB1'
+        {
+            IsSingleInstance = 'Yes'
         }
     }
 }
 
-PesterTest -OutputPath $($script:TestSourceRoot)
+PesterTest -OutputPath $($script:TestOutputRoot)
 "@
         It "Compiles a Configuration" {
-            Complete-Configuration -ConfigString $Configuration -OutputPath $script:TestSourceRoot
-            $MOF = (Join-Path -Path $script:TestSourceRoot -ChildPath "localhost.mof")
+            Complete-Configuration -ConfigString $Configuration -OutputPath $script:TestOutputRoot
+            $MOF = (Join-Path -Path $script:TestOutputRoot -ChildPath "localhost.mof")
             $MOF | Should Exist
             Remove-Item $MOF 
         }
@@ -136,7 +192,7 @@ PesterTest -OutputPath $($script:TestSourceRoot)
         It "Creates Error files on Failure" {
             Try
             {
-                Complete-Configuration -ConfigString $Configuration_ERROR -OutputPath $script:TestSourceRoot -ErrorAction SilentlyContinue
+                Complete-Configuration -ConfigString $Configuration_ERROR -OutputPath $script:TestOutputRoot -ErrorAction SilentlyContinue
             }
             Catch
             {
@@ -144,7 +200,7 @@ PesterTest -OutputPath $($script:TestSourceRoot)
                 
             }
 
-            $ErrorFile = (Join-Path -Path $script:TestSourceRoot -ChildPath "PesterTest.ps1.error")
+            $ErrorFile = (Join-Path -Path $script:TestOutputRoot -ChildPath "PesterTest.ps1.error")
             $ErrorFile | Should Exist
             Remove-Item $ErrorFile
         }

@@ -18,3 +18,5 @@ Add pester tests for Write-DSCSTring and Write-DSCSTringKeyPair to make sure the
 Centralize Registry Checks into Function (ValueType switch, Int Parsing etc.)
 Create Tabber inline function for tabbign out strings.
 Wrap all parsing functions in try catch
+
+Remove comment parsing that was available for ASC/SCM

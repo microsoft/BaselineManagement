@@ -1,13 +1,12 @@
 # BaselineManagement
 
+**NOTE:** Beginning with version 3.0.0, this module now only supports conversion from Group Policy format. If conversion from ASC or SCM formats is needed, please install version 2.x from the PowerShell Gallery.
+
 This solution is built off [GPRegistryParser](https://github.com/PowerShell/GPRegistryPolicyParser).
 
 This solution contains cmdlets for converting baselines into Desired State Configuration.
 
 - ConvertFrom-GPO - Converts from GPO Backups into DSC Configuration and accompanying MOF.
-- ConvertFrom-SCM - Converts from SCM `.xml` files into DSC Configuration and accompanying MOF.
-- ConvertFrom-ASC - Converts from Azure Security Center `.json` files into DSC Configuration and accompanying MOF.
-
 - ConvertTo-DSC - "proxy" cmdlet that allows you to pass any of the baselines in and then automatically chooses the correct cmdlet for you.
 
 All of the Cmdlets accept pipeline input and have accompanying help text and examples.
@@ -41,19 +40,6 @@ The tool also has a conflict resolution engine that will automatically comment o
     }
 ```
 
-The same engine will also comment out resources that are marked as DISABLED in SCM baselines.
-
-If comments are available they will be parsed and added above corresponding resources.
-
-- SCM `.xml` - Comments will be parsed
-- ASC `.json` - Comments will NOT be parsed
-- GPO - Comments will NOT be parsed
-
-This tool was designed for two main purposes.
-
-- Allow conversion of GPOS into DSC for application or auditing.
-- Allow remediation of SCM/ASC baselines.
-
 The tool has been thoroughly tested, but needs to be run against a variety of baselines to ensure they are parsed correctly.
 
 If you have any issues, please submit them and I will get to them as I am able :-)
@@ -66,7 +52,6 @@ automatically installed:
 - SecurityPolicyDSC
 - AuditPolicyDSC
 - GPRegistrPolicyParser
-- PSDscResoureces
 
 To install the latest stable version, use the following command.
 
