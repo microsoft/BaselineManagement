@@ -1,5 +1,7 @@
 # BaselineManagement
 
+[![Build Status](https://dev.azure.com/guestconfiguration/baselinemanagement_module/_apis/build/status/microsoft.BaselineManagement?branchName=master)](https://dev.azure.com/guestconfiguration/baselinemanagement_module/_build/latest?definitionId=36&branchName=master)
+
 **NOTE:** Beginning with version 3.0.0, this module now only supports conversion from Group Policy format. If conversion from ASC or SCM formats is needed, please install version 2.x from the PowerShell Gallery.
 
 This solution is built off [GPRegistryParser](https://github.com/PowerShell/GPRegistryPolicyParser).
