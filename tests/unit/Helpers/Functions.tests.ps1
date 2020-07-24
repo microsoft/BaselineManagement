@@ -1,4 +1,11 @@
 Write-Host "`n"
+Write-Host "Pester" -ForegroundColor Green
+Write-Host "--------------------"
+$Pester = Get-Module 'Pester'
+Write-Host "Name: $($Pester.Name)"
+Write-Host "Version: $($Pester.Version)"
+
+Write-Host "`n"
 Write-Host "Paths" -ForegroundColor Green
 Write-Host "--------------------"
 Write-Host "PSScriptRoot: $PSScriptRoot"
