@@ -28,7 +28,6 @@ jobs:
         displayName: Pester v4 unit tests
         inputs:
           targetType: inline
-          continueOnError: 'true'
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/testResults.xml" -OutputFormat NUnitXml -PassThru
