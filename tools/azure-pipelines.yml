@@ -23,14 +23,6 @@ jobs:
   - job: Test
     strategy:
       matrix:
-        running cmdlets from Ubuntu 18.04:
-          imageName: ubuntu-18.04
-        running cmdlets from Ubuntu 16.04:
-          imageName: ubuntu-16.04
-        running cmdlets from macOS Mojave:
-          imageName: macOS-10.14
-        running cmdlets from macOS Catalina:
-          imageName: macOS-10.15
         running cmdlets from Windows 2019:
           imageName: windows-2019
         running cmdlets from Windows 2016:
@@ -41,7 +33,6 @@ jobs:
       - task: PowerShell@2
         displayName: Install modules
         inputs:
-          pwsh: 'true'
           targetType: inline
           failOnStderr: false
           errorActionPreference: silentlycontinue
@@ -55,7 +46,6 @@ jobs:
         continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:
-          pwsh: 'true'
           targetType: inline
           continueOnError: 'true'
           script: |
