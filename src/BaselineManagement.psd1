@@ -51,7 +51,8 @@ PowerShellVersion = '5.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0'; },
+RequiredModules = @(@{ModuleName = 'GPRegistryPolicyParser'; ModuleVersion = '0.2.0'; },
+               @(@{ModuleName = 'AuditPolicyDSC'; ModuleVersion = '1.4.0'; },
                @{ModuleName = 'SecurityPolicyDSC'; ModuleVersion = '2.10.0'; },
                @{ModuleName = 'GPRegistryPolicyDSC'; ModuleVersion = '1.2.0'; }
 )
