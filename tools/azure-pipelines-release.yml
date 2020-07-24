@@ -29,7 +29,13 @@ jobs:
         inputs:
           targetType: inline
           script: |
-            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            write-host "Environment details
+            write-host "...................."
+            write-host "PowerShell version: $($PSVersionTable | % PSVersion)"
+            import-module -name Pester -RequiredVersion '4.10.1'
+            $Pester = get-module 'Pester'
+            write-host "Pester version: $($Pester.Version)"
+            write-host `n
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/testResults.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
               Exit "$($Pester.FailedCount)"
