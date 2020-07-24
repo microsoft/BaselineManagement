@@ -1,0 +1,95 @@
+pr:
+  autoCancel: 'true'
+  branches:
+    include:
+      - feature/*
+      - bug/*
+      - chore/*
+  paths:
+    exclude:
+        - /tools/azure-pipelines-pr.yml
+        - /tools/azure-pipelines-release.yml
+        - README.md
+        - CODE_OF_CONDUCT.md
+        - SECURITY.md
+        - LICENSE
+        - changelog.md
+        - .gitignore
+        - .github/*
+        - .vscode/*
+        - Next.txt
+
+jobs:
+  - job: Test
+    strategy:
+      matrix:
+        running cmdlets from Ubuntu 18.04:
+          imageName: ubuntu-18.04
+        running cmdlets from Ubuntu 16.04:
+          imageName: ubuntu-16.04
+        running cmdlets from macOS Mojave:
+          imageName: macOS-10.14
+        running cmdlets from macOS Catalina:
+          imageName: macOS-10.15
+        running cmdlets from Windows 2019:
+          imageName: windows-2019
+        running cmdlets from Windows 2016:
+          imageName: vs2017-win2016
+    pool:
+      vmImage: $(imageName)
+    steps:
+      - task: PowerShell@2
+        displayName: Install modules
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: false
+          errorActionPreference: silentlycontinue
+          script: |
+            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/src/BaselineManagement.psd1").RequiredModules
+            $modules += @('PSScriptAnalyzer')
+            Install-Module -Name $modules -Force
+            Install-Module -Name 'Pester' -RequiredVersion '4.10.0' -AllowClobber -SkipPublisherCheck -Force
+      - task: PowerShell@2
+        enabled: 'true'
+        continueOnError: 'true'
+        displayName: Pester v4 unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          continueOnError: 'true'
+          script: |
+            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/testResults.xml" -OutputFormat NUnitXml -PassThru
+            if ($Pester.FailedCount -gt 0) {
+              Exit "$($Pester.FailedCount)"
+            }
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: NUnit
+          testResultsFiles: 'testResults.xml'
+        displayName: Publish test result
+  - job: PublishArtifactToAzureDevOpsBuild
+    dependsOn: Test
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: PowerShell@2
+        displayName: Stage module artifact
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement -type Directory
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/src -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/ -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/LICENSE -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/README.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/README.md -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/changelog.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/changelog.md -Recurse
+      - task: PublishPipelineArtifact@1
+        displayName: Publish artifact
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)/BaselineManagement'
+          artifactName: BaselineManagement
