@@ -40,7 +40,7 @@ jobs:
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/src/BaselineManagement.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer')
             Install-Module -Name $modules -Force
-            Install-Module -Name 'Pester' -RequiredVersion '4.10.0' -AllowClobber -SkipPublisherCheck -Force
+            Install-Module -Name 'Pester' -RequiredVersion '4.10.1' -AllowClobber -SkipPublisherCheck -Force
       - task: PowerShell@2
         enabled: 'true'
         displayName: Pester v4 unit tests
@@ -48,7 +48,13 @@ jobs:
           targetType: inline
           continueOnError: 'true'
           script: |
-            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            write-host "Environment details
+            write-host "...................."
+            write-host "PowerShell version: $($PSVersionTable | % PSVersion)"
+            import-module -name Pester -RequiredVersion '4.10.1'
+            $Pester = get-module 'Pester'
+            write-host "Pester version: $($Pester.Version)"
+            write-host `n
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/testResults.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
               Exit "$($Pester.FailedCount)"
