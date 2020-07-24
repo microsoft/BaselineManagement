@@ -43,7 +43,6 @@ jobs:
             Install-Module -Name 'Pester' -RequiredVersion '4.10.0' -AllowClobber -SkipPublisherCheck -Force
       - task: PowerShell@2
         enabled: 'true'
-        continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:
           targetType: inline
