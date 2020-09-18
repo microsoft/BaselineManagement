@@ -1,0 +1,1282 @@
+/*
+@TargetNode='localhost'
+@GeneratedBy=t-auc
+@GenerationDate=07/28/2020 15:37:05
+@GenerationHost=DESKTOP-K556Q40
+*/
+
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory1ref
+{
+Ensure = "Present";
+ SourceInfo = "::11::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Credential Validation (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Credential Validation";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory2ref
+{
+Ensure = "Present";
+ SourceInfo = "::19::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Credential Validation (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Credential Validation";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory3ref
+{
+Ensure = "Present";
+ SourceInfo = "::27::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Security Group Management (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Security Group Management";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory4ref
+{
+Ensure = "Absent";
+ SourceInfo = "::35::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Security Group Management (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Security Group Management";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory5ref
+{
+Ensure = "Present";
+ SourceInfo = "::43::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit User Account Management (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "User Account Management";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory6ref
+{
+Ensure = "Present";
+ SourceInfo = "::51::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit User Account Management (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "User Account Management";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory7ref
+{
+Ensure = "Present";
+ SourceInfo = "::59::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit PNP Activity (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Plug and Play Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory8ref
+{
+Ensure = "Absent";
+ SourceInfo = "::67::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit PNP Activity (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Plug and Play Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory9ref
+{
+Ensure = "Present";
+ SourceInfo = "::75::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Process Creation (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Process Creation";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory10ref
+{
+Ensure = "Absent";
+ SourceInfo = "::83::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Process Creation (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Process Creation";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory11ref
+{
+Ensure = "Present";
+ SourceInfo = "::91::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Account Lockout (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Account Lockout";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory12ref
+{
+Ensure = "Absent";
+ SourceInfo = "::99::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Account Lockout (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Account Lockout";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory13ref
+{
+Ensure = "Present";
+ SourceInfo = "::107::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Group Membership (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Group Membership";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory14ref
+{
+Ensure = "Absent";
+ SourceInfo = "::115::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Group Membership (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Group Membership";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory15ref
+{
+Ensure = "Present";
+ SourceInfo = "::123::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Logon (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Logon";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory16ref
+{
+Ensure = "Present";
+ SourceInfo = "::131::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Logon (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Logon";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory17ref
+{
+Ensure = "Present";
+ SourceInfo = "::139::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other Logon/Logoff Events (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Other Logon/Logoff Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory18ref
+{
+Ensure = "Present";
+ SourceInfo = "::147::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other Logon/Logoff Events (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Other Logon/Logoff Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory19ref
+{
+Ensure = "Present";
+ SourceInfo = "::155::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Special Logon (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Special Logon";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory20ref
+{
+Ensure = "Absent";
+ SourceInfo = "::163::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Special Logon (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Special Logon";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory21ref
+{
+Ensure = "Present";
+ SourceInfo = "::171::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Detailed File Share (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Detailed File Share";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory22ref
+{
+Ensure = "Absent";
+ SourceInfo = "::179::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Detailed File Share (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Detailed File Share";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory23ref
+{
+Ensure = "Present";
+ SourceInfo = "::187::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit File Share (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "File Share";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory24ref
+{
+Ensure = "Present";
+ SourceInfo = "::195::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit File Share (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "File Share";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory25ref
+{
+Ensure = "Present";
+ SourceInfo = "::203::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other Object Access Events (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Other Object Access Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory26ref
+{
+Ensure = "Present";
+ SourceInfo = "::211::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other Object Access Events (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Other Object Access Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory27ref
+{
+Ensure = "Present";
+ SourceInfo = "::219::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Removable Storage (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Removable Storage";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory28ref
+{
+Ensure = "Present";
+ SourceInfo = "::227::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Removable Storage (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Removable Storage";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory29ref
+{
+Ensure = "Present";
+ SourceInfo = "::235::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Audit Policy Change (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Audit Policy Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory30ref
+{
+Ensure = "Absent";
+ SourceInfo = "::243::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Audit Policy Change (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Audit Policy Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory31ref
+{
+Ensure = "Present";
+ SourceInfo = "::251::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Authentication Policy Change (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Authentication Policy Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory32ref
+{
+Ensure = "Absent";
+ SourceInfo = "::259::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Authentication Policy Change (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Authentication Policy Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory33ref
+{
+Ensure = "Present";
+ SourceInfo = "::267::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit MPSSVC Rule-Level Policy Change (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "MPSSVC Rule-Level Policy Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory34ref
+{
+Ensure = "Present";
+ SourceInfo = "::275::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit MPSSVC Rule-Level Policy Change (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "MPSSVC Rule-Level Policy Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory35ref
+{
+Ensure = "Present";
+ SourceInfo = "::283::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other Policy Change Events (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Other Policy Change Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory36ref
+{
+Ensure = "Absent";
+ SourceInfo = "::291::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other Policy Change Events (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Other Policy Change Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory37ref
+{
+Ensure = "Present";
+ SourceInfo = "::299::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Sensitive Privilege Use (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Sensitive Privilege Use";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory38ref
+{
+Ensure = "Present";
+ SourceInfo = "::307::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Sensitive Privilege Use (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Sensitive Privilege Use";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory39ref
+{
+Ensure = "Present";
+ SourceInfo = "::315::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other System Events (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Other System Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory40ref
+{
+Ensure = "Present";
+ SourceInfo = "::323::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Other System Events (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Other System Events";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory41ref
+{
+Ensure = "Present";
+ SourceInfo = "::331::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Security State Change (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Security State Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory42ref
+{
+Ensure = "Absent";
+ SourceInfo = "::339::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Security State Change (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Security State Change";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory43ref
+{
+Ensure = "Present";
+ SourceInfo = "::347::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Security System Extension (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "Security System Extension";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory44ref
+{
+Ensure = "Absent";
+ SourceInfo = "::355::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit Security System Extension (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "Security System Extension";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory45ref
+{
+Ensure = "Present";
+ SourceInfo = "::363::10::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit System Integrity (Success) - Inclusion";
+ AuditFlag = "Success";
+ Name = "System Integrity";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_AuditPolicySubcategory as $MSFT_AuditPolicySubcategory46ref
+{
+Ensure = "Present";
+ SourceInfo = "::371::11::AuditPolicySubcategory";
+ ModuleVersion = "1.4.0.0";
+ ResourceID = "[AuditPolicySubcategory]Audit System Integrity (Failure) - Inclusion";
+ AuditFlag = "Failure";
+ Name = "System Integrity";
+ ModuleName = "AuditPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_SecurityOption as $MSFT_SecurityOption1ref
+{
+Network_access_Allow_anonymous_SID_Name_translation = "Disabled";
+ SourceInfo = "::379::10::SecurityOption";
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[SecurityOption]SecuritySetting(INF): LSAAnonymousNameLookup";
+ Name = "Network_access_Allow_anonymous_SID_Name_translation";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment1ref
+{
+Force = True;
+ SourceInfo = "::386::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544",
+    "*S-1-5-6",
+    "*S-1-5-19",
+    "*S-1-5-20"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Create_global_objects";
+ Policy = "Create_global_objects";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment2ref
+{
+Force = True;
+ SourceInfo = "::394::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Restore_files_and_directories";
+ Policy = "Restore_files_and_directories";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment3ref
+{
+Force = True;
+ SourceInfo = "::402::10::UserRightsAssignment";
+ Identity = {
+    ""
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Access_Credential_Manager_as_a_trusted_caller";
+ Policy = "Access_Credential_Manager_as_a_trusted_caller";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment4ref
+{
+Force = True;
+ SourceInfo = "::410::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Profile_single_process";
+ Policy = "Profile_single_process";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment5ref
+{
+Force = True;
+ SourceInfo = "::418::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544",
+    "*S-1-5-6",
+    "*S-1-5-19",
+    "*S-1-5-20"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Impersonate_a_client_after_authentication";
+ Policy = "Impersonate_a_client_after_authentication";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment6ref
+{
+Force = True;
+ SourceInfo = "::426::10::UserRightsAssignment";
+ Identity = {
+    ""
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Act_as_part_of_the_operating_system";
+ Policy = "Act_as_part_of_the_operating_system";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment7ref
+{
+Force = True;
+ SourceInfo = "::434::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-114"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Deny_access_to_this_computer_from_the_network";
+ Policy = "Deny_access_to_this_computer_from_the_network";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment8ref
+{
+Force = True;
+ SourceInfo = "::442::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Modify_firmware_environment_values";
+ Policy = "Modify_firmware_environment_values";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment9ref
+{
+Force = True;
+ SourceInfo = "::450::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Allow_log_on_locally";
+ Policy = "Allow_log_on_locally";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment10ref
+{
+Force = True;
+ SourceInfo = "::458::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Load_and_unload_device_drivers";
+ Policy = "Load_and_unload_device_drivers";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment11ref
+{
+Force = True;
+ SourceInfo = "::466::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Perform_volume_maintenance_tasks";
+ Policy = "Perform_volume_maintenance_tasks";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment12ref
+{
+Force = True;
+ SourceInfo = "::474::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Back_up_files_and_directories";
+ Policy = "Back_up_files_and_directories";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment13ref
+{
+Force = True;
+ SourceInfo = "::482::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Take_ownership_of_files_or_other_objects";
+ Policy = "Take_ownership_of_files_or_other_objects";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment14ref
+{
+Force = True;
+ SourceInfo = "::490::10::UserRightsAssignment";
+ Identity = {
+    ""
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Enable_computer_and_user_accounts_to_be_trusted_for_delegation";
+ Policy = "Enable_computer_and_user_accounts_to_be_trusted_for_delegation";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment15ref
+{
+Force = True;
+ SourceInfo = "::498::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Manage_auditing_and_security_log";
+ Policy = "Manage_auditing_and_security_log";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment16ref
+{
+Force = True;
+ SourceInfo = "::506::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-113"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Deny_log_on_through_Remote_Desktop_Services";
+ Policy = "Deny_log_on_through_Remote_Desktop_Services";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment17ref
+{
+Force = True;
+ SourceInfo = "::514::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Debug_programs";
+ Policy = "Debug_programs";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment18ref
+{
+Force = True;
+ SourceInfo = "::522::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Create_a_pagefile";
+ Policy = "Create_a_pagefile";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment19ref
+{
+Force = True;
+ SourceInfo = "::530::10::UserRightsAssignment";
+ Identity = {
+    ""
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Create_a_token_object";
+ Policy = "Create_a_token_object";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment20ref
+{
+Force = True;
+ SourceInfo = "::538::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Force_shutdown_from_a_remote_system";
+ Policy = "Force_shutdown_from_a_remote_system";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment21ref
+{
+Force = True;
+ SourceInfo = "::546::10::UserRightsAssignment";
+ Identity = {
+    ""
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Lock_pages_in_memory";
+ Policy = "Lock_pages_in_memory";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment22ref
+{
+Force = True;
+ SourceInfo = "::554::10::UserRightsAssignment";
+ Identity = {
+    ""
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Create_permanent_shared_objects";
+ Policy = "Create_permanent_shared_objects";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_UserRightsAssignment as $MSFT_UserRightsAssignment23ref
+{
+Force = True;
+ SourceInfo = "::562::10::UserRightsAssignment";
+ Identity = {
+    "*S-1-5-32-544",
+    "*S-1-5-11"
+};
+ ModuleVersion = "2.9.0.0";
+ ResourceID = "[UserRightsAssignment]UserRightsAssignment(INF): Access_this_computer_from_the_network";
+ Policy = "Access_this_computer_from_the_network";
+ ModuleName = "SecurityPolicyDsc";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource1ref
+{
+ValueName = "LmCompatibilityLevel";
+ SourceInfo = "::570::10::Registry";
+ ValueData = {
+    "5"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\LmCompatibilityLevel";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource2ref
+{
+ValueName = "requiresecuritysignature";
+ SourceInfo = "::579::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\requiresecuritysignature";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource3ref
+{
+ValueName = "NTLMMinClientSec";
+ SourceInfo = "::588::10::Registry";
+ ValueData = {
+    "537395200"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\NTLMMinClientSec";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource4ref
+{
+ValueName = "EnableSecureUIAPaths";
+ SourceInfo = "::597::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableSecureUIAPaths";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource5ref
+{
+ValueName = "ProtectionMode";
+ SourceInfo = "::606::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Session Manager";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Session Manager\\ProtectionMode";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource6ref
+{
+ValueName = "RequireSecuritySignature";
+ SourceInfo = "::615::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters\\RequireSecuritySignature";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource7ref
+{
+ValueName = "LDAPClientIntegrity";
+ SourceInfo = "::624::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\LDAP";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\LDAP\\LDAPClientIntegrity";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource8ref
+{
+ValueName = "InactivityTimeoutSecs";
+ SourceInfo = "::633::10::Registry";
+ ValueData = {
+    "900"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\InactivityTimeoutSecs";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource9ref
+{
+ValueName = "RestrictNullSessAccess";
+ SourceInfo = "::642::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\RestrictNullSessAccess";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource10ref
+{
+ValueName = "NTLMMinServerSec";
+ SourceInfo = "::651::10::Registry";
+ ValueData = {
+    "537395200"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\NTLMMinServerSec";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource11ref
+{
+ValueName = "EnablePlainTextPassword";
+ SourceInfo = "::660::10::Registry";
+ ValueData = {
+    "0"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters\\EnablePlainTextPassword";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource12ref
+{
+ValueName = "RestrictAnonymous";
+ SourceInfo = "::669::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymous";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource13ref
+{
+ValueName = "allownullsessionfallback";
+ SourceInfo = "::678::10::Registry";
+ ValueData = {
+    "0"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\allownullsessionfallback";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource14ref
+{
+ValueName = "signsecurechannel";
+ SourceInfo = "::687::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\signsecurechannel";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource15ref
+{
+ValueName = "EnableInstallerDetection";
+ SourceInfo = "::696::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableInstallerDetection";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource16ref
+{
+ValueName = "requiresignorseal";
+ SourceInfo = "::705::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\requiresignorseal";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource17ref
+{
+ValueName = "FilterAdministratorToken";
+ SourceInfo = "::714::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\FilterAdministratorToken";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource18ref
+{
+ValueName = "ConsentPromptBehaviorAdmin";
+ SourceInfo = "::723::10::Registry";
+ ValueData = {
+    "2"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\ConsentPromptBehaviorAdmin";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource19ref
+{
+ValueName = "ScRemoveOption";
+ SourceInfo = "::732::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\ScRemoveOption";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "String";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource20ref
+{
+ValueName = "sealsecurechannel";
+ SourceInfo = "::741::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\sealsecurechannel";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource21ref
+{
+ValueName = "RestrictRemoteSAM";
+ SourceInfo = "::750::10::Registry";
+ ValueData = {
+    "O:BAG:BAD:(A;;RC;;;BA)"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\RestrictRemoteSAM";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "String";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource22ref
+{
+ValueName = "EnableLUA";
+ SourceInfo = "::759::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableLUA";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource23ref
+{
+ValueName = "SCENoApplyLegacyAuditPolicy";
+ SourceInfo = "::768::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\SCENoApplyLegacyAuditPolicy";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource24ref
+{
+ValueName = "requirestrongkey";
+ SourceInfo = "::777::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\requirestrongkey";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource25ref
+{
+ValueName = "LimitBlankPasswordUse";
+ SourceInfo = "::786::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\LimitBlankPasswordUse";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource26ref
+{
+ValueName = "ConsentPromptBehaviorUser";
+ SourceInfo = "::795::10::Registry";
+ ValueData = {
+    "0"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\ConsentPromptBehaviorUser";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource27ref
+{
+ValueName = "EnableVirtualization";
+ SourceInfo = "::804::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableVirtualization";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource28ref
+{
+ValueName = "RestrictAnonymousSAM";
+ SourceInfo = "::813::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymousSAM";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of MSFT_RegistryResource as $MSFT_RegistryResource29ref
+{
+ValueName = "NoLMHash";
+ SourceInfo = "::822::10::Registry";
+ ValueData = {
+    "1"
+};
+ Key = "HKLM:\\System\\CurrentControlSet\\Control\\Lsa";
+ ResourceID = "[Registry]Registry(INF): HKLM:\\System\\CurrentControlSet\\Control\\Lsa\\NoLMHash";
+ ModuleName = "PsDesiredStateConfiguration";
+ ValueType = "Dword";
+
+ModuleVersion = "1.0";
+ ConfigurationName = "DSCFromGPO";
+};
+instance of OMI_ConfigurationDocument
+
+                    {
+ Version="2.0.0";
+
+                        MinimumCompatibleVersion = "1.0.0";
+
+                        CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+
+                        Author="t-auc";
+
+                        GenerationDate="07/28/2020 15:37:05";
+
+                        GenerationHost="DESKTOP-K556Q40";
+
+                        Name="DSCFromGPO";
+
+                    };
