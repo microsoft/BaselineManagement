@@ -6,71 +6,6 @@ Get-ChildItem -Path $Parsers -Recurse -Filter '*.ps1' | ForEach-Object { . $_.Fu
 
 <#
 .Synopsis
-   This is a ConvertTo-DSC function that converts GPO to DSC Configuration script.
-.DESCRIPTION
-   We utilize the type of object passed in to determine which function to call.  Directories are associated with GPO backups, Objects are associated with GPO objects or JSON objects and XML with XML.
-.EXAMPLE
-   dir .\<GPO Backup GUID> | ConvertTo-DSC
-.EXAMPLE
-   Backup-GPO <GPO Name> | ConvertTo-DSC
-.INPUd
-   Any supported baseline to be converted into DSC.
-.OUTPUTS
-   Output will come from calling cmdlet ConvertFrom-GPO.
-.NOTES
-   General notes
-.COMPONENT
-   The component this cmdlet belongs to
-.ROLE
-   The role this cmdlet belongs to
-.FUNCTIONALITY
-   The functionality that best describes this cmdlet
-#>
-function ConvertTo-DSC
-{
-    [CmdletBinding()]
-    param
-    (
-        # This is the Path to a GPO Backup directory.
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName="Path")]
-        [ValidateScript({Test-Path $_})]
-        [Alias("BackupDirectory")]
-        [string]$Path,
-
-        # This is a GPO Backup object.
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName="Object")]
-        [Psobject]$Object,
-
-        # Output Path that will default to an Output directory under the current Path.
-        [ValidateScript({Test-Path $_})]
-        [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
-
-        # ComputerName for Node processing.
-        [string]$ComputerName = "localhost",
-
-        # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
-        [switch]$OutputConfigurationScript,
-
-        # Specifies the name of the Configuration to create
-        [string]$ConfigName
-
-    )
-
-    Process
-    {
-        $Parameter = $null
-        $Type = "GPO"
-
-        # Call the appropriate conversion function based on input.
-        $scriptblock = [scriptblock]::Create('param($param) ConvertFrom-' + $Type + ' @param')
-        # Pass our parameters (minus the Type) to our Conversion cmdlet.
-        $PSBoundParameters.Remove("Type") | Out-Null
-        return Invoke-Command -ScriptBlock $scriptblock -ArgumentList $PSBoundParameters
-    }
-}
-
-<#
-.Synopsis
    This cmdlet converts Backed Up GPOs into DSC Configuration Scripts.
 .DESCRIPTION
    This cmdlet will take the exported GPO and convert all internal settings into DSC Configurations.
@@ -82,14 +17,6 @@ function ConvertTo-DSC
    The GPO Object or directory.
 .OUTPUTS
    This script will output a localhost.mof if successful and a failed Configuration Script file if failed.  It will also, on request, output the Configuration Script PS1 file.
-.NOTES
-   General notes
-.COMPONENT
-   The component this cmdlet belongs to
-.ROLE
-   The role this cmdlet belongs to
-.FUNCTIONALITY
-   The functionality that best describes this cmdlet
 #>
 function ConvertFrom-GPO
 {
@@ -101,10 +28,6 @@ function ConvertFrom-GPO
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
         [String]$Path,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "LiteralPath")]
-        [Alias('PSPath')]
-        [String]$LiteralPath,
-
         # Output Path that will default to an Output directory under the current Path.
         [string]$OutputPath = $(Join-Path $pwd.Path "Output"),
 
@@ -114,6 +37,7 @@ function ConvertFrom-GPO
         # This determines whether or not to output a ConfigurationScript in addition to the localhost.mof
         [switch]$OutputConfigurationScript,
 
+        # Output results of parsing activities 
         [switch]$ShowPesterOutput,
 
         # Specifies the name of the Configuration to create
@@ -130,46 +54,35 @@ function ConvertFrom-GPO
 
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
-        # Add modules
+        # Add required modules
         $ConfigString += Write-DSCString -ModuleImport -ModuleName $NeededModules
-        # Add Node Data
+        # Add node data
         $configString += Write-DSCString -Node -Name $ComputerName
     }
 
     Process
     {
         $resolvedPath = $null
-        if ($PSCmdlet.ParameterSetName -eq 'Path')
+        Try
         {
-            Try
-            {
-                $resolvedPath = $Path | Get-Item
-            }
-            Catch
-            {
-                Write-Error $_
-                return
-            }
+            $resolvedPath = $Path | Get-Item
         }
-        elseif ($PSCmdlet.ParameterSetName -eq 'LiteralPath')
+        Catch
         {
-            Try
-            {
-                $resolvedPath = $LiteralPath | Get-Item
-            }
-            Catch
-            {
-                Write-Error $_
-                return
-            }
+            Write-Error $_
+            return
         }
 
         Write-Host "Gathering GPO Data from $resolvedPath"
+
         $polFiles = Get-ChildItem -Path $Path -Filter registry.pol -Recurse
 
         $AuditCSVs = Get-ChildItem -Path $Path -Filter Audit.csv -Recurse
 
         $GPTemplateINFs = Get-ChildItem -Path $Path -Filter GptTmpl.inf -Recurse
+
+        <#
+        Preferences not supported in current version
 
         $PreferencesDirectory = Get-ChildItem -Path $Path -Directory -Filter "Preferences" -Recurse
 
@@ -191,8 +104,9 @@ function ConvertFrom-GPO
             $ConfigString = $ConfigString.Insert($ConfigString.IndexOf("Node") - 2, "`n`t" + $AddingModulesString)
             $AddedModules = $true
         }
+        #>
 
-        # Loop through each Pol file.
+        # This section collects content from (Registry) POL files
         foreach ($polFile in $polFiles)
         {
             if ((Get-Command "Read-PolFile" -ErrorAction SilentlyContinue) -ne $null)
@@ -237,7 +151,7 @@ function ConvertFrom-GPO
             }
         }
 
-        # Loop through each Audit CSV in the GPO Directory.
+        # This section collects content from (Audit) CSV files
         foreach ($AuditCSV in $AuditCSVs)
         {
             $otherSettingsCSV = @()
@@ -269,7 +183,9 @@ function ConvertFrom-GPO
                 }
             }
 
-            <# Still trying to figure out how to handle Resource SACLS
+            <#
+            Still trying to figure out how to handle Resource SACLS
+
             if ($othersettingsCSV.count -gt 0)
             {
                 $contents = ""
@@ -291,12 +207,15 @@ function ConvertFrom-GPO
             #>
         }
 
-        # Loop through all the GPTemplate files.
+        # This section collects content from (Secutiy) INF files
         foreach ($GPTemplateINF in $GPTemplateINFs)
         {
             Write-Verbose "Reading GPTmp.inf ($($GPTemplateINF.FullName))"
             # GPTemp files are in INI format so this function converts it to a hashtable.
             $ini = Get-IniContent $GPTemplateINF.fullname
+
+            # Loading SecurityOptionData
+            $securityOptionData = Import-PowerShellDataFile (Join-Path $Helpers 'SecurityOptionData.psd1')
 
             # Loop through every heading.
             foreach ($key in $ini.Keys)
@@ -313,7 +232,8 @@ function ConvertFrom-GPO
 
                         "Registry Values"
                         {
-                            $ConfigString += Write-GPORegistryINFData -Key $subkey -ValueData $ini[$key][$subKey]
+                            $securityOptionName = $securityOptionData | Where-Object {$_.Value -eq $subkey}
+                            $ConfigString += Write-GPORegistryINFData -Name $securityOptionName -ValueData $ini[$key][$subKey]
                         }
 
                         "File Security"
@@ -340,6 +260,7 @@ function ConvertFrom-GPO
 
                         "Registry Keys"
                         {
+                            #TODO
                             $ConfigString += Write-GPORegistryACLINFData -Path $subkey -ACLData $ini[$key][$subKey]
                         }
 
@@ -362,7 +283,7 @@ function ConvertFrom-GPO
 
                         "(Version|signature|Unicode|Group Membership)"
                         {
-
+                            #TODO
                         }
 
                         Default
@@ -899,14 +820,14 @@ while ($running -and $timeElapsed -le $Timeout)
 {
     $running = $false
 
-    $jobs = get-job | where{$jobIds.Contains($_.Id)}
+    $jobs = get-job | Where-Object{$jobIds.Contains($_.Id)}
     #Reporting job state
-    $colrunningjobs = get-job | where{$jobIds.Contains($_.Id)} | where State -eq 'Running' | Select-Object -Property Name
+    $colrunningjobs = get-job | Where-Object{$jobIds.Contains($_.Id)} | Where-Object State -eq 'Running' | Select-Object -Property Name
     Foreach($runningjob in $colrunningjobs)
     {
         Write-Verbose "Waiting for job to complete on: $($runningjob.name)"
     }
-    $colcompletedjobs = get-job | where{$jobIds.Contains($_.Id)} | where State -eq 'Completed' | Select-Object -Property Name
+    $colcompletedjobs = get-job | Where-Object{$jobIds.Contains($_.Id)} | Where-Object State -eq 'Completed' | Select-Object -Property Name
     Foreach($completedjob in $colcompletedjobs)
     {
         If (!($dicCompltedJobs.ContainsKey($completedjob.name)))
@@ -930,7 +851,7 @@ while ($running -and $timeElapsed -le $Timeout)
     $timeElapsed += $sleepTime
 }
 
-$jobs = get-job | where{$jobIds.Contains($_.Id)}
+$jobs = get-job | Where-Object{$jobIds.Contains($_.Id)}
 Foreach($job in $jobs)
 {
     if($job.State -eq 'Failed')
@@ -939,7 +860,7 @@ Foreach($job in $jobs)
     }
     else
     {
-            Receive-Job $job | %{[void]$arrReturnedData.add($_)}
+            Receive-Job $job | ForEach-Object{[void]$arrReturnedData.add($_)}
 
     }
 }
@@ -1148,4 +1069,4 @@ End
 }
 }
 
-Export-ModuleMember -Function ConvertFrom-GPO, ConvertTo-DSC, Merge-GPOs
+Export-ModuleMember -Function ConvertFrom-GPO, Merge-GPOs

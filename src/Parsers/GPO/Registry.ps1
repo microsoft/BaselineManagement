@@ -364,7 +364,7 @@ Function Write-GPORegistryINFData
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$Key,
+        [string]$Name,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -407,13 +407,9 @@ Function Write-GPORegistryINFData
         continue    
     }
             
-    $KeyPath = $Key
-            
-    $ValueName = Split-Path -Leaf $KeyPath
-    $regHash.ValueName = $ValueName -replace "[^\u0020-\u007E]", ""
-    $regHash.Key = Split-Path -Parent $KeyPath
-    $regHash.Key = $regHash.Key -replace "MACHINE\\", "HKLM:\" 
-    if (!$regHash.Key.StartsWith("HKLM"))
+    $regHash.ValueName = $Name
+    $regHash.Key = $Name
+    if (!$regHash.Key.StartsWith("MACHINE"))
     {
         Write-Warning "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
         $CommentOUT = $true
@@ -428,16 +424,9 @@ Function Write-GPORegistryINFData
     {
         Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
         # Add this resource to the processing history.
-        Add-ProcessingHistory -Type 'RegistryPolicyFile' -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
+        Add-ProcessingHistory -Type 'SecurityOption' -Name "Security(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
         $CommentOUT = $true
     }
     
-    Update-RegistryHashtable $regHash
-    if ($regHash.ContainsKey("CommentOut"))
-    {
-        $CommentOUT = $true
-        $regHash.Remove("CommentOut")
-    }
-    
-    Write-DSCString -Resource -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "Security(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type 'Security' -Parameters $regHash -CommentOUT:$CommentOUT
 }
