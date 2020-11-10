@@ -36,7 +36,7 @@ jobs:
           targetType: inline
           failOnStderr: true
           script: |
-            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/BaselineManagement.psd1").RequiredModules
+            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/src/BaselineManagement.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer','Pester')
             Install-Module -Name $modules -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force
       - task: PowerShell@2
