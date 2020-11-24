@@ -129,7 +129,7 @@ Describe "Write-GPOAuditCSVData" {
                 $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
                 $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
 
-                Context $Success.Name {
+                Context "Success $($Success.Name)" {
                     It "Creates the SuccessBlock" {
                         $Success.Type | Should -Be AuditPolicySubcategory
                         $Success.Parameters.SubCategory | Should -Be $Entry.Name
@@ -139,7 +139,7 @@ Describe "Write-GPOAuditCSVData" {
                     }
                 }
 
-                Context $Failure.Name {
+                Context "Failure $($Failure.Name)" {
                     It "Creates the FailureBlock" {
                         $Failure.Type | Should -Be AuditPolicySubcategory
                         $Failure.Parameters.SubCategory | Should -Be $Entry.Name
@@ -159,7 +159,7 @@ Describe "Write-GPOAuditCSVData" {
                 $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
                 $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
 
-                Context $Success.Name {
+                Context "Success $($Success.Name)" {
                     It "Creates the SuccessBlock" {
                         $Success.Type | Should -Be AuditPolicySubcategory
                         $Success.Parameters.SubCategory | Should -Be $Entry.Name
@@ -169,7 +169,7 @@ Describe "Write-GPOAuditCSVData" {
                     }
                 }
 
-                Context $Failure.Name {
+                Context "Failure $($Failure.Name)" {
                     It "Creates the FailureBlock" {
                         $Failure.Type | Should -Be AuditPolicySubcategory
                         $Failure.Parameters.SubCategory | Should -Be $Entry.Name
@@ -192,7 +192,7 @@ Describe "Write-GPOAuditCSVData" {
                 $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
                 $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
                 
-                Context $Success.Name {
+                Context "Success $($Success.Name)" {
                     It "Separates out the SuccessBlock" {
                         $Success.Type | Should -Be AuditPolicySubcategory
                         $Success.Parameters.SubCategory | Should -Be $Entry.Name
@@ -202,7 +202,7 @@ Describe "Write-GPOAuditCSVData" {
                     }
                 }
 
-                Context $Failure.Name {
+                Context "Failure $($Failure.Name)" {
                     It "Separates out the FailureBlock" {
                         $Failure.Type | Should -Be AuditPolicySubcategory
                         $Failure.Parameters.SubCategory | Should -Be $Entry.Name
@@ -220,7 +220,7 @@ Describe "Write-GPOAuditCSVData" {
 
             "^(Success|Failure)$"
             {
-                Context $Parameters.Name {
+                Context "Parameters $($Parameters.Name)" {
                     It "Parses Audit Data" {
                         $Parameters.Type | Should -Be AuditPolicySubcategory
                         $Parameters.Parameters.SubCategory | Should -Be $Entry.Name
@@ -275,7 +275,7 @@ Describe "Write-GPORegistryPOLData" {
     foreach ($Policy in $registryPolicies)
     {
         $Parameters = Write-GPORegistryPOLData -Data $Policy
-        Context $Parameters.Name {
+        Context "Parameters $($Parameters.Name)" {
             It "Parses Registry Data" {
                 If ($Parameters.CommentOut.IsPresent)
                 {
@@ -338,7 +338,7 @@ Describe "GPtTempl.INF Data" {
                 "Service General Setting"
                 {
                     $Parameters = Write-GPOServiceINFData -Service $subkey -ServiceData $ini[$key][$subKey]
-                    Context $Parameters.Name {    
+                    Context "Parameters $($Parameters.Name)" {    
                         It "Parses Service Data" {
                             $Parameters.Type | Should -Be "Service"
                         }
@@ -348,7 +348,7 @@ Describe "GPtTempl.INF Data" {
                 "Registry Values"
                 {
                     $Parameters = Write-GPORegistryINFData -Key $subkey -ValueData $ini[$key][$subKey]
-                    Context $Parameters.Name {
+                    Context "Parameters $($Parameters.Name)" {
                         It "Parses Registry Values" {
                             If ($Parameters.CommentOut.IsPresent)
                             {
@@ -371,7 +371,7 @@ Describe "GPtTempl.INF Data" {
                 "File Security"
                 {
                     $Parameters = Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
-                    Context $Parameters.Name {
+                    Context "Parameters $($Parameters.Name)" {
                         It "Parses File ACL Data" {
                             $Parameters.Type | Should -Be NtfsAccessEntry
                             [String]::IsNullOrEmpty($Parameters.Parameters.sddl) | Should -Be $false
@@ -384,7 +384,7 @@ Describe "GPtTempl.INF Data" {
                 "Privilege Rights"
                 {
                     $Parameters = Write-GPOPrivilegeINFData -Privilege $subkey -PrivilegeData $ini[$key][$subKey]
-                    Context $Parameters.Name {
+                    Context "Parameters $($Parameters.Name)" {
                         It "Parses Privilege Data" {
                             $Parameters.Type | Should -Be "UserRightsAssignment"
                             [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
@@ -396,7 +396,7 @@ Describe "GPtTempl.INF Data" {
                 "Kerberos Policy"
                 {
                     $Parameters = Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
-                    Context $Parameters.Name {
+                    Context "Parameters $($Parameters.Name)" {
                         It "Parses Kerberos Data" {
                             $Parameters.Type | Should -Be "SecuritySetting"
                             [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
@@ -410,7 +410,7 @@ Describe "GPtTempl.INF Data" {
                 {
                     $Parameters = Write-GPORegistryACLINFData -Path $subkey -ACLData $ini[$key][$subKey]
                     
-                    Context $Parameters.Name {
+                    Context "Parameters $($Parameters.Name)" {
                         It "Parses Registry ACL Data" {
                             [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
                             Test-Path -Path $Parameters.Parameters.Path -IsValid | Should -Be $true
@@ -425,7 +425,7 @@ Describe "GPtTempl.INF Data" {
                     $Parameters = Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
                     if ($Parameters -ne "")
                     {
-                        Context $Parameters.Name {                        
+                        Context "Parameters $($Parameters.Name)" {                        
                             It "Parses System Access Settings" {
                                 $Parameters.Type | Should -Be "SecuritySetting"
                                 [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
