@@ -32,7 +32,7 @@ jobs:
       - task: PowerShell@2
         displayName: Install modules
         inputs:
-          pwsh: 'true'
+          pwsh: false
           targetType: inline
           failOnStderr: true
           script: |
@@ -43,9 +43,9 @@ jobs:
         enabled: 'true'
         displayName: Pester v5 unit tests
         inputs:
-          pwsh: 'true'
+          pwsh: false
           targetType: inline
-          continueOnError: 'true'
+          continueOnError: true
           script: |
             if ($IsWindows) { Invoke-Pester -CI }
             else { sudo pwsh { Invoke-Pester -CI }}
