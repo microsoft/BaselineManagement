@@ -69,7 +69,7 @@ Describe "Write-GPOAuditCSVData" {
                 $Success = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Success" })
                 $Failure = $Parameters.Where( { $_.Parameters.AuditFlag -eq "Failure" })
                 
-                Context $Success.Name {
+                Context $Success {
                     It "Separates out the SuccessBlock" {
                         $Success.Type | Should -Be AuditPolicySubcategory
                         $Success.Parameters.SubCategory | Should -Be $Entry.Name
