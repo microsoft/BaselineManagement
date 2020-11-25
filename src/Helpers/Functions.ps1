@@ -61,7 +61,6 @@ Function Test-Conflicts
     $Conflict = @()
     $ResourceKeys = @()
 
-    # TODO Where does the conflict engine get set?
     # Determine if we have already processed a Resource Block of this type.
     if ($Script:GlobalConflictEngine.ContainsKey($Type))
     {
@@ -91,7 +90,7 @@ Function Test-Conflicts
     }
     else
     {
-        Write-Warning "Write-DSCString: DSC Module ($Type) not found on System.  Please re-run the conversion when the module is available."
+        Write-Warning "Write-DSCString: DSC resource ($Type) not found on System.  Please run the conversion again when the resource is available."
         $ResourceNotFound = $true
         $GlobalConflict = $true
     }
@@ -375,7 +374,7 @@ Configuration $Name`n{`n`n`t
                 }
                 else
                 {
-                    Write-Warning "Write-DSCString: Module ($m) not found on System.  Please re-run conversion when module is available."
+                    Write-Warning "Write-DSCString: Module ($m) not found on System.  Please run conversion again when the module is available."
                     $ModuleNotFound += $m
                 }
             }
