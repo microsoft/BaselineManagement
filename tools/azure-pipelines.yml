@@ -45,7 +45,7 @@ jobs:
           pwsh: false
           targetType: inline
           script: |
-            Invoke-Pester -outputformat 'nunitxml' -outputfile "TEST_$((Get-Date).ToShortDateString().Replace('/','') + '_' + (Get-Date).ToShortTimeString().Replace(':','')).xml"
+            Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml"
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
