@@ -27,12 +27,12 @@ jobs:
           pwsh: false
           targetType: inline
           script: |
-            Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml"
+            Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: 'testResults.xml'
+          testResultsFiles: '**/testResults.xml'
         displayName: Publish test result
   - job: CodeSign
     dependsOn: Test
