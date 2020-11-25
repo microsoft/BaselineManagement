@@ -40,15 +40,12 @@ jobs:
             $modules += @('PSScriptAnalyzer','Pester')
             Install-Module -Name $modules -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force
       - task: PowerShell@2
-        enabled: 'true'
         displayName: Pester v5 unit tests
         inputs:
           pwsh: false
           targetType: inline
-          continueOnError: true
           script: |
-            if ($IsWindows) { Invoke-Pester -CI }
-            else { sudo pwsh { Invoke-Pester -CI }}
+            Invoke-Pester -CI
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
