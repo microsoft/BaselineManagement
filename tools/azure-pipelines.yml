@@ -37,7 +37,7 @@ jobs:
           failOnStderr: true
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/src/BaselineManagement.psd1").RequiredModules
-            $modules += @('PSScriptAnalyzer','Pester')
+            $modules += @('PSScriptAnalyzer')
             Install-Module -Name $modules -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force -Verbose
       - task: PowerShell@2
         displayName: Pester v5 unit tests
@@ -45,7 +45,7 @@ jobs:
           pwsh: false
           targetType: inline
           script: |
-            Invoke-Pester -CI
+            Invoke-Pester -outputformat 'nunitxml' -outputfile "TEST_$((Get-Date).ToShortDateString().Replace('/','') + '_' + (Get-Date).ToShortTimeString().Replace(':','')).xml"
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:

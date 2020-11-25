@@ -19,7 +19,7 @@ $Parsers = Get-ChildItem -Filter '*.ps1' -Path $script:ParsersRoot/GPO
 
 Write-Host "Parsers" -ForegroundColor Green
 Write-Host "--------------------"
-foreach ($p in $Parsers) {Write-Host $p.Name"`t" -NoNewline}
+foreach ($p in $Parsers) { Write-Host $p.Name"`t" -NoNewline }
 Write-Host "`n"
 
 Write-Host "Available DSC modules" -ForegroundColor Green
@@ -35,8 +35,7 @@ $Enumerations = Get-Item -Path (Join-Path -Path $script:SourceRoot -ChildPath "H
 
 . $Functions.FullName
 . $Enumerations.FullName
-foreach ($Parser in $Parsers)
-{
+foreach ($Parser in $Parsers) {
     . $Parser.FullName
 }
 
@@ -45,23 +44,18 @@ Import-Module PSDesiredStateConfiguration -Force
 Write-Host "`nGPO Parser Tests" -ForegroundColor White
 
 Describe "Write-GPOAuditCSVData" {
-    Mock Write-DSCString -Verifiable { return @{} + $___BoundParameters___ } 
+    BeforeAll {}
     $auditData = Import-CSV -Path $SampleAuditCSV
-
-    foreach ($Entry in $auditData)
-    {
-        if ($Entry.'Subcategory' -match "(GlobalSACL|Option:)")
-        {
+    foreach ($Entry in $auditData) {
+        if ($Entry.'Subcategory' -match "(GlobalSACL|Option:)") {
             # Adding Separate tests for these.
             continue
         }
 
         $Parameters = Write-GPOAuditCSVData -Entry $Entry
 
-        switch -regex ($Entry."Inclusion Setting")
-        {
-            "Success and Failure"
-            {
+        switch -regex ($Entry."Inclusion Setting") {
+            "Success and Failure" {
                 It "Parses SuccessAndFailure separately" {
                     $Parameters.Count | Should -Be 2
                 }
@@ -90,8 +84,7 @@ Describe "Write-GPOAuditCSVData" {
                 }
             }
 
-            "No Auditing"
-            {
+            "No Auditing" {
                 It "Parses NoAuditing separately" {
                     $Parameters.Count | Should -Be 2
                 }
@@ -120,8 +113,7 @@ Describe "Write-GPOAuditCSVData" {
                 }
             }
 
-            "^Success$"
-            {
+            "^Success$" {
                 It "Creates an opposite Failure Entry for Succes" {
                     $Parameters.Count | Should -Be 2
                 }
@@ -150,8 +142,7 @@ Describe "Write-GPOAuditCSVData" {
                 }
             }
 
-            "^Failure$"
-            {
+            "^Failure$" {
                 It "Creates an opposite Success Entry for Failure" {
                     $Parameters.Count | Should -Be 2
                 }
@@ -181,10 +172,8 @@ Describe "Write-GPOAuditCSVData" {
             }
         }
         
-        switch -regex ($Entry."Exclusion Setting")
-        {
-            "Success and Failure"
-            {
+        switch -regex ($Entry."Exclusion Setting") {
+            "Success and Failure" {
                 It "Parses SuccessAndFailure separately" {
                     $Parameters.Count | Should -Be 2
                 }
@@ -213,13 +202,11 @@ Describe "Write-GPOAuditCSVData" {
                 }
             }
 
-            "No Auditing"
-            {
+            "No Auditing" {
                 # I am not sure how to make sure that "No Auditing" is Excluded or ABSENT. What should it be set to then?
             }
 
-            "^(Success|Failure)$"
-            {
+            "^(Success|Failure)$" {
                 Context "Parameters $($Parameters.Name)" {
                     It "Parses Audit Data" {
                         $Parameters.Type | Should -Be AuditPolicySubcategory
@@ -236,34 +223,27 @@ Describe "Write-GPOAuditCSVData" {
 
 Describe "Write-GPORegistryPOLData" {
     Mock Write-DSCString -Verifiable { return @{} + $___BoundParameters___ } 
-    if ((Get-Command "Read-PolFile" -ErrorAction SilentlyContinue) -ne $null)
-    {
+    if ((Get-Command "Read-PolFile" -ErrorAction SilentlyContinue) -ne $null) {
         # Reaad each POL file found.
         Write-Verbose "Reading Pol File ($($SamplePol))"
-        Try
-        {
+        Try {
             $registryPolicies = Read-PolFile -Path $SamplePol
         }
-        Catch
-        {
+        Catch {
             Write-Error $_
         }
     }
-    elseif ((Get-Command "Parse-PolFile" -ErrorAction SilentlyContinue) -ne $null)
-    {
+    elseif ((Get-Command "Parse-PolFile" -ErrorAction SilentlyContinue) -ne $null) {
         # Reaad each POL file found.
         Write-Verbose "Reading Pol File ($($SamplePol))"
-        Try
-        {
+        Try {
             $registryPolicies = Parse-PolFile -Path $SamplePol
         }
-        catch
-        {
+        catch {
             Write-Error $_ 
         }
     }
-    else
-    {
+    else {
         Write-Error "Cannot Parse Pol files! Please download and install GPRegistryPolicyParser from github here: https://github.com/PowerShell/GPRegistryPolicyParser"
         break
     }
@@ -272,42 +252,33 @@ Describe "Write-GPORegistryPOLData" {
         $registryPolicies | Should Not Be $Null
     }
 
-    foreach ($Policy in $registryPolicies)
-    {
+    foreach ($Policy in $registryPolicies) {
         $Parameters = Write-GPORegistryPOLData -Data $Policy
         Context "Parameters $($Parameters.Name)" {
             It "Parses Registry Data" {
-                If ($Parameters.CommentOut.IsPresent)
-                {
+                If ($Parameters.CommentOut.IsPresent) {
                     Write-Host -ForegroundColor Green "This Resource was commented OUT for failure to adhere to Standards: Tests are Invalid"
                 }
-                else
-                {
+                else {
                     $Parameters.Type | Should -Be "RegistryPolicyFile"
                     Test-Path -Path $Parameters.Parameters.Key -IsValid | Should -Be $true
                     $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string] }
-                    if ($Parameters.Name.StartsWith("DELVAL"))
-                    {
-                        if ($ExlusiveFlagAvailable)
-                        {
+                    if ($Parameters.Name.StartsWith("DELVAL")) {
+                        if ($ExlusiveFlagAvailable) {
                             $Parameters.Parameters.Ensure | Should -Be "Absent"
                         }
-                        else
-                        {
+                        else {
                             $Parameters.CommentOUT | Should -Be $True
                         }
                     }
-                    elseif ($Parameters.Name.StartsWith("DEL"))
-                    {
+                    elseif ($Parameters.Name.StartsWith("DEL")) {
                         $Parameters.Parameters.Ensure | Should -Be "Absent"
                     }
-                    elseif ($Parameters.Parameters.ContainsKey("ValueType"))
-                    {
+                    elseif ($Parameters.Parameters.ContainsKey("ValueType")) {
                         ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should -Be $true 
                     }
                     
-                    if ($Parameters.Parameters.ContainsKey("ValueData"))
-                    {
+                    if ($Parameters.Parameters.ContainsKey("ValueData")) {
                         $Parameters.Parameters.ValueData | Should -BeOfType $TypeHash[$Parameters.Parameters.ValueType]
                     }
 
@@ -328,15 +299,11 @@ Describe "GPtTempl.INF Data" {
     }
 
     # Loop through every heading.
-    foreach ($key in $ini.Keys)
-    {
+    foreach ($key in $ini.Keys) {
         # Loop through every setting in the heading.
-        foreach ($subKey in $ini[$key].Keys)
-        {
-            switch ($key)
-            {
-                "Service General Setting"
-                {
+        foreach ($subKey in $ini[$key].Keys) {
+            switch ($key) {
+                "Service General Setting" {
                     $Parameters = Write-GPOServiceINFData -Service $subkey -ServiceData $ini[$key][$subKey]
                     Context "Parameters $($Parameters.Name)" {    
                         It "Parses Service Data" {
@@ -345,17 +312,14 @@ Describe "GPtTempl.INF Data" {
                     }
                 }
 
-                "Registry Values"
-                {
+                "Registry Values" {
                     $Parameters = Write-GPORegistryINFData -Key $subkey -ValueData $ini[$key][$subKey]
                     Context "Parameters $($Parameters.Name)" {
                         It "Parses Registry Values" {
-                            If ($Parameters.CommentOut.IsPresent)
-                            {
+                            If ($Parameters.CommentOut.IsPresent) {
                                 Write-Host -ForegroundColor Green "This Resource was commented OUT for failure to adhere to Standards: Tests are Invalid"
                             }
-                            else
-                            {
+                            else {
                                 $Parameters.Type | Should -Be "RegistryPolicyFile"
                                 [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should -Be $false
                                 Test-Path -Path $Parameters.Parameters.Key -IsValid | Should -Be $true
@@ -368,8 +332,7 @@ Describe "GPtTempl.INF Data" {
                     }
                 }
 
-                "File Security"
-                {
+                "File Security" {
                     $Parameters = Write-GPOFileSecurityINFData -Path $subkey -ACLData $ini[$key][$subKey]
                     Context "Parameters $($Parameters.Name)" {
                         It "Parses File ACL Data" {
@@ -381,8 +344,7 @@ Describe "GPtTempl.INF Data" {
                     }
                 }
             
-                "Privilege Rights"
-                {
+                "Privilege Rights" {
                     $Parameters = Write-GPOPrivilegeINFData -Privilege $subkey -PrivilegeData $ini[$key][$subKey]
                     Context "Parameters $($Parameters.Name)" {
                         It "Parses Privilege Data" {
@@ -393,8 +355,7 @@ Describe "GPtTempl.INF Data" {
                     }
                 }
 
-                "Kerberos Policy"
-                {
+                "Kerberos Policy" {
                     $Parameters = Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
                     Context "Parameters $($Parameters.Name)" {
                         It "Parses Kerberos Data" {
@@ -406,8 +367,7 @@ Describe "GPtTempl.INF Data" {
                     }
                 }
             
-                "Registry Keys"
-                {
+                "Registry Keys" {
                     $Parameters = Write-GPORegistryACLINFData -Path $subkey -ACLData $ini[$key][$subKey]
                     
                     Context "Parameters $($Parameters.Name)" {
@@ -420,11 +380,9 @@ Describe "GPtTempl.INF Data" {
                     }
                 }
             
-                "System Access"
-                {
+                "System Access" {
                     $Parameters = Write-GPOSecuritySettingINFData -Key $subKey -SecurityData $ini[$key][$subkey]
-                    if ($Parameters -ne "")
-                    {
+                    if ($Parameters -ne "") {
                         Context "Parameters $($Parameters.Name)" {                        
                             It "Parses System Access Settings" {
                                 $Parameters.Type | Should -Be "SecuritySetting"
@@ -436,8 +394,7 @@ Describe "GPtTempl.INF Data" {
                     }
                 }
 
-                "Event Auditing"
-                {
+                "Event Auditing" {
 
                 }
             }
