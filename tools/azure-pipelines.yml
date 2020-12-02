@@ -40,11 +40,12 @@ jobs:
             $modules += @('PSScriptAnalyzer')
             Install-Module -Name $modules -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force -Verbose
       - task: PowerShell@2
-        displayName: Pester v5 unit tests
+        displayName: Pester unit tests
         inputs:
           pwsh: false
           targetType: inline
           script: |
+            Import-module -Name Pester -RequiredVersion 4.10.1 -Force
             Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
       - task: PublishTestResults@2
         condition: succeededOrFailed()

@@ -17,6 +17,11 @@ $SampleAuditCSV = Join-Path $script:SampleRoot "audit.csv"
 
 $Parsers = Get-ChildItem -Filter '*.ps1' -Path $script:ParsersRoot/GPO
 
+Write-Host "Pester version" -ForegroundColor Green
+Write-Host "--------------------"
+Write-Host "$(Import-Module Pester; Get-Module Pester | ForEach-Object Version)"
+Write-Host "`n"
+
 Write-Host "Parsers" -ForegroundColor Green
 Write-Host "--------------------"
 foreach ($p in $Parsers) { Write-Host $p.Name"`t" -NoNewline }
@@ -24,8 +29,8 @@ Write-Host "`n"
 
 Write-Host "Available DSC modules" -ForegroundColor Green
 Write-Host "--------------------"
-foreach ($m in (Get-DSCResource | % ModuleName | Select -Unique)) {
-    $r = Get-DSCResource -Module $m | % Name
+foreach ($m in (Get-DSCResource | ForEach-Object ModuleName | Select-Object -Unique)) {
+    $r = Get-DSCResource -Module $m | ForEach-Object Name
     Write-Host $m"`t("$r")"
 }
 Write-Host "`n"
