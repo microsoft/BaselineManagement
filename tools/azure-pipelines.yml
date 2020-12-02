@@ -45,7 +45,8 @@ jobs:
           pwsh: false
           targetType: inline
           script: |
-            Import-module -Name Pester -RequiredVersion 4.10.1 -Force
+            Get-Module Pester -listavailable
+            Import-module -Name Pester -MaximumVersion 4.100.0 -Force
             Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
       - task: PublishTestResults@2
         condition: succeededOrFailed()
