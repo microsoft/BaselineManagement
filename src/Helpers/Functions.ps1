@@ -314,6 +314,7 @@ Configuration $Name`n{`n`n`t
 "@
         }
         "ModuleImport" {
+            Write-Warning "Write-DSCString: ModuleImport"
             # Use this block to reset our Conflict Engine.
             $Script:GlobalConflictEngine = @{}
             $ModuleNotFound = @()
