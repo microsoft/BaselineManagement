@@ -21,7 +21,7 @@ jobs:
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/src/BaselineManagement.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer')
             Install-Module -Name $modules -Repository 'PSGallery' -Force -Verbose
-            Install-Module -Name Pester -RequiredVersion 4.10.0
+            Install-Module -Name Pester -RequiredVersion 4.10.0 -Force -AllowClobber -SkipPublisherCheck -Verbose
       - task: PowerShell@2
         displayName: Pester unit tests
         inputs:
