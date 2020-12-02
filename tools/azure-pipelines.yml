@@ -38,15 +38,15 @@ jobs:
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/src/BaselineManagement.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer')
-            Install-Module -Name $modules -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force -Verbose
+            Install-Module -Name $modules -Repository 'PSGallery' -Force -Verbose
+            Install-Module -Name Pester -RequiredVersion 4.10.0
       - task: PowerShell@2
         displayName: Pester unit tests
         inputs:
           pwsh: false
           targetType: inline
           script: |
-            Get-Module Pester -listavailable
-            Import-module -Name Pester -MaximumVersion 4.100.0 -Force
+            Import-module -Name Pester -RequiredVersion 4.10.0 -Force
             Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
       - task: PublishTestResults@2
         condition: succeededOrFailed()
