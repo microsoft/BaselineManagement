@@ -404,7 +404,7 @@ Function Write-GPORegistryINFData
         {
             $valueType = $Matches.1
             $value = $securityOption.value.option.getenumerator() | Where-Object {$_.value -eq $ValueData}
-            $resHash.$Name = $value
+            $resHash.$Name = $value.Name
         }
         else
         {
