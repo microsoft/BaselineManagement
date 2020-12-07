@@ -5,6 +5,7 @@
     <file src="__INPATHROOT__\src\BaselineManagement.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\BaselineManagement.psd1" />
     <file src="__INPATHROOT__\src\Helpers\Enumerations.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Helpers\Enumerations.ps1" />
     <file src="__INPATHROOT__\src\Helpers\Functions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Helpers\Functions.ps1" />
+    <file src="__INPATHROOT__\src\Helpers\SecurityOptionData.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Helpers\SecurityOptionData.psd1" />
     <file src="__INPATHROOT__\src\Parsers\GPO\ACL.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\ACL.ps1" />
     <file src="__INPATHROOT__\src\Parsers\GPO\Audit.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Audit.ps1" />
     <file src="__INPATHROOT__\src\Parsers\GPO\Envionment.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Envionment.ps1" />

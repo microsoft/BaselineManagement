@@ -42,18 +42,6 @@ jobs:
     pool:
       name: Package ES CodeHub Lab E
     steps:
-      - task: PowerShell@2
-        displayName: Stage module artifact
-        inputs:
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
-            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement -type Directory
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/src/* -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/ -Recurse
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/LICENSE -Recurse
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/README.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/README.md -Recurse
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/changelog.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/changelog.md -Recurse
       - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
         displayName: 'Component Detection'
         inputs:
