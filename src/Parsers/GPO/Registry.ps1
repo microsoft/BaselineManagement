@@ -382,7 +382,8 @@ Function Write-GPORegistryINFData
 
     # Loading SecurityOptionData (this file was copied from SecurityPolicyDSC module)
     $securityOptionData = Import-PowerShellDataFile (Join-Path $Helpers 'SecurityOptionData.psd1')
-    $securityOption = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Value -eq $Key}
+    $securityOptionRegistry = $securityOptionData.GetEnumerator() | Where-Object $_.Value.Section -eq 'Registry Values'}
+    $securityOption = $securityOptionRegistry | Where-Object {$_.Value.Value -eq $Key}
     $Name = $securityOption.Name
     if ($null -eq $Name) {
         throw "The GptTmpl.inf file contains an entry '$Key' in the Registry section that is an unknown value in the module file Helpers\SecurityOptionData.psd1."
@@ -398,18 +399,12 @@ Function Write-GPORegistryINFData
 
     Try
     {
+        # if valid data, lookup the name for the value used by securityoption resource
         if ($ValueData -match "^(\d),")
         {
             $valueType = $Matches.1
-            $values = ($ValueData -split "^\d,")[1]
-            $values = $values -replace '","', '&,'
-            $values = $values -split '(?=[^&]),'
-            for ($i = 0; $i -lt $values.count;$i++)
-            {
-                $values[$i] = $values[$i] -replace '&,', ","
-            }
-
-            $resHash.$Name = $values
+            $value = $securityOption.value.option.getenumerator() | Where-Object {$_.value -eq $ValueData}
+            $resHash.$Name = $value
         }
         else
         {
