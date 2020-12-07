@@ -1,4 +1,4 @@
-$Helpers = "$PsScriptRoot\..\Helpers\"
+$Helpers = "..\$PsScriptRoot\Helpers\"
 
 # Create a variable so we can set DependsOn values between passes.
 New-Variable -Name GlobalDependsOn -Value @() -Option AllScope -Scope Script -Force
