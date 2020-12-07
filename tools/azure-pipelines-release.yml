@@ -29,7 +29,10 @@ jobs:
           targetType: inline
           script: |
             Import-module -Name Pester -RequiredVersion 4.10.0 -Force
-            Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
+            $Pester = Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
+            if ($Pester.Failed -and 'Failed' -eq $Pester.Result) {
+              exit ($Pester.Failed.Count + $Pester.FailedBlocks.Count + $Pester.FailedContainers.Count) 
+            }
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
