@@ -73,7 +73,7 @@ jobs:
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/LICENSE -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/README.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/README.md -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/changelog.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/changelog.md -Recurse
-      - task: PublishPipelineArtifact@1
+      - task: PublishBuildArtifacts@1
         displayName: Publish artifact
         inputs:
           targetPath: '$(Build.ArtifactStagingDirectory)/BaselineManagement'
