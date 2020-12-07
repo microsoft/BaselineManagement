@@ -215,9 +215,6 @@ function ConvertFrom-GPO
             # GPTemp files are in INI format so this function converts it to a hashtable.
             $ini = Get-IniContent $GPTemplateINF.fullname
 
-            # Loading SecurityOptionData
-            $securityOptionData = Import-PowerShellDataFile (Join-Path $Helpers 'SecurityOptionData.psd1')
-
             # Loop through every heading.
             foreach ($key in $ini.Keys)
             {
@@ -233,13 +230,7 @@ function ConvertFrom-GPO
 
                         "Registry Values"
                         {
-                            $securityOption = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Value -eq $subkey}
-                            if ($securityOption) {
-                                    $ConfigString += Write-GPORegistryINFData -Name $securityOption.Name -ValueData $ini[$key][$subKey]
-                            }
-                            else {
-                                throw "The GptTmpl.inf file contains an entry '$subkey' in the Registry section that is an unknown value."
-                            }
+                            $ConfigString += Write-GPORegistryINFData -Key $subkey -ValueData $ini[$key][$subKey]
                         }
 
                         "File Security"

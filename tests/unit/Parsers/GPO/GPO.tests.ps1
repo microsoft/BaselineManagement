@@ -351,7 +351,7 @@ Describe "GPtTempl.INF Data" {
 
                 "Registry Values"
                 {
-                    $Parameters = Write-GPORegistryINFData -Name $subkey -ValueData $ini[$key][$subKey]
+                    $Parameters = Write-GPORegistryINFData -Key $subkey -ValueData $ini[$key][$subKey]
                     Context $Parameters.Name {
                         It "Parses Registry Values" {
                             If ($Parameters.CommentOut.IsPresent)

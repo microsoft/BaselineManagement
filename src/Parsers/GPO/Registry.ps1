@@ -1,3 +1,5 @@
+$Helpers = "$PsScriptRoot\..\Helpers\"
+
 # Create a variable so we can set DependsOn values between passes.
 New-Variable -Name GlobalDependsOn -Value @() -Option AllScope -Scope Script -Force
 $GlobalDependsOn = @()
@@ -364,12 +366,20 @@ Function Write-GPORegistryINFData
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$Name,
+        [string]$Key,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$ValueData
     )
+
+    # Loading SecurityOptionData
+    $securityOptionData = Import-PowerShellDataFile (Join-Path $Helpers 'SecurityOptionData.psd1')
+    $securityOption = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Value -eq $Key}
+    $Name = $securityOption.Name
+    if ($null -eq $Name) {
+        throw "The GptTmpl.inf file contains an entry '$Key' in the Registry section that is an unknown value in the module file Helpers\SecurityOptionData.psd1."
+    }
 
     $regHash = @{}
     $regHash.ValueType = "None"
@@ -408,7 +418,7 @@ Function Write-GPORegistryINFData
     }
             
     $regHash.ValueName = $Name
-    $regHash.Key = $Name
+    $regHash.Key = $Key
     if (!$regHash.Key.StartsWith("MACHINE"))
     {
         Write-Warning "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
