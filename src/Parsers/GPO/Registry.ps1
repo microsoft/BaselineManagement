@@ -375,7 +375,12 @@ Function Write-GPORegistryINFData
         [string]$ValueData
     )
 
-    # Loading SecurityOptionData
+    # Regsitry keys set by Security Policy (secedit.exe) should not be set directly
+    # The info from gpttmpl.inf is the path to the key and the data
+    # SecurityOption resource takes each setting by name, not path (so this is sort of a reverse of SecurityOption resource) 
+    # There is no need to use seperate entries per key, but it is the easiest to support at first
+
+    # Loading SecurityOptionData (this file was copied from SecurityPolicyDSC module)
     $securityOptionData = Import-PowerShellDataFile (Join-Path $Helpers 'SecurityOptionData.psd1')
     $securityOption = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Value -eq $Key}
     $Name = $securityOption.Name
@@ -383,13 +388,11 @@ Function Write-GPORegistryINFData
         throw "The GptTmpl.inf file contains an entry '$Key' in the Registry section that is an unknown value in the module file Helpers\SecurityOptionData.psd1."
     }
 
-    $regHash = @{}
-    $regHash.ValueType = "None"
-    $regHash.ValueName = ""
-    $regHash.ValueData = ""
-    $regHash.Key = ""
-    # TODO this likely will need additional types in the future
-    $regHash.TargetType = 'ComputerConfiguration'
+    # Create a hash table containing the DSC resource parameters
+
+    $resHash = @{}
+    $resHash.Name = $Name
+    $resHash.$Name = ""
 
     $CommentOUT = $false
 
@@ -406,7 +409,7 @@ Function Write-GPORegistryINFData
                 $values[$i] = $values[$i] -replace '&,', ","
             }
 
-            $regHash.ValueData = $values
+            $resHash.ValueData = $values
         }
         else
         {
@@ -415,30 +418,24 @@ Function Write-GPORegistryINFData
     }
     catch
     {
-        $regHash.ValueData = $null
+        $resHash.ValueData = $null
         continue    
     }
             
-    $regHash.ValueName = $Name
-    $regHash.Key = $Key
-    if (!$regHash.Key.StartsWith("MACHINE"))
+    if (!$Key.StartsWith("MACHINE"))
     {
         Write-Warning "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
         $CommentOUT = $true
     }
 
     $typeHash = @{"1" = "REG_SZ"; "7" = "REG_MULTI_SZ"; "4" = "REG_DWORD"; "3" = "REG_BINARY"}
-    if ($typeHash.ContainsKey($valueType))
-    {
-        $regHash.ValueType = $typeHash[$valueType]
-    }
-    else
+    if (!$typeHash.ContainsKey($valueType))
     {
         Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
         # Add this resource to the processing history.
-        Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityOption(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
+        Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityOption(INF): $(Join-Path -Path $resHash.Key -ChildPath $resHash.ValueName)" -ParsingError
         $CommentOUT = $true
     }
     
-    Write-DSCString -Resource -Name "SecurityOption(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type 'SecurityOption' -Parameters $regHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "SecurityOption(INF): $(Join-Path -Path $resHash.Key -ChildPath $resHash.ValueName)" -Type 'SecurityOption' -Parameters $resHash -CommentOUT:$CommentOUT
 }
