@@ -1,4 +1,5 @@
-$Helpers = "..\$PsScriptRoot\Helpers\"
+$ModuleRoot = (Resolve-Path $PsScriptRoot).Path | ForEach-Object {$_.Parent} | ForEach-Object {$_.FullName}
+$Helpers = Join-Path $ModuleRoot 'Helpers'
 
 # Create a variable so we can set DependsOn values between passes.
 New-Variable -Name GlobalDependsOn -Value @() -Option AllScope -Scope Script -Force
