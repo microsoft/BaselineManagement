@@ -233,9 +233,9 @@ function ConvertFrom-GPO
 
                         "Registry Values"
                         {
-                            if ($securityOptionData[$subkey]) {
-                                $securityOptionName = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Value -eq $subkey}
-                                $ConfigString += Write-GPORegistryINFData -Key $securityOptionName -ValueData $ini[$key][$subKey]
+                            $securityOptionName = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Value -eq $subkey}
+                            if ($securityOptionName) {
+                                    $ConfigString += Write-GPORegistryINFData -Key $securityOptionName -ValueData $ini[$key][$subKey]
                             }
                             else {
                                 throw "The GptTmpl.inf file contains an entry '$subkey' in the Registry section that is an unknown value."
