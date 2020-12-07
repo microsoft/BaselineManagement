@@ -234,7 +234,7 @@ function ConvertFrom-GPO
                         "Registry Values"
                         {
                             if ($securityOptionData[$subkey]) {
-                                $securityOptionName = $securityOptionData[$subkey].value
+                                $securityOptionName = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Value -eq $subkey}
                                 $ConfigString += Write-GPORegistryINFData -Key $securityOptionName -ValueData $ini[$key][$subKey]
                             }
                             else {
