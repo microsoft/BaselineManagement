@@ -363,7 +363,6 @@ Describe "GPtTempl.INF Data" {
                                 $Parameters.Type | Should -Be "SecurityOption"
                                 [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
                                 [string]::IsNullOrEmpty($Parameters.Parameters.Name) | Should -Be $false
-                                [string]::IsNullOrEmpty($Parameters.Parameters.$($Parameters.Parameters.Name)) | Should -Be $false
                             }
                         }
                     }
