@@ -428,9 +428,9 @@ Function Write-GPORegistryINFData
     {
         Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
         # Add this resource to the processing history.
-        Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityOption(INF): $Name" -ParsingError
+        Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityRegistry(INF): $Name" -ParsingError
         $CommentOUT = $true
     }
     
-    Write-DSCString -Resource -Name "SecurityOption(INF): $Name" -Type 'SecurityOption' -Parameters $resHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "SecurityRegistry(INF): $Name" -Type 'SecurityOption' -Parameters $resHash -CommentOUT:$CommentOUT
 }
