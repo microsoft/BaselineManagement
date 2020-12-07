@@ -1,4 +1,5 @@
-$ModuleRoot = Get-Item $PsScriptRoot | ForEach-Object {$_.Parent} | ForEach-Object {$_.FullName}
+$ParsersRoot = Get-Item $PsScriptRoot | ForEach-Object {$_.Parent} | ForEach-Object {$_.FullName}
+$ModuleRoot = Get-Item $ParsersRoot | ForEach-Object {$_.Parent} | ForEach-Object {$_.FullName}
 $Helpers = Join-Path $ModuleRoot 'Helpers'
 
 # Create a variable so we can set DependsOn values between passes.
