@@ -382,7 +382,7 @@ Function Write-GPORegistryINFData
 
     # Loading SecurityOptionData (this file was copied from SecurityPolicyDSC module)
     $securityOptionData = Import-PowerShellDataFile (Join-Path $Helpers 'SecurityOptionData.psd1')
-    $securityOptionRegistry = $securityOptionData.GetEnumerator() | Where-Object $_.Value.Section -eq 'Registry Values'}
+    $securityOptionRegistry = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Section -eq 'Registry Values'}
     $securityOption = $securityOptionRegistry | Where-Object {$_.Value.Value -eq $Key}
     $Name = $securityOption.Name
     if ($null -eq $Name) {
