@@ -364,7 +364,7 @@ Function Write-GPORegistryINFData
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$Key,
+        [string]$Name,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -407,8 +407,8 @@ Function Write-GPORegistryINFData
         continue    
     }
             
-    $regHash.ValueName = $Key
-    $regHash.Key = $Key
+    $regHash.ValueName = $Name
+    $regHash.Key = $Name
     if (!$regHash.Key.StartsWith("MACHINE"))
     {
         Write-Warning "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
