@@ -234,7 +234,7 @@ function ConvertFrom-GPO
                         "Registry Values"
                         {
                             $securityOptionName = $securityOptionData | Where-Object {$_.Value -eq $subkey}
-                            $ConfigString += Write-GPORegistryINFData -Name $securityOptionName -ValueData $ini[$key][$subKey]
+                            $ConfigString += Write-GPORegistryINFData -Key $securityOptionName -ValueData $ini[$key][$subKey]
                         }
 
                         "File Security"
