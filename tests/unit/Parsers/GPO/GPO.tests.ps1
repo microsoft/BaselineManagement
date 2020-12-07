@@ -360,13 +360,12 @@ Describe "GPtTempl.INF Data" {
                             }
                             else
                             {
-                                $Parameters.Type | Should -Be "Security"
+                                $Parameters.Type | Should -Be "SecurityOption"
                                 [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should -Be $false
                                 Test-Path -Path $Parameters.Parameters.Key -IsValid | Should -Be $true
-                                # these tests applied when the type was using Registry/RegistryPolicy
-                                # $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string] }
-                                # ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should -Be $true
-                                # $Parameters.Parameters.ValueData | Should -BeOfType $TypeHash[$Parameters.Parameters.ValueType]
+                                $TypeHash = @{"REG_SZ" = "1"; "REG_MULTI_SZ" = "7"; "REG_DWORD" = "4"; "REG_BINARY" = "3"}
+                                ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should -Be $true
+                                $Parameters.Parameters.ValueData | Should -BeOfType $TypeHash[$Parameters.Parameters.ValueType]
                                 [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
                             }
                         }
