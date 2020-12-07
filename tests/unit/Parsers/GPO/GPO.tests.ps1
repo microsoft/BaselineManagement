@@ -20,7 +20,6 @@ $Parsers = Get-ChildItem -Filter '*.ps1' -Path $script:ParsersRoot/GPO
 Write-Host "Pester version" -ForegroundColor Green
 Write-Host "--------------------"
 Write-Host "$(Import-Module Pester -RequiredVersion 4.10.0; Get-Module Pester | ForEach-Object Version)"
-Write-Host "`n"
 
 Write-Host "Parsers" -ForegroundColor Green
 Write-Host "--------------------"
