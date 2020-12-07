@@ -409,7 +409,7 @@ Function Write-GPORegistryINFData
                 $values[$i] = $values[$i] -replace '&,', ","
             }
 
-            $resHash.ValueData = $values
+            $resHash.$Name = $values
         }
         else
         {
@@ -418,7 +418,7 @@ Function Write-GPORegistryINFData
     }
     catch
     {
-        $resHash.ValueData = $null
+        $resHash.$Name = $null
         continue    
     }
             
@@ -433,9 +433,9 @@ Function Write-GPORegistryINFData
     {
         Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
         # Add this resource to the processing history.
-        Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityOption(INF): $(Join-Path -Path $resHash.Key -ChildPath $resHash.ValueName)" -ParsingError
+        Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityOption(INF): $Name" -ParsingError
         $CommentOUT = $true
     }
     
-    Write-DSCString -Resource -Name "SecurityOption(INF): $(Join-Path -Path $resHash.Key -ChildPath $resHash.ValueName)" -Type 'SecurityOption' -Parameters $resHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "SecurityOption(INF): $Name" -Type 'SecurityOption' -Parameters $resHash -CommentOUT:$CommentOUT
 }
