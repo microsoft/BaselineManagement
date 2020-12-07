@@ -30,12 +30,7 @@ jobs:
           script: |
             Import-module -Name Pester -RequiredVersion 4.10.0 -Force
             $Pester = Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
-            "Pester results:"
-            $Pester
-            if ('Failed' -eq $Pester.Result) {
-              $FailedCount = $Pester.TotalCount - $Pester.PassedCount - $Pester.SkippedCount
-              exit $FailedCount
-            }
+            exit $Pester.FailedCount
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
