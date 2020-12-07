@@ -360,7 +360,7 @@ Describe "GPtTempl.INF Data" {
                             }
                             else
                             {
-                                $Parameters.Type | Should -Be "RegistryPolicyFile"
+                                $Parameters.Type | Should -Be "Security"
                                 [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should -Be $false
                                 Test-Path -Path $Parameters.Parameters.Key -IsValid | Should -Be $true
                                 $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string] }
