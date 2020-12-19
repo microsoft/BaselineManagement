@@ -1,3 +1,7 @@
+$ParsersRoot = Get-Item $PsScriptRoot | ForEach-Object {$_.Parent} | ForEach-Object {$_.FullName}
+$ModuleRoot = Get-Item $ParsersRoot | ForEach-Object {$_.Parent} | ForEach-Object {$_.FullName}
+$Helpers = Join-Path $ModuleRoot 'Helpers'
+
 # Create a variable so we can set DependsOn values between passes.
 New-Variable -Name GlobalDependsOn -Value @() -Option AllScope -Scope Script -Force
 $GlobalDependsOn = @()
@@ -371,30 +375,36 @@ Function Write-GPORegistryINFData
         [string]$ValueData
     )
 
-    $regHash = @{}
-    $regHash.ValueType = "None"
-    $regHash.ValueName = ""
-    $regHash.ValueData = ""
-    $regHash.Key = ""
-    # TODO this likely will need additional types in the future
-    $regHash.TargetType = 'ComputerConfiguration'
+    # Regsitry keys set by Security Policy (secedit.exe) should not be set directly
+    # The info from gpttmpl.inf is the path to the key and the data
+    # SecurityOption resource takes each setting by name, not path (so this is sort of a reverse of SecurityOption resource) 
+    # There is no need to use seperate entries per key, but it is the easiest to support at first
+
+    # Loading SecurityOptionData (this file was copied from SecurityPolicyDSC module)
+    $securityOptionData = Import-PowerShellDataFile (Join-Path $Helpers 'SecurityOptionData.psd1')
+    $securityOptionRegistry = $securityOptionData.GetEnumerator() | Where-Object {$_.Value.Section -eq 'Registry Values'}
+    $securityOption = $securityOptionRegistry | Where-Object {$_.Value.Value -eq $Key}
+    $Name = $securityOption.Name
+    if ($null -eq $Name) {
+        throw "The GptTmpl.inf file contains an entry '$Key' in the Registry section that is an unknown value in the module file Helpers\SecurityOptionData.psd1."
+    }
+
+    # Create a hash table containing the DSC resource parameters
+
+    $resHash = @{}
+    $resHash.Name = $Name
+    $resHash.$Name = ""
 
     $CommentOUT = $false
 
     Try
     {
+        # if valid data, lookup the name for the value used by securityoption resource
         if ($ValueData -match "^(\d),")
         {
             $valueType = $Matches.1
-            $values = ($ValueData -split "^\d,")[1]
-            $values = $values -replace '","', '&,'
-            $values = $values -split '(?=[^&]),'
-            for ($i = 0; $i -lt $values.count;$i++)
-            {
-                $values[$i] = $values[$i] -replace '&,', ","
-            }
-
-            $regHash.ValueData = $values
+            $value = $securityOption.value.option.getenumerator() | Where-Object {$_.value -eq $ValueData}
+            $resHash.$Name = $value.Name
         }
         else
         {
@@ -403,41 +413,24 @@ Function Write-GPORegistryINFData
     }
     catch
     {
-        $regHash.ValueData = $null
+        $resHash.$Name = $null
         continue    
     }
             
-    $KeyPath = $Key
-            
-    $ValueName = Split-Path -Leaf $KeyPath
-    $regHash.ValueName = $ValueName -replace "[^\u0020-\u007E]", ""
-    $regHash.Key = Split-Path -Parent $KeyPath
-    $regHash.Key = $regHash.Key -replace "MACHINE\\", "HKLM:\" 
-    if (!$regHash.Key.StartsWith("HKLM"))
+    if (!$Key.StartsWith("MACHINE"))
     {
         Write-Warning "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
         $CommentOUT = $true
     }
 
     $typeHash = @{"1" = "REG_SZ"; "7" = "REG_MULTI_SZ"; "4" = "REG_DWORD"; "3" = "REG_BINARY"}
-    if ($typeHash.ContainsKey($valueType))
-    {
-        $regHash.ValueType = $typeHash[$valueType]
-    }
-    else
+    if (!$typeHash.ContainsKey($valueType))
     {
         Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
         # Add this resource to the processing history.
-        Add-ProcessingHistory -Type 'RegistryPolicyFile' -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -ParsingError
+        Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityRegistry(INF): $Name" -ParsingError
         $CommentOUT = $true
     }
     
-    Update-RegistryHashtable $regHash
-    if ($regHash.ContainsKey("CommentOut"))
-    {
-        $CommentOUT = $true
-        $regHash.Remove("CommentOut")
-    }
-    
-    Write-DSCString -Resource -Name "Registry(INF): $(Join-Path -Path $regHash.Key -ChildPath $regHash.ValueName)" -Type 'RegistryPolicyFile' -Parameters $regHash -CommentOUT:$CommentOUT
+    Write-DSCString -Resource -Name "SecurityRegistry(INF): $Name" -Type 'SecurityOption' -Parameters $resHash -CommentOUT:$CommentOUT
 }

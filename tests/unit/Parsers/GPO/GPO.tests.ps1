@@ -17,6 +17,10 @@ $SampleAuditCSV = Join-Path $script:SampleRoot "audit.csv"
 
 $Parsers = Get-ChildItem -Filter '*.ps1' -Path $script:ParsersRoot/GPO
 
+Write-Host "Pester version" -ForegroundColor Green
+Write-Host "--------------------"
+Write-Host "$(Import-Module Pester -RequiredVersion 4.10.0; Get-Module Pester | ForEach-Object Version)"
+
 Write-Host "Parsers" -ForegroundColor Green
 Write-Host "--------------------"
 foreach ($p in $Parsers) {Write-Host $p.Name"`t" -NoNewline}
@@ -356,13 +360,9 @@ Describe "GPtTempl.INF Data" {
                             }
                             else
                             {
-                                $Parameters.Type | Should -Be "RegistryPolicyFile"
-                                [string]::IsNullOrEmpty($Parameters.Parameters.ValueName) | Should -Be $false
-                                Test-Path -Path $Parameters.Parameters.Key -IsValid | Should -Be $true
-                                $TypeHash = @{"Binary" = [string]; "Dword" = [int]; "ExpandString" = [string]; "MultiString" = [string]; "Qword" = [string]; "String" = [string] }
-                                ($Parameters.Parameters.ValueType -in @($TypeHash.Keys)) | Should -Be $true
-                                $Parameters.Parameters.ValueData | Should -BeOfType $TypeHash[$Parameters.Parameters.ValueType]
+                                $Parameters.Type | Should -Be "SecurityOption"
                                 [string]::IsNullOrEmpty($Parameters.Name) | Should -Be $false
+                                [string]::IsNullOrEmpty($Parameters.Parameters.Name) | Should -Be $false
                             }
                         }
                     }

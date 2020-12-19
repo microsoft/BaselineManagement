@@ -14,37 +14,28 @@ jobs:
       - task: PowerShell@2
         displayName: Install modules
         inputs:
+          pwsh: false
           targetType: inline
-          failOnStderr: false
-          errorActionPreference: silentlycontinue
+          failOnStderr: true
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/src/BaselineManagement.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer')
-            Install-Module -Name $modules -Force
-            Install-Module -Name 'Pester' -RequiredVersion '4.10.0' -AllowClobber -SkipPublisherCheck -Force
+            Install-Module -Name $modules -Repository 'PSGallery' -Force -Verbose
+            Install-Module -Name Pester -RequiredVersion 4.10.0 -Force -AllowClobber -SkipPublisherCheck -Verbose
       - task: PowerShell@2
-        enabled: 'true'
-        continueOnError: 'true'
-        displayName: Pester v4 unit tests
+        displayName: Pester unit tests
         inputs:
+          pwsh: false
           targetType: inline
           script: |
-            write-host "Environment details
-            write-host "...................."
-            write-host "PowerShell version: $($PSVersionTable | % PSVersion)"
-            import-module -name Pester -RequiredVersion '4.10.1'
-            $Pester = get-module 'Pester'
-            write-host "Pester version: $($Pester.Version)"
-            write-host `n
-            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/testResults.xml" -OutputFormat NUnitXml -PassThru
-            if ($Pester.FailedCount -gt 0) {
-              Exit "$($Pester.FailedCount)"
-            }
+            Import-module -Name Pester -RequiredVersion 4.10.0 -Force
+            $Pester = Invoke-Pester -outputformat 'nunitxml' -outputfile "testResults.xml" -passthru
+            exit $Pester.FailedCount
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: 'testResults.xml'
+          testResultsFiles: '**/testResults.xml'
         displayName: Publish test result
   - job: CodeSign
     dependsOn: Test
@@ -54,15 +45,15 @@ jobs:
       - task: PowerShell@2
         displayName: Stage module artifact
         inputs:
+          pwsh: true
           targetType: inline
           failOnStderr: true
           errorActionPreference: stop
           script: |
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement -type Directory
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/src -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/ -Recurse
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/LICENSE -Recurse
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/README.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/README.md -Recurse
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/changelog.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/changelog.md -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/LICENSE
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/README.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/README.md
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/changelog.md -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/BaselineManagement/changelog.md
       - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
         displayName: 'Component Detection'
         inputs:

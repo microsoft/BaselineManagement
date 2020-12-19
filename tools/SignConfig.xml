@@ -1,29 +1,30 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <SignConfigXML>
-  <job platform="" configuration="" dest="__OUTPATHROOT__" jobname="GuestConfiguration" approvers="migreene;nitingup;robreed">
-    <file src="__INPATHROOT__\src\BaselineManagement.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\BaselineManagement.psm1" />
-    <file src="__INPATHROOT__\src\BaselineManagement.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\BaselineManagement.psd1" />
-    <file src="__INPATHROOT__\src\Helpers\Enumerations.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Helpers\Enumerations.ps1" />
-    <file src="__INPATHROOT__\src\Helpers\Functions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Helpers\Functions.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\ACL.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\ACL.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Audit.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Audit.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Envionment.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Envionment.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Files.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Files.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Folders.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Folders.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Groups.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Groups.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\INI.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\INI.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\InternetSettings.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\InternetSettings.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\NetworkOptions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\NetworkOptions.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\PowerOptions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\PowerOptions.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Printers.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Printers.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\RegionalOptions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\RegionalOptions.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Registry.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Registry.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\ScheduledTasks.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\ScheduledTasks.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\SecuritySettings.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\SecuritySettings.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Services.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Services.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Shares.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Shares.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\Shortcuts.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\Shortcuts.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\StartMenu.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\StartMenu.ps1" />
-    <file src="__INPATHROOT__\src\Parsers\GPO\UserRightsAssignment.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\src\Parsers\GPO\UserRightsAssignment.ps1" />
+  <job platform="" configuration="" dest="__OUTPATHROOT__" jobname="BaselineManagement" approvers="migreene;nitingup;robreed">
+    <file src="__INPATHROOT__\src\BaselineManagement.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\BaselineManagement.psm1" />
+    <file src="__INPATHROOT__\src\BaselineManagement.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\BaselineManagement.psd1" />
+    <file src="__INPATHROOT__\src\Helpers\Enumerations.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Helpers\Enumerations.ps1" />
+    <file src="__INPATHROOT__\src\Helpers\Functions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Helpers\Functions.ps1" />
+    <file src="__INPATHROOT__\src\Helpers\SecurityOptionData.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Helpers\SecurityOptionData.psd1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\ACL.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\ACL.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Audit.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Audit.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Envionment.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Envionment.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Files.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Files.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Folders.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Folders.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Groups.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Groups.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\INI.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\INI.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\InternetSettings.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\InternetSettings.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\NetworkOptions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\NetworkOptions.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\PowerOptions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\PowerOptions.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Printers.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Printers.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\RegionalOptions.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\RegionalOptions.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Registry.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Registry.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\ScheduledTasks.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\ScheduledTasks.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\SecuritySettings.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\SecuritySettings.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Services.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Services.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Shares.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Shares.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\Shortcuts.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\Shortcuts.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\StartMenu.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\StartMenu.ps1" />
+    <file src="__INPATHROOT__\src\Parsers\GPO\UserRightsAssignment.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Parsers\GPO\UserRightsAssignment.ps1" />
   </job>
 </SignConfigXML>
