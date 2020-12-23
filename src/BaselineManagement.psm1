@@ -41,7 +41,10 @@ function ConvertFrom-GPO
         [switch]$ShowPesterOutput,
 
         # Specifies the name of the Configuration to create
-        [string]$ConfigName = 'DSCFromGPO'
+        [string]$ConfigName = 'DSCFromGPO',
+
+        # Return file system details rather than object
+        [switch]$PassThru
     )
 
     Begin
@@ -596,15 +599,30 @@ function ConvertFrom-GPO
         {
             if ($OutputConfigurationScript)
             {
-                Get-Item $Scriptpath
+                $ConfigurationScript = Get-Item $Scriptpath
             }
 
-            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof") -ErrorAction SilentlyContinue
+            $Configuration = Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof") -ErrorAction SilentlyContinue
+        
+            if ($PassThru) {
+                $files = @()
+                $files += $Configuration,$ConfigurationScript
+                return $files
+            }
+            else {
+                $return = New-Object -TypeName PSObject -Property @{
+                    Name                = $ConfigName
+                    Configuration       = $Configuration
+                    ConfigurationScript = $ConfigurationScript
+                }
+                return $return
+            }
         }
         else
         {
             Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ConfigName.ps1.error")
         }
+
     }
 }
 

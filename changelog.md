@@ -1,5 +1,9 @@
 # Change Log for BaselineManagement module
 
+## v3.1.0
+
+- ConvertFrom-GPO: Update to return object with properties organizing information about what has been output
+- ConvertFrom-GPO: Add 'PassThru' parameter to to retain previous outputbehavior if desired
 ## v3.0.0
 
 - refactored to remove support for formats other than Group Policy
