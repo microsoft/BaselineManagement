@@ -33,14 +33,14 @@ Function Write-GPOInternetSettingsXMLData
         "HKEY_CURRENT_USER"
         {
             $regHash.Key = Join-Path -Path "HKCU:" -ChildPath $XML.Key
-            Write-Warning "Write-GPOInternetSettingsXMLData: CurrentUser settings are not currently supported"
+            Write-Verbose "Write-GPOInternetSettingsXMLData: CurrentUser settings are not currently supported"
             $CommentOut = $true
         }
     }
 
     if ($XML.defaultValue)
     {
-        Write-Warning "Write-GPOInternetSettingsXMLData: Registry Default Values and User BitField masks are not yet supported"
+        Write-Verbose "Write-GPOInternetSettingsXMLData: Registry Default Values and User BitField masks are not yet supported"
         $CommentOUT = $true
     }
 

@@ -164,7 +164,7 @@ Function Write-GPOGlobalPowerOptionsXMLData
         [System.Xml.XmlElement]$XML    
     )
 
-    Write-Warning "Write-GPOGlobalPowerOptionsXMLData: Unsure of how to implement these flags as it is not specified which plan they should apply to."
+    Write-Verbose "Write-GPOGlobalPowerOptionsXMLData: Unsure of how to implement these flags as it is not specified which plan they should apply to."
     Add-ProcessingHistory -Type GlobalPowerOptions -Name "$($XML.Properties.Name)" -ParsingError
 }
 
@@ -237,7 +237,7 @@ Function Write-GPOPowerSchemeXMLData
         [System.Xml.XmlElement]$XML    
     )
     
-    Write-Warning "Write-GPOPowerSchemeXMLData: PowerScheme options are not fully implemented in DSC resource"
+    Write-Verbose "Write-GPOPowerSchemeXMLData: PowerScheme options are not fully implemented in DSC resource"
 
     $powerHash = @{}
     $powerHash.PlanGUID = $Properties.name
