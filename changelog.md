@@ -1,5 +1,8 @@
 # Change Log for BaselineManagement module
 
+## v3.1.1
+
+- Minor fix across modules so messages are written to verbose stream rather than warning stream, unless they are warnings
 ## v3.1.0
 
 - ConvertFrom-GPO: Update to return object with properties organizing information about what has been output
