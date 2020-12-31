@@ -25,6 +25,7 @@ function ConvertFrom-GPO
     param
     (
         # This is the Path of the GPO Backup Directory.
+        [Alias('BackupDirectory')]
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
         [String]$Path,
 
@@ -41,6 +42,7 @@ function ConvertFrom-GPO
         [switch]$ShowPesterOutput,
 
         # Specifies the name of the Configuration to create
+        [Alias('DisplayName')]
         [string]$ConfigName = 'DSCFromGPO',
 
         # Return file system details rather than object
@@ -54,6 +56,12 @@ function ConvertFrom-GPO
 
         # Start tracking Processing History.
         Clear-ProcessingHistory
+
+        # If ConfigName was passed from a GPO Backup, it might contain spaces
+        if ($ConfigName -contains ' ') {
+            $ConfigName = $ConfigName -replace ' ',''
+            Write-Warning "ConvertFrom-GPO: removed spaces from configuration name $ConfigName"
+        }
 
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
@@ -77,7 +85,7 @@ function ConvertFrom-GPO
             return
         }
 
-        Write-Host "Gathering GPO Data from $resolvedPath"
+        Write-Verbose "Gathering GPO Data from $resolvedPath"
 
         $polFiles = Get-ChildItem -Path $Path -Filter registry.pol -Recurse
 
