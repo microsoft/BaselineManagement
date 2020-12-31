@@ -320,7 +320,7 @@ Function Write-GPORegistryPOLData
     $CommentOUT = $false
     if ($Hive -eq "HKCU")
     {
-        Write-Warning "Write-GPORegistryPOLData: CurrentUser settings are currently not supported"
+        Write-Verbose "Write-GPORegistryPOLData: CurrentUser settings are currently not supported"
         $CommentOut = $true
     }
 
@@ -419,14 +419,14 @@ Function Write-GPORegistryINFData
             
     if (!$Key.StartsWith("MACHINE"))
     {
-        Write-Warning "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
+        Write-Verbose "Write-GPORegistryINFData: Current User Registry settings are not yet supported."
         $CommentOUT = $true
     }
 
     $typeHash = @{"1" = "REG_SZ"; "7" = "REG_MULTI_SZ"; "4" = "REG_DWORD"; "3" = "REG_BINARY"}
     if (!$typeHash.ContainsKey($valueType))
     {
-        Write-Warning "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
+        Write-Verbose "Write-GPORegistryINFData: $($values[0]) ValueType is not yet supported"
         # Add this resource to the processing history.
         Add-ProcessingHistory -Type 'SecurityOption' -Name "SecurityRegistry(INF): $Name" -ParsingError
         $CommentOUT = $true
