@@ -583,7 +583,7 @@ function ConvertFrom-GPO
 
         if (!(Test-Path $OutputPath))
         {
-            mkdir $OutputPath
+            $NewOutputPath = New-Item $OutputPath -ItemType Directory -Force
         }
 
         # If the switch was specified, output a Configuration PS1 regardless of success or failure.
