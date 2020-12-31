@@ -58,7 +58,7 @@ function ConvertFrom-GPO
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add required modules
-        Write-Warning "CALL Write-DSCString: $NeededModules"
+        Write-Verbose "CALL Write-DSCString: $NeededModules"
         $ConfigString += Write-DSCString -ModuleImport -ModuleName $NeededModules
         # Add node data
         $configString += Write-DSCString -Node -Name $ComputerName

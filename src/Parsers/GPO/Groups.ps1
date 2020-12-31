@@ -13,7 +13,7 @@ Function Write-GPOGroupsXMLData
 
     if (($Properties.removeAllAccounts) -or ($Properties.deleteAllUsers) -or ($Properties.deleteAllGroups))
     {
-        Write-Warning "Write-GPOGroupsXMLData: Deleting all users or groups en masse is not supported"
+        Write-Verbose "Write-GPOGroupsXMLData: Deleting all users or groups en masse is not supported"
         Add-ProcessingHistory -Type Group -Name "GroupsXML: $($Properties.GroupName)" -ParsingError
     }
     

@@ -10,7 +10,7 @@ Function Write-GPORegionalOptionsXMLData
     )
     $Properties = $XML.Properties
     
-    Write-Warning "Write-GPORegionalOptionsXMLData: Setting anything other than localeID is not yet supported"
+    Write-Verbose "Write-GPORegionalOptionsXMLData: Setting anything other than localeID is not yet supported"
 
     if ($Properties.localeID -ne $null)
     {

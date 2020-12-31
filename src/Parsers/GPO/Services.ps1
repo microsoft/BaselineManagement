@@ -31,7 +31,7 @@ Function Write-GPONTServicesXMLData
 
         Default
         {
-            Write-Warning "Write-GPONTServicesXMLData:$_ Service Action is not yet supoported."
+            Write-Verbose "Write-GPONTServicesXMLData:$_ Service Action is not yet supoported."
             Add-ProcessingHistory -Name "Services(XML): $($Properties.serviceName)" -Type Service -ParsingError
         }
     }
@@ -50,7 +50,7 @@ Function Write-GPONTServicesXMLData
         
         Default
         {
-            Write-Warning "Write-GPONTServicesXMLData:$_ StartupType is not yet supoported."
+            Write-Verbose "Write-GPONTServicesXMLData:$_ StartupType is not yet supoported."
             Add-ProcessingHistory -Name "Services(XML): $($Properties.serviceName)" -Type Service -ParsingError
         }
     }
@@ -69,14 +69,14 @@ Function Write-GPONTServicesXMLData
 
         Default
         {
-            Write-Warning "Write-GPONTServicesXMLData: Alternate Credentials ($_) are not yet supoported."
+            Write-Verbose "Write-GPONTServicesXMLData: Alternate Credentials ($_) are not yet supoported."
             Add-ProcessingHistory -Name "Services(XML): $($Properties.serviceName)" -Type Service -ParsingError
         }
     }
 
     if ($Properties.firstFailure -or $Properties.thirdFailure -or $Properties.secondFailure -or $Properties.resetFailCountDelay -or $Properties.restartServiceDelay)
     {
-        Write-Warning "Write-GPONTServicesXMLData: Recovery options are only supported by Carbon_Service DSC resource."
+        Write-Verbose "Write-GPONTServicesXMLData: Recovery options are only supported by Carbon_Service DSC resource."
         $recoveryAction = @{"START"="RESTART";"STOP"="TAKENOACTION";"RESTART"="Reboot";"NOACTION"="TAKENOACTION";"RESTART_IF_REQUIRED"="RESTART"}
         if ($Properties.firstFailure) { $serviceHash.OnFirstFailure = $recoveryAction[$Properties.firstFailure] }
         if ($Properties.secondFailure) { $serviceHash.OnSecondFailure = $recoveryAction[$Properties.secondFailure] }

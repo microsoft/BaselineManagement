@@ -82,7 +82,7 @@ Function Test-Conflicts {
         }
     }
     else {
-        Write-Warning "Write-DSCString: DSC resource ($Type) not found on System.  Please run the conversion again when the resource is available."
+        Write-Verbose "Write-DSCString: DSC resource ($Type) not found on System.  Please run the conversion again when the resource is available."
         $ResourceNotFound = $true
         $GlobalConflict = $true
     }
@@ -314,7 +314,7 @@ Configuration $Name`n{`n`n`t
 "@
         }
         "ModuleImport" {
-            Write-Warning "Write-DSCString: ModuleImport"
+            Write-Verbose "Write-DSCString: ModuleImport"
             # Use this block to reset our Conflict Engine.
             $Script:GlobalConflictEngine = @{}
             $ModuleNotFound = @()
@@ -324,7 +324,7 @@ Configuration $Name`n{`n`n`t
                     Import-module PSDesiredStateConfiguration -Force
                 }
 
-                Write-Warning "Write-DSCString: Checking module $m."
+                Write-Verbose "Write-DSCString: Checking module $m."
                 # Use Get-DSCResource to determine REQUIRED parameters to resource.
                 $resources = Get-DscResource -Module $m
                 if ($null -ne $resources) {
@@ -334,14 +334,14 @@ Configuration $Name`n{`n`n`t
                         $Script:GlobalConflictEngine[$r.Name] = @()
                         $tmpHash = @{}
                         $r.Properties.Where( { $_.IsMandatory }) | ForEach-Object {
-                            Write-Warning "Write-DSCString: Resource $($r.Name) added to tmpHash."
+                            Write-Verbose "Write-DSCString: Resource $($r.Name) added to tmpHash."
                             $tmpHash[$_.Name] = ""
                         }
                         $Script:GlobalConflictEngine[$r.Name] += $tmpHash
                     }
                 }
                 else {
-                    Write-Warning "Write-DSCString: Module ($m) not found on System.  Please run conversion again when the module is available."
+                    Write-Verbose "Write-DSCString: Module ($m) not found on System.  Please run conversion again when the module is available."
                     $ModuleNotFound += $m
                 }
             }
