@@ -16,7 +16,7 @@ Function Write-GPOSecuritySettingINFData
     $CommentOut = $false
     if ($Key -notin $SecuritySettings)
     {
-        Write-Warning "Write-InfSecuritySettingData:$Key is no longer supported or is not implemented"
+        Write-Verbose "Write-InfSecuritySettingData:$Key is no longer supported or is not implemented"
         Add-ProcessingHistory -Type SecuritySetting -Name "SecuritySetting(INF): $Key" -ParsingError
         return ""
     }
@@ -28,7 +28,7 @@ Function Write-GPOSecuritySettingINFData
     }
     elseif ($ValueData -eq -1)
     {
-        Write-Warning "Write-GPONewSecuritySettingData:$Key is set to -1 which means 'Not Configured'"
+        Write-Verbose "Write-GPONewSecuritySettingData:$Key is set to -1 which means 'Not Configured'"
         Add-ProcessingHistory -Type SecurityOption -Name "SecuritySetting(INF): $Key" -Disabled
         $CommentOut = $true
     }
@@ -64,7 +64,7 @@ Function Write-GPONewSecuritySettingINFData
     }
     else
     {
-        Write-Warning "Write-GPONewSecuritySettingData:$Key is no longer supported or is not implemented"
+        Write-Verbose "Write-GPONewSecuritySettingData:$Key is no longer supported or is not implemented"
         Add-ProcessingHistory -Type SecurityOption -Name "SecuritySetting(INF): $Key" -ParsingError
         return ""
     }
@@ -76,7 +76,7 @@ Function Write-GPONewSecuritySettingINFData
     }
     elseif ($ValueData -eq -1)
     {
-        Write-Warning "Write-GPONewSecuritySettingData:$Key is set to -1 which means 'Not Configured'"
+        Write-Verbose "Write-GPONewSecuritySettingData:$Key is set to -1 which means 'Not Configured'"
         Add-ProcessingHistory -Type SecurityOption -Name "SecuritySetting(INF): $Key" -Disabled
         $CommentOut = $true
     }

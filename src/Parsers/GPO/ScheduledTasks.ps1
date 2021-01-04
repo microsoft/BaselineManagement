@@ -205,7 +205,7 @@ Function Write-GPOScheduledTasksXMLData
                         if ($t.week)
                         {
                             # MUST be FIRST, SECOND, THIRD, FOURTH, or LAST to indicate the week position in the month when the task executes.
-                            Write-Warning "Write-GPOScheduledTaskXMLData: Week of Month interval is not supported in DSC Resource"
+                            Write-Verbose "Write-GPOScheduledTaskXMLData: Week of Month interval is not supported in DSC Resource"
                         }
                     }
                     'MONTHLY'
@@ -213,7 +213,7 @@ Function Write-GPOScheduledTasksXMLData
                         if ($t.months)
                         {
                             # BIT MASK: MUST map to the month in which a job will process. The field is a 12-bit mask with 1 assigned to January, 2 to February, 4 to March, 8 to April, 16 to May, 32 to June, 64 to July, 128 to August, 256 to September, 512 to October, 1024 to November, and 2048 to December.
-                            Write-Warning "Write-GPOScheduledTaskXMLData: MONTHS interval is not supported in DSC Resource"
+                            Write-Verbose "Write-GPOScheduledTaskXMLData: MONTHS interval is not supported in DSC Resource"
                         }
                     }
                 }
@@ -349,7 +349,7 @@ Function Write-GPOScheduledTasksXMLData
                 {
                     "(BootTrigger|EventTrigger|IdleTrigger|RegistrationTrigger|SessionStateChangeTrigger)"
                     {
-                        Write-Warning "Write-GPOScheduledTaskXMLData: $_ Trigger type is not yet suppported."
+                        Write-Verbose "Write-GPOScheduledTaskXMLData: $_ Trigger type is not yet suppported."
                         break
                     }
                     
@@ -384,7 +384,7 @@ Function Write-GPOScheduledTasksXMLData
 
                             Default
                             {
-                                Write-Warning "Write-GPOScheduledTaskXMLData:$_ Trigger Type is not supported."
+                                Write-Verbose "Write-GPOScheduledTaskXMLData:$_ Trigger Type is not supported."
                             }
                         }
                     }
@@ -508,7 +508,7 @@ Function Write-GPOScheduledTasksXMLData
 
         Default
         {
-            Write-Warning "Write-GPOScheduledTaskXMLData:$_ task type is not implemented"
+            Write-Verbose "Write-GPOScheduledTaskXMLData:$_ task type is not implemented"
         }
     }
 

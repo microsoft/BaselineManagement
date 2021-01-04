@@ -32,7 +32,7 @@ Function Write-GPOAuditCSVData
     $GUID = $Entry.'Subcategory GUID'.TrimStart("{").TrimEnd("}")
     if (!$AuditSubcategoryHash.ContainsKey($GUID))
     {
-        Write-Warning "Write-GPOAuditCSVData:$GUID ($($Entry.Subcategory)) is no longer supported or not implemented"
+        Write-Verbose "Write-GPOAuditCSVData:$GUID ($($Entry.Subcategory)) is no longer supported or not implemented"
         Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(GPO) $($Entry.SubCategory)" -ParsingError
         return ""
     }
@@ -136,7 +136,7 @@ Function Write-GPOAuditINFData
 
     if (!$AuditCategoryHash.ContainsKey($key))
     {
-        Write-Warning "Write-INFAuditData:$Key is no longer supported or not implemented"
+        Write-Verbose "Write-INFAuditData:$Key is no longer supported or not implemented"
         Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(INF) $($key)" -ParsingError
         return ""
     }
@@ -188,7 +188,7 @@ Function Write-GPOAuditINFData
 
             Default 
             {
-                Write-Warning "Write-GPOAuditINFData: $_ is not supported"
+                Write-Verbose "Write-GPOAuditINFData: $_ is not supported"
                 Add-ProcessingHistory -Type AuditPolicySubcategory -Name "EventAuditing(INF): $($key)" -ParsingError
             }
         }

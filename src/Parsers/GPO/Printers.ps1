@@ -22,7 +22,7 @@ Function Write-GPOPrintersXMLData
 
         "SharedPrinter"
         {
-            Write-Warning "Write-GPOPrinterXMLData: Mapping shared printers is not yet supported"
+            Write-Verbose "Write-GPOPrinterXMLData: Mapping shared printers is not yet supported"
             Add-ProcessingHistory -Type "SharedPrinter" -Name "$($Properties.Path)" -ParsingError
             # Should this be a Script resource?
         }
@@ -42,25 +42,25 @@ Function Write-GPOPrintersXMLData
 
     if ($Properties.Default)
     {
-        Write-Warning "Write-GPOPrinterXMLData: Setting default printers is not yet supported"
+        Write-Verbose "Write-GPOPrinterXMLData: Setting default printers is not yet supported"
         Add-ProcessingHistory -Type Printer -Name "Printers(XML): $($printerHash.Name)" -ParsingError
     }
 
     if ($Properties.DeleteAll)
     {
-        Write-Warning "Write-GPOPrinterXMLData: Deleting all shared/local printers is not yet supported"
+        Write-Verbose "Write-GPOPrinterXMLData: Deleting all shared/local printers is not yet supported"
         Add-ProcessingHistory -Type Printer -Name "Printers(XML): $($printerHash.Name)" -ParsingError
     }
 
     if ($Properties.UserName)
     {
-        Write-Warning "Write-GPOPrinterXMLData: Usernames are not yet supported"
+        Write-Verbose "Write-GPOPrinterXMLData: Usernames are not yet supported"
         Add-ProcessingHistory -Type Printer -Name "Printers(XML): $($printerHash.Name)" -ParsingError
     }
 
     if ($Properties.deleteMaps)
     {
-        Write-Warning "Write-GPOPrinterXMLData: Deleting all Printer Maps is not yet supported"
+        Write-Verbose "Write-GPOPrinterXMLData: Deleting all Printer Maps is not yet supported"
         Add-ProcessingHistory -Type Printer -Name "Printers(XML): $($printerHash.Name)" -ParsingError
     }
 

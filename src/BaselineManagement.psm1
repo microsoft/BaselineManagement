@@ -25,6 +25,7 @@ function ConvertFrom-GPO
     param
     (
         # This is the Path of the GPO Backup Directory.
+        [Alias('BackupDirectory')]
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
         [String]$Path,
 
@@ -41,7 +42,11 @@ function ConvertFrom-GPO
         [switch]$ShowPesterOutput,
 
         # Specifies the name of the Configuration to create
-        [string]$ConfigName = 'DSCFromGPO'
+        [Alias('DisplayName')]
+        [string]$ConfigName = 'DSCFromGPO',
+
+        # Return file system details rather than object
+        [switch]$PassThru
     )
 
     Begin
@@ -52,10 +57,16 @@ function ConvertFrom-GPO
         # Start tracking Processing History.
         Clear-ProcessingHistory
 
+        # If ConfigName was passed from a GPO Backup, it might contain spaces
+        if ($ConfigName -contains ' ') {
+            $ConfigName = $ConfigName -replace ' ',''
+            Write-Warning "ConvertFrom-GPO: removed spaces from configuration name $ConfigName"
+        }
+
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add required modules
-        Write-Warning "CALL Write-DSCString: $NeededModules"
+        Write-Verbose "CALL Write-DSCString: $NeededModules"
         $ConfigString += Write-DSCString -ModuleImport -ModuleName $NeededModules
         # Add node data
         $configString += Write-DSCString -Node -Name $ComputerName
@@ -74,7 +85,7 @@ function ConvertFrom-GPO
             return
         }
 
-        Write-Host "Gathering GPO Data from $resolvedPath"
+        Write-Verbose "Gathering GPO Data from $resolvedPath"
 
         $polFiles = Get-ChildItem -Path $Path -Filter registry.pol -Recurse
 
@@ -572,7 +583,7 @@ function ConvertFrom-GPO
 
         if (!(Test-Path $OutputPath))
         {
-            mkdir $OutputPath
+            $NewOutputPath = New-Item $OutputPath -ItemType Directory -Force
         }
 
         # If the switch was specified, output a Configuration PS1 regardless of success or failure.
@@ -596,15 +607,30 @@ function ConvertFrom-GPO
         {
             if ($OutputConfigurationScript)
             {
-                Get-Item $Scriptpath
+                $ConfigurationScript = Get-Item $Scriptpath
             }
 
-            Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof") -ErrorAction SilentlyContinue
+            $Configuration = Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ComputerName.mof") -ErrorAction SilentlyContinue
+        
+            if ($PassThru) {
+                $files = @()
+                $files += $Configuration,$ConfigurationScript
+                return $files
+            }
+            else {
+                $return = New-Object -TypeName PSObject -Property @{
+                    Name                = $ConfigName
+                    Configuration       = $Configuration
+                    ConfigurationScript = $ConfigurationScript
+                }
+                return $return
+            }
         }
         else
         {
             Get-Item $(Join-Path -Path $OutputPath -ChildPath "$ConfigName.ps1.error")
         }
+
     }
 }
 
