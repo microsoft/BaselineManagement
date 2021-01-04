@@ -4,7 +4,7 @@
 
 - Minor fix across modules so messages are written to verbose stream rather than warning stream, unless they are warnings
 - Add parameter aliases to align with BackUp-GPO cmdlet
-- Fix bug in CovnertFrom-GPO where "return" included output from "mkdir" command if output path did not already exist
+- Fix bug in ConvertFrom-GPO where "return" included output from "mkdir" command if output path did not already exist
 
 ## v3.1.0
 
