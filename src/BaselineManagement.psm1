@@ -62,7 +62,7 @@ function ConvertFrom-GPO
     Process
     {
         # If ConfigName was passed from a GPO Backup, it might contain spaces
-        if ($ConfigName -contains ' ') {
+        if ($ConfigName.ToCharArray() -contains ' ') {
             $ConfigName = $ConfigName -replace ' ',''
             Write-Warning "ConvertFrom-GPO: removed spaces from configuration name $ConfigName"
         }
