@@ -1,5 +1,9 @@
 # Change Log for BaselineManagement module
 
+## v3.1.2
+
+- ConvertFrom-GPO: Fix "valuefrompipeline" not implemented for ConfigName (by alias, to support piping from backup-gpo)
+
 ## v3.1.1
 
 - Minor fix across modules so messages are written to verbose stream rather than warning stream, unless they are warnings

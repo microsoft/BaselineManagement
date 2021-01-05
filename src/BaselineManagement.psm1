@@ -43,6 +43,7 @@ function ConvertFrom-GPO
 
         # Specifies the name of the Configuration to create
         [Alias('DisplayName')]
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [string]$ConfigName = 'DSCFromGPO',
 
         # Return file system details rather than object
