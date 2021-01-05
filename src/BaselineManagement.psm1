@@ -56,14 +56,16 @@ function ConvertFrom-GPO
         $NeededModules = 'GPRegistryPolicyDsc', 'AuditPolicyDSC', 'SecurityPolicyDSC'
 
         # Start tracking Processing History.
-        Clear-ProcessingHistory
+        Clear-ProcessingHistory 
+    }
 
+    Process
+    {
         # If ConfigName was passed from a GPO Backup, it might contain spaces
         if ($ConfigName -contains ' ') {
             $ConfigName = $ConfigName -replace ' ',''
             Write-Warning "ConvertFrom-GPO: removed spaces from configuration name $ConfigName"
         }
-
         # Create the Configuration String
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add required modules
@@ -71,10 +73,7 @@ function ConvertFrom-GPO
         $ConfigString += Write-DSCString -ModuleImport -ModuleName $NeededModules
         # Add node data
         $configString += Write-DSCString -Node -Name $ComputerName
-    }
 
-    Process
-    {
         $resolvedPath = $null
         Try
         {
