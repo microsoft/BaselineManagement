@@ -1,5 +1,9 @@
 # Change Log for BaselineManagement module
 
+## v3.1.4
+
+- ConvertFrom-GPO: Fix configname string evaluation for space characters
+
 ## v3.1.3
 
 - ConvertFrom-GPO: Fix bug where parameters are evaluated in "Begin" block using default value instead of pipeline input
