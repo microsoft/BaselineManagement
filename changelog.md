@@ -1,5 +1,16 @@
 # Change Log for BaselineManagement module
 
+## v4.0.0
+
+- BREAKING CHANGE
+- Merge-GPOs: Refactored to only allow local execution
+- Merge-GPOs: Fix error when processes local settings
+- Merge-GPOs: Return object from ConvertFrom-GPO
+- Merge-GPOs: Details about which policies were merged added to object returned rather than output to host
+- ShowPesterOutput: Ignores parsing error regarding RequireLogonToChangePassword which is ignored by Windows
+- ShowPesterOutput: Fix output count of parsing errors
+- ShowPesterOutput: Fix outputpath was not called by ConvertFrom-GPO
+
 ## v3.1.4
 
 - ConvertFrom-GPO: Fix configname string evaluation for space characters

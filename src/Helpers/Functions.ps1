@@ -606,10 +606,16 @@ Function Write-ProcessingHistory {
             }
 
             foreach ($Resource in $KeyPair.Value.Where( { $_.ParsingError })) {
-                It "Had No Parsing Errors: $($Resource.Name)" {
+                # According to the Group Policy open specification, this setting is ignored by Windows
+                if ($Resource.Name -ne 'SecuritySetting(INF): RequireLogonToChangePassword') {
+                    It "Had No Parsing Errors: $($Resource.Name)" {
                     $Resource.ParsingError | Should Be $false
+                    }
+                    $parsingerror++
                 }
-                $parsingerror++
+                else { 
+                    $successes++
+                }
             }
         } *>> $(Join-Path -Path $OutputPath -ChildPath "Summary.log")
 
@@ -650,10 +656,16 @@ Function Write-ProcessingHistory {
             }
 
             foreach ($Resource in $KeyPair.Value.Where( { $_.ParsingError })) {
-                It "Had No Parsing Errors: $($Resource.Name)" {
+                # According to the Group Policy open specification, this setting is ignored by Windows
+                if ($Resource.Name -ne 'SecuritySetting(INF): RequireLogonToChangePassword') {
+                    It "Had No Parsing Errors: $($Resource.Name)" {
                     $Resource.ParsingError | Should Be $false
+                    }
+                    $parsingerror++
                 }
-                $parsingerror++
+                else { 
+                    $successes++
+                }
             }
         }
     }
@@ -665,7 +677,7 @@ Function Write-ProcessingHistory {
         Write-Host "DISABLED: $disabled" -ForegroundColor Gray
         Write-Host "MISSING RESOURCES: $resourcenotfound" -ForegroundColor Yellow
         Write-Host "CONFLICTS: $conflict" -ForegroundColor Cyan
-        Write-Host "PARSING ERROR: $resourcenotfound" -ForegroundColor Red
+        Write-Host "PARSING ERROR: $parsingerror" -ForegroundColor Red
         Write-Host "______________________" -ForegroundColor White
         Write-Host "TOTAL: $($successes + $disabled + $conflict + $resourcenotfound + $parsingerror)" -ForegroundColor White
     }
@@ -709,8 +721,16 @@ Function Write-ProcessingHistory_NonPester {
         }
 
         foreach ($Resource in $KeyPair.Value.Where( { $_.ParsingError })) {
-            Write-Host "Parsing Error: $($Resource.Name)" -ForegroundColor Red
-            $parsingerror++
+            # According to the Group Policy open specification, this setting is ignored by Windows
+            if ($Resource.Name -ne 'SecuritySetting(INF): RequireLogonToChangePassword') {
+                It "Had No Parsing Errors: $($Resource.Name)" {
+                $Resource.ParsingError | Should Be $false
+                }
+                $parsingerror++
+            }
+            else { 
+                $successes++
+            }
         }
     }
 
@@ -720,7 +740,7 @@ Function Write-ProcessingHistory_NonPester {
     Write-Host "DISABLED: $disabled" -ForegroundColor Gray
     Write-Host "MISSING RESOURCES: $resourcenotfound" -ForegroundColor Yellow
     Write-Host "CONFLICTS: $conflict" -ForegroundColor Cyan
-    Write-Host "PARSING ERROR: $resourcenotfound" -ForegroundColor Red
+    Write-Host "PARSING ERROR: $parsingerror" -ForegroundColor Red
     Write-Host "______________________" -ForegroundColor White
     Write-Host "TOTAL: $($successes + $disabled + $conflict + $resourcenotfound + $parsingerror)" -ForegroundColor White
 }
