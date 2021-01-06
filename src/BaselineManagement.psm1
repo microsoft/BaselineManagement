@@ -26,7 +26,7 @@ function ConvertFrom-GPO
     (
         # This is the Path of the GPO Backup Directory.
         [Alias('BackupDirectory')]
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Path")]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [String]$Path,
 
         # Output Path that will default to an Output directory under the current Path.
@@ -43,7 +43,7 @@ function ConvertFrom-GPO
 
         # Specifies the name of the Configuration to create
         [Alias('DisplayName')]
-        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string]$ConfigName = 'DSCFromGPO',
 
         # Return file system details rather than object
@@ -64,12 +64,13 @@ function ConvertFrom-GPO
             Write-Warning "ConvertFrom-GPO: removed spaces from configuration name $ConfigName"
         }
         # Create the Configuration String
+        Write-Warning "Bound parameter: $($PSBoundparameters.Keys)"
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add required modules
         Write-Verbose "CALL Write-DSCString: $NeededModules"
         $ConfigString += Write-DSCString -ModuleImport -ModuleName $NeededModules
         # Add node data
-        $configString += Write-DSCString -Node -Name $ComputerName
+        $ConfigString += Write-DSCString -Node -Name $ComputerName
     }
 
     Process
