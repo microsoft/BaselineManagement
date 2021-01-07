@@ -1,5 +1,9 @@
 # Change Log for BaselineManagement module
 
+## v4.0.1
+
+- ConvertFrom-GPO minor fix to cleanup excess debug output
+
 ## v4.0.0
 
 - BREAKING CHANGE
