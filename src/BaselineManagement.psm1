@@ -64,7 +64,6 @@ function ConvertFrom-GPO
             Write-Warning "ConvertFrom-GPO: removed spaces from configuration name $ConfigName"
         }
         # Create the Configuration String
-        Write-Warning "Bound parameter: $($PSBoundparameters.Keys)"
         $ConfigString = Write-DSCString -Configuration -Name $ConfigName
         # Add required modules
         Write-Verbose "CALL Write-DSCString: $NeededModules"
