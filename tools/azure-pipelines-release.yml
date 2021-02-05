@@ -68,14 +68,14 @@ jobs:
           inlineOperation: |
             [
               {​​​​​
-                "KeyCode" : "$(KEYCODE)",
+                "KeyCode" : $(KEYCODE),
                 "OperationCode" : "SigntoolSign",
                 "Parameters" : {​​​​​
                   "OpusName" : "Microsoft",
                   "OpusInfo" : "http://www.microsoft.com",
                   "FileDigest" : "/fd \"SHA256\"",
                   "PageHash" : "/NPH",
-                  "TimeStamp" : "$(TIMESTAMP)"
+                  "TimeStamp" : $(TIMESTAMP)
                 }​​​​​,
                 "ToolName" : "sign",
                 "ToolVersion" : "1.0"
