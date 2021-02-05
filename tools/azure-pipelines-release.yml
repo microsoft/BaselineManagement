@@ -75,7 +75,7 @@ jobs:
                   "OpusInfo" : "http://www.microsoft.com",
                   "FileDigest" : "/fd \"SHA256\"",
                   "PageHash" : "/NPH",
-                  "TimeStamp" : $(TIMESTAMP)
+                  "TimeStamp" : "/tr \"$(TIMESTAMP)" /td sha256"
                 }​​​​​,
                 "ToolName" : "sign",
                 "ToolVersion" : "1.0"
