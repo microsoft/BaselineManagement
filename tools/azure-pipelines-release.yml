@@ -58,14 +58,36 @@ jobs:
         displayName: 'Component Detection'
         inputs:
           failOnAlert: true
-      - task: PkgESCodeSign@10
-        displayName: 'CodeSign'
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+        displayName: 'ESRP CodeSigning'
         inputs:
-          signConfigXml: '$(Build.SourcesDirectory)\tools\SignConfig.xml'
-          inPathRoot: '$(Build.SourcesDirectory)'
-          outPathRoot: '$(Build.ArtifactStagingDirectory)\BaselineManagement'
+        ConnectedServiceName: GuestConfigModuleSigning
+        FolderPath: '$(Build.ArtifactStagingDirectory))'
+        Pattern: '*.psd1;*.psm1'
+        signConfigType: inlineSignParams
+        inlineOperation: |
+          [
+            {​​​​​
+              "KeyCode" : "$(KEYCODE)",
+              "OperationCode" : "SigntoolSign",
+              "Parameters" : {​​​​​
+                "OpusName" : "Microsoft",
+                "OpusInfo" : "http://www.microsoft.com",
+                "FileDigest" : "/fd \"SHA256\"",
+                "PageHash" : "/NPH",
+                "TimeStamp" : "$(TIMESTAMP)"
+              }​​​​​,
+              "ToolName" : "sign",
+              "ToolVersion" : "1.0"
+            }​​​​​,
+            {​​​​​
+              "KeyCode" : "$(KEYCODE)",
+              "OperationCode" : "SigntoolVerify",
+              "Parameters" : {​​​​​}​​​​​,
+              "ToolName" : "sign",
+              "ToolVersion" : "1.0"
+            }​​​​​
+          ]
       - task: PublishPipelineArtifact@1
         displayName: Publish artifact
         inputs:
