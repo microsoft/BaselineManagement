@@ -62,13 +62,13 @@ jobs:
         displayName: 'ESRP CodeSigning'
         inputs:
           ConnectedServiceName: GuestConfigModuleSigning
-          FolderPath: '$(Build.ArtifactStagingDirectory))'
+          FolderPath: '$(Build.ArtifactStagingDirectory)'
           Pattern: '*.psd1;*.psm1'
           signConfigType: inlineSignParams
           inlineOperation: |
             [
               {​​​​​
-                "KeyCode" : $(KEYCODE),
+                "KeyCode" : "$(KEYCODE)",
                 "OperationCode" : "SigntoolSign",
                 "Parameters" : {​​​​​
                   "OpusName" : "Microsoft",
