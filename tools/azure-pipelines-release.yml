@@ -83,7 +83,6 @@ jobs:
               {​​​​​
                 "KeyCode" : "$(KEYCODE)",
                 "OperationCode" : "SigntoolVerify",
-                "Parameters" : {​​​​​}​​​​​,
                 "ToolName" : "sign",
                 "ToolVersion" : "1.0"
               }​​​​​
