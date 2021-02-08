@@ -69,10 +69,10 @@ jobs:
           signConfigType: inlineSignParams
           inlineOperation: |
             [
-              {​​​​​
+              {
                 "KeyCode": "CP-230012",
                 "OperationCode": "SigntoolSign",
-                "Parameters": {​​​​​
+                "Parameters": {
                   "OpusName": "Microsoft",
                   "OpusInfo": "http://www.microsoft.com",
                   "FileDigest": "/fd \"SHA256\"",
@@ -81,8 +81,8 @@ jobs:
                 }​​​​​,
                 "ToolName": "sign",
                 "ToolVersion": "1.0"
-              }​​​​​,
-              {​​​​​
+              },
+              {
                 "KeyCode": "CP-230012",
                 "OperationCode": "SigntoolVerify",
                 "Parameters": {},
