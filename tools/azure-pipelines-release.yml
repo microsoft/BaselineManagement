@@ -64,8 +64,8 @@ jobs:
           ConnectedServiceName: GuestConfigModuleSigning
           FolderPath: '$(Build.ArtifactStagingDirectory)'
           Pattern: |
-            **/*.psd1
-            **/*.psm1
+            *.psd1
+            *.psm1
           signConfigType: inlineSignParams
           inlineOperation: |
             [
