@@ -12,7 +12,7 @@
 RootModule = 'BaselineManagement.psm1'
 
 # Version number of this module.
-ModuleVersion = '4.0.1'
+ModuleVersion = '4.1.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ RequiredModules = @('GPRegistryPolicyParser','AuditPolicyDSC','SecurityPolicyDSC
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'ConvertFrom-GPO', 'ConvertTo-DSC', 'Merge-GPOs'
+FunctionsToExport = 'ConvertFrom-GPO', 'Merge-GPOs', 'Merge-GPOsfromOU'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 # CmdletsToExport = @()

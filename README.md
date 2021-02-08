@@ -13,7 +13,8 @@ This solution is built off [GPRegistryParser](https://github.com/PowerShell/GPRe
 This solution contains cmdlets for converting baselines into Desired State Configuration.
 
 - ConvertFrom-GPO - Converts from GPO Backups into DSC Configuration and accompanying MOF.
-- ConvertTo-DSC - "proxy" cmdlet that allows you to pass any of the baselines in and then automatically chooses the correct cmdlet for you.
+- Merge-GPOs - Discovers the result of all policies for a machine by querying WMI from inside the machine. and creates a single DSC script based on the order policies are applied, link, enforcement, and filtering.
+- Merge-GPOsFromOU - Discovers the result of all policies assigned at the scope of an OU, and creates a single DSC script based on the order policies are applied, link, and enforcement.
 
 All of the Cmdlets accept pipeline input and have accompanying help text and examples.
 

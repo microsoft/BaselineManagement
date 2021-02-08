@@ -789,4 +789,72 @@ function Merge-GPOs
     }
 }
 
-Export-ModuleMember -Function ConvertFrom-GPO, Merge-GPOs
+<#
+#>
+function Merge-GPOsFromOU
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    (
+        # Default to an Output directory under the current Path.
+        [string]
+        $Path = $(Join-Path $pwd.Path "Output"),
+
+        [string[]]
+        $OUDistinguishedName,
+
+        [Parameter()]
+        [switch]
+        $ShowPesterOutput,
+
+        [Parameter()]
+        [switch]
+        $OutputConfigurationScript
+    )
+
+    
+    foreach ($targetOU in $OUDistinguishedName) {
+    
+      $ou = Get-ADOrganizationalUnit -Identity $targetOU
+
+      # Remove spaces from ou names
+      $ouName = $ou.Name -replace '[\W]',''
+      $ouName = $ouName.subString(0,[System.Math]::Min(20, $ouName.Length))
+
+      # Create folder to store migration files
+      $ouFolder = New-Item -path (Join-Path $Path $ouName) -Type Directory -Force
+      
+      # Create one folder per OU that contains all GP backups
+      $backupFolder = New-Item -path (Join-Path $ouFolder 'backup') -Type Directory -Force
+
+      <#
+        Gets the list and order of policies that will be applied to objects in the OU.
+        The 'order' property does not change across OUs, but the object is returned in
+        the correct order that policies will be applied based on GP inheritance, whether
+        the link is enabled, and whether Enforce is enabled.
+
+        The Group Policy cmdlets have an issue in PowerShell 7 so calling in 5.1.
+      #>
+      $gpList = powershell.exe {Get-GPInheritance -Target $args[0] | ForEach-Object InheritedGpoLinks} -args $ou.DistinguishedName
+
+      # Backup (export) all policies inherited by this OU
+      # With folder names that enforce the order in which they should be applied
+      for($i = 0; $i -le $gpList.count-1; $i++){
+        $gp = $gpList[$i]
+        $gpDisplayName = $gp.DisplayName -replace '[\W]',''
+        $gpFolderName = $i.toString() + '_' + $gpDisplayName
+        $backupPath = New-Item (Join-Path $backupFolder $gpFolderName) -Type Directory -Force
+        $backup = Backup-GPO -guid $gp.gpoid.guid -path $backupPath
+      }
+
+      # Pipeline content end-to-end for migration
+      Get-ChildItem -Path $backupFolder -Directory -Filter "{*" -Recurse |
+      ForEach-Object FullName |
+      ConvertFrom-GPO -ConfigName $ouName `
+        -OutputPath (Join-Path $ouFolder 'output') `
+        -OutputConfigurationScript
+    }
+}
+
+Export-ModuleMember -Function ConvertFrom-GPO, Merge-GPOs, Merge-GPOsFromOU
