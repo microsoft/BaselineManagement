@@ -88,7 +88,7 @@ jobs:
                 "Parameters": {},
                 "ToolName": "sign",
                 "ToolVersion": "1.0"
-              }​​​​​
+              }
             ]
       - task: PublishPipelineArtifact@1
         displayName: Publish artifact
