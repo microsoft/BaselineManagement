@@ -413,8 +413,7 @@ Function Write-GPORegistryINFData
     }
     catch
     {
-        $resHash.$Name = $null
-        continue    
+        Write-Error "Unexpected value for setting $($resHash.$Name) with value $ValueData"
     }
             
     if (!$Key.StartsWith("MACHINE"))
