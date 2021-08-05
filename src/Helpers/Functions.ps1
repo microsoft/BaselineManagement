@@ -412,8 +412,8 @@ Configuration $Name`n{`n`n`t
             }
             $Tabs++
             foreach ($key in $Parameters.Keys) {
-                if ($Parameters[$key] -eq $null) {
-                    "WTF"  | out-null
+                if ($null -eq $Parameters[$key]) {
+                    Write-Error "The Write-DSCString command was called but the parameters block is missing a property name"
                 }
 
                 $DSCString += Write-DSCStringKeyPair -Key $key -Value $Parameters[$key] -Tabs $Tabs
