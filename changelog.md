@@ -1,5 +1,11 @@
 # Change Log for BaselineManagement module
 
+
+## v4.1.1
+
+- Fix issue where Registry INF settings did not return values
+- 
+
 ## v4.1.0
 
 - Adds Merge-GPOsFromOU command
