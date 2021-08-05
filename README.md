@@ -53,10 +53,10 @@ If you have any issues, please submit them and I will get to them as I am able :
 **BaselineManagement** is also available on the PowerShell gallery, where dependent modules are
 automatically installed:
 
-- GPRegistrPolicyParser
+- GPRegistryPolicyParser
 - SecurityPolicyDSC
 - AuditPolicyDSC
-- GPRegistrPolicyDSC
+- GPRegistryPolicyDSC
 
 To install the latest stable version, use the following command.
 
