@@ -404,7 +404,13 @@ Function Write-GPORegistryINFData
         {
             $valueType = $Matches.1
             $value = $securityOption.value.option.getenumerator() | Where-Object {$_.value -eq $ValueData}
-            $resHash.$Name = $value.Name
+            if ($null -ne $value.Name) {
+                $resHash.$Name = $value.Name
+            }
+            else {
+                Write-Error "The registry INF setting $($resHash.$Name) did not return a value"
+            }
+            
         }
         else
         {
