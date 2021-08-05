@@ -403,12 +403,12 @@ Function Write-GPORegistryINFData
         if ($ValueData -match "^(\d),")
         {
             $valueType = $Matches.1
-            $value = $securityOption.value.option.getenumerator() | Where-Object {$_.value -eq $ValueData}
-            if ($null -ne $value.Name) {
-                $resHash.$Name = $value.Name
+            $values = ($ValueData -split "^\d,")[1]
+            if ($null -ne $values) {
+                $resHash.$Name = $values
             }
             else {
-                Write-Error "The registry INF setting $($resHash.$Name) did not return a value"
+                Write-Error "The registry INF setting $$Name did not return a value"
             }
             
         }
@@ -419,7 +419,7 @@ Function Write-GPORegistryINFData
     }
     catch
     {
-        Write-Error "Unexpected value for setting $($resHash.$Name) with value $ValueData"
+        Write-Error "Unexpected value for setting $Name with value $ValueData"
     }
             
     if (!$Key.StartsWith("MACHINE"))
