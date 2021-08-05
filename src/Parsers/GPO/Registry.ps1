@@ -403,14 +403,17 @@ Function Write-GPORegistryINFData
         if ($ValueData -match "^(\d),")
         {
             $valueType = $Matches.1
-            $values = ($ValueData -split "^\d,")[1]
-            if ($null -ne $values) {
-                $resHash.$Name = $values
+            # this data is in format "type,values"
+            $valueFromData = ($ValueData -split "^\d,")[1]
+            # lookup value that securitypolicydsc is expecting, if it is prescribed
+            $value = $securityOption.value.option.getenumerator() | Where-Object {$_.value -eq $ValueData}
+            # if the psd1 file does not contain an Option to lookup, use the value from the INF
+            if ($null -ne $value) {
+                $resHash.$Name = $value.Name
             }
             else {
-                Write-Error "The registry INF setting $$Name did not return a value"
+                $resHash.$Name = $valueFromData
             }
-            
         }
         else
         {
