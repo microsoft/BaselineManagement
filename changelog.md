@@ -1,5 +1,36 @@
 # Change Log for BaselineManagement module
 
+## v4.1.0
+
+- Adds Merge-GPOsFromOU command
+
+## v4.0.1
+
+- ConvertFrom-GPO minor fix to cleanup excess debug output
+
+## v4.0.0
+
+- BREAKING CHANGE
+- Merge-GPOs: Refactored to only allow local execution
+- Merge-GPOs: Fix error when processes local settings
+- Merge-GPOs: Return object from ConvertFrom-GPO
+- Merge-GPOs: Details about which policies were merged added to object returned rather than output to host
+- ShowPesterOutput: Ignores parsing error regarding RequireLogonToChangePassword which is ignored by Windows
+- ShowPesterOutput: Fix output count of parsing errors
+- ShowPesterOutput: Fix outputpath was not called by ConvertFrom-GPO
+
+## v3.1.4
+
+- ConvertFrom-GPO: Fix configname string evaluation for space characters
+
+## v3.1.3
+
+- ConvertFrom-GPO: Fix bug where parameters are evaluated in "Begin" block using default value instead of pipeline input
+
+## v3.1.2
+
+- ConvertFrom-GPO: Fix "valuefrompipeline" not implemented for ConfigName (by alias, to support piping from backup-gpo)
+
 ## v3.1.1
 
 - Minor fix across modules so messages are written to verbose stream rather than warning stream, unless they are warnings
