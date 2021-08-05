@@ -15,6 +15,17 @@ This solution contains cmdlets for converting baselines into Desired State Confi
 
 All of the Cmdlets accept pipeline input and have accompanying help text and examples.
 
+## Known gaps in capability
+
+- **Security settings that are producing errors**
+  - Network_security_Configure_encryption_types_allowed_for_Kerberos: if multiple values are selected, the value will not resolve to a name and will produce an error. This will have to be resolved in SecurityPolicyDSC.
+  <br>[Issue tracked in SecurityPolicyDsc](https://github.com/dsccommunity/SecurityPolicyDsc/issues/167)
+  - Network_access_Restrict_clients_allowed_to_make_remote_calls_to_SAM: the format of the value for this setting is causing the MOF to not compile correctly. The only workaround for now is to not include the setting or manually set it in the MOF (if the correct value is known).
+  - Minimum_password_length_audit: this is a new setting that hasn't been mapped yet in SecurityPolicyDsc.
+  <br>[Issue tracked in SecurityPolicyDsc](https://github.com/dsccommunity/SecurityPolicyDsc/issues/166)
+
+- **Not all Group Policy settings have DSC resources, or parsers**
+  - Some are tracked in the Issues list but it is likely there are many edge cases not yet covered.
 ## Description
 
 The included cmdlets convert baselines into a Desired State Configuration `.mof` file and, optionally, a `.ps1` file.
